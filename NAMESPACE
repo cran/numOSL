@@ -1,0 +1,2 @@
+useDynLib(numOSL)
+exportPattern("^[^\\.]")
