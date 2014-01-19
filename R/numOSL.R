@@ -6,7 +6,7 @@
 ###     Written by Peng Jun.
 ###
 ###     This file is the R scripts (all R functions) for package numOSL.
-###     ??? URL: http://CRAN.R-project.org/package=RadialPlotter
+###     URL: http://CRAN.R-project.org/package=numOSL
 ### 
 ###     The numOSL package is free software: you can redistribute it  
 ###     or modify it under the terms of the GNU General Public License as 
@@ -1561,7 +1561,7 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
 ### Function decompc() is used to decompose OSL signal curve (with a constant subtracted),
 ### either type "CW" or "LM" can be analyzed.
 ###
-###      Author: Peng Jun, 2013.12.16.
+###      Author: Peng Jun, 2013.12.16; revised in 2014.01.04.
 ###
 ###  References: Bluszcz, A., 1996. Exponential function fitting to TL growth data and similar
 ###              applications. Geochronometria 13, 135–141.
@@ -1577,18 +1577,16 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
 ###     Sigdata: a dataframe, OSL decay curve (two columns).
 ### ********************************************************************************************************
 decompc<-
-function(Sigdata,ncomp=3,typ=c("cw","lm"),
-         control.args=list(),transf=FALSE,
-         LEDpower=60,LEDwavelength=470,plot=TRUE,
-         xlog=TRUE,lwd=3,samplename=NULL,outfile=NULL) {
+function(Sigdata,ncomp=2,typ=c("cw","lm"),
+         control.args=list(),LEDpower=60,LEDwavelength=470,
+         plot=TRUE,xlog=TRUE,lwd=3,samplename=NULL,outfile=NULL) {
   UseMethod("decompc")
 } ###
 ### default method for function decompc().
 decompc.default<-
-function(Sigdata,ncomp=3,typ=c("cw","lm"),
-         control.args=list(),transf=FALSE,
-         LEDpower=60,LEDwavelength=470,plot=TRUE,
-         xlog=TRUE,lwd=3,samplename=NULL,outfile=NULL) {
+function(Sigdata,ncomp=2,typ=c("cw","lm"),
+         control.args=list(),LEDpower=60,LEDwavelength=470,
+         plot=TRUE,xlog=TRUE,lwd=3,samplename=NULL,outfile=NULL) {
   ### stop if not
   ###
   ### For argument "Sigdata"
@@ -1641,10 +1639,6 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
   if(!all(names(control.args) %in% 
      list("factor","f","cr",
           "maxiter","tol")))              stop("Error: incorrect parameter in control.args!")
-  ###
-  ### For argument "transf"
-  if(!is.logical(transf))                 stop("Error: transf must be of type logical!")
-  if(length(transf)!=1L)                  stop("Error: transf must be an one-element vector!")
   ###
   ### For argument "LEDpower"
   if(!is.numeric(LEDpower))               stop("Error: LEDpower must be of type numeric!")
@@ -1757,8 +1751,8 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
     ### Call Fortran subroutine decomp_C()
     res<-.Fortran("decomp_C",as.integer(ncomp),as.double(tim),as.double(sig),
           as.integer(ntim),pars=as.double(pars),Stdpars=as.double(Stdpars),
-          value=as.double(value),transf=as.integer(transf),predtval=as.double(predtval),
-          as.integer(factor),as.double(f),as.double(cr),as.integer(maxiter),as.double(tol),
+          value=as.double(value),predtval=as.double(predtval),as.integer(factor),
+          as.double(f),as.double(cr),as.integer(maxiter),as.double(tol),
           errorflag=as.integer(errorflag),package="numOSL")
     ### Error checking
     if(all(res$pars<0.0))  {
@@ -1770,7 +1764,7 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
     ### Call Fortran subroutine fitlm()
     res<-.Fortran("fitlm_C",as.integer(ncomp),as.double(tim),as.double(sig),as.integer(ntim),
           pars=as.double(pars),Stdpars=as.double(Stdpars),value=as.double(value),predtval=as.double(predtval),
-          transf=as.integer(transf),errorflag=as.integer(errorflag),package="numOSL")
+          errorflag=as.integer(errorflag),package="numOSL")
     ### Error checking
     if(all(res$pars<0.0)) {
       stop(paste("Error: signal can not be decomposed to",ncomp,"components!"))
@@ -1813,17 +1807,11 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
   } # end if
   ###
   ### Calculate signal values for each component
-  if(transf==FALSE) {
-    CompSig<-apply(cbind(pars[,1L], pars[,3L]), MARGIN=1L,
-             function(x) if(typ=="cw") x[1L]*exp(-x[2L]*tim) else 
-             x[1L]*(tim/max(tim))*exp(-x[2L]*tim^2/2L/max(tim)))
-    SigProp<-(pars[,1L]/pars[,3L])/sum(pars[,1L]/pars[,3L])
-  } else if(transf==TRUE) {
-    CompSig<-apply(cbind(pars[,1L], pars[,3L]), MARGIN=1L,
-             function(x) if(typ=="cw") x[1L]*x[2L]*exp(-x[2L]*tim) else 
-             x[1L]*x[2L]*(tim/max(tim))*exp(-x[2L]*tim^2/2L/max(tim)))
-    SigProp<-pars[,1L]/sum(pars[,1L])
-  } # end if
+  CompSig<-apply(cbind(pars[,1L], pars[,3L]), MARGIN=1L,
+                 function(x) if(typ=="cw") x[1L]*x[2L]*exp(-x[2L]*tim) else 
+                 x[1L]*x[2L]*(tim/max(tim))*exp(-x[2L]*tim^2/2L/max(tim)))
+  SigProp<-pars[,1L]/sum(pars[,1L])
+  ###
   if(typ=="cw") {
     CompSig<-cbind(res$predtval, CompSig, constant[1L])
   } else if (typ=="lm") {
@@ -1854,23 +1842,14 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
       ### For signal table (CW)
       x<-seq(min(tim),max(tim),by=(max(tim)-min(tim))/ntim/2L)
     } # end if
-    ### If the model has been transfomed?
-    if(transf==FALSE) {
-      if(typ=="cw") {
-        lines(x, eval(parse(text=paste("pars[",1:ncomp,",1]*exp(-pars[",1:ncomp,",3]*x)",collapse="+",sep="")))+constant[1L], 
-              lwd=lwd, col="black", lty="solid")
-      } else if(typ=="lm") {
-        lines(x,eval(parse(text=paste("pars[",1:ncomp,",1]*(x/max(tim))*exp(-pars[",1:ncomp,",3]*x^2/2/max(tim))",collapse="+",sep="")))+constant[1L]*x/max(tim), 
-              lwd=lwd, col="black", lty="solid")
-      } # end if
-    } else if(transf==TRUE) {
-      if(typ=="cw") {
-        lines(x, eval(parse(text=paste("pars[",1:ncomp,",1]*pars[",1:ncomp,",3]*exp(-pars[",1:ncomp,",3]*x)",collapse="+",sep="")))+constant[1L], 
-              lwd=lwd, col="black", lty="solid")
-      } else if(typ=="lm") {
-        lines(x,eval(parse(text=paste("pars[",1:ncomp,",1]*pars[",1:ncomp,",3]*(x/max(tim))*exp(-pars[",1:ncomp,",3]*x^2/2/max(tim))",collapse="+",sep="")))+constant[1L]*x/max(tim), 
-              lwd=lwd, col="black", lty="solid")
-      } # end if
+    ### 
+    ###
+    if(typ=="cw") {
+      lines(x, eval(parse(text=paste("pars[",1:ncomp,",1]*pars[",1:ncomp,",3]*exp(-pars[",1:ncomp,",3]*x)",collapse="+",sep="")))+constant[1L], 
+            lwd=lwd, col="black", lty="solid")
+    } else if(typ=="lm") {
+      lines(x,eval(parse(text=paste("pars[",1:ncomp,",1]*pars[",1:ncomp,",3]*(x/max(tim))*exp(-pars[",1:ncomp,",3]*x^2/2/max(tim))",collapse="+",sep="")))+constant[1L]*x/max(tim), 
+            lwd=lwd, col="black", lty="solid")
     } # end if
     ### 
     ### Add constant as back counts
@@ -1879,22 +1858,15 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
     } else if(typ=="lm") {
       points(tim, constant[1L]*tim/max(tim), type="l", lty="dashed", lwd=lwd)
     } # end if
+    ###
     ### Lines Time .VS. Component signal (1 to ncomp)
     for(i in 1L:ncomp) {
-      if(transf==FALSE) {
-        if(typ=="cw") {
-          curve(pars[i,1L]*exp(-pars[i,3L]*x), lwd=lwd, col=colors[i], lty= "solid", add=TRUE)
-        } else if(typ=="lm") {
-          curve(pars[i,1L]*(x/max(tim))*exp(-pars[i,3L]*x^2/2L/max(tim)), lwd=lwd, col=colors[i], lty= "solid", add=TRUE)
-        } # end if
-      } else if(transf==TRUE) {
-        if(typ=="cw") {
-          curve(pars[i,1L]*pars[i,3L]*exp(-pars[i,3L]*x), lwd=lwd, col=colors[i], lty= "solid", add=TRUE)
-        } else if(typ=="lm") {
-          curve(pars[i,1L]*pars[i,3L]*(x/max(tim))*exp(-pars[i,3L]*x^2/2L/max(tim)), lwd=lwd, col=colors[i], lty= "solid", add=TRUE)
-        } # end if
+      if(typ=="cw") {
+        curve(pars[i,1L]*pars[i,3L]*exp(-pars[i,3L]*x), lwd=lwd, col=colors[i], lty="solid", add=TRUE)
+      } else if(typ=="lm") {
+        curve(pars[i,1L]*pars[i,3L]*(x/max(tim))*exp(-pars[i,3L]*x^2/2L/max(tim)), lwd=lwd, col=colors[i], lty="solid", add=TRUE)
       } # end if
-    } # end for
+    } # end if
     ###
     ### Add a legend to the plot
     legend(ifelse(typ=="cw", "topright", ifelse(tim[which.max(sig)]>XaxisCentral, "topleft","topright")), 
@@ -1936,7 +1908,7 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
 ### ***************************************************************************************************************
 ### Function fastED() is used to calculate a fast-component equivalent dosee.
 ### 
-###     Author: Peng Jun, 2013.11.21; revised in 2013.12.17.
+###     Author: Peng Jun, 2013.11.21; revised in 2013.12.17; revised in 2014.01.04.
 ###
 ### References: Murray, A.S., Wintle, A.G., 2000. Luminescence dating of quartz using improved single-aliquot
 ###             regenerative-dose protocol. Radiation Measurements, 32, pp.57-73.
@@ -2094,7 +2066,7 @@ function(Sigdata,Redose,ncomp=2,constant=TRUE,
   if(constant==FALSE) {
     res<-decomp(Sigdata[,c(1L,2L)], ncomp=ncomp, typ=typ, control.args=control.args, transf=TRUE, plot=FALSE)
   } else {
-    res<-decompc(Sigdata[,c(1L,2L)], ncomp=ncomp, typ=typ, control.args=control.args, transf=TRUE, plot=FALSE)
+    res<-decompc(Sigdata[,c(1L,2L)], ncomp=ncomp, typ=typ, control.args=control.args, plot=FALSE)
   } # end if
   ### Stop if the natural decay curve can not be decomposed
   if(res$errorflag!=0) {
@@ -2117,7 +2089,7 @@ function(Sigdata,Redose,ncomp=2,constant=TRUE,
     if(constant==FALSE) {
       res<-try(decomp(Sigdata[,c(1L,i)], ncomp=ncomp, typ=typ, control.args=control.args, transf=TRUE, plot=FALSE), silent=TRUE)
     } else {
-      res<-try(decompc(Sigdata[,c(1L,i)], ncomp=ncomp, typ=typ, control.args=control.args, transf=TRUE, plot=FALSE), silent=TRUE)
+      res<-try(decompc(Sigdata[,c(1L,i)], ncomp=ncomp, typ=typ, control.args=control.args, plot=FALSE), silent=TRUE)
     } # end if
     ###
     ### Set name for each decay curve

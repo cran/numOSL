@@ -9,7 +9,7 @@ Four sets of growth curves and correlated standardlized natural signal values fr
 }
 \usage{data(Curvedata)}
 \format{
- A list contains four sets of growth curves and correlated standardlized natural signal values
+ A list that contains four sets of growth curves and correlated standardlized natural signal values
 }
 \references{
 Duller, G.A.T., 2007. Assessing the error on equivalent dose estimates derived from single aliquot regenerative dose measurements. Ancient TL 25(1), pp. 15-24.

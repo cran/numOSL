@@ -1,5 +1,5 @@
 subroutine lmfit(xdat,ydat,ndat,pars,npars,typ,transf,&
-                 stderror,predtval,value,tol,info)
+                 cond,stderror,predtval,value,tol,info)
 !--------------------------------------------------------------------------------------------------------------------------------
 ! Specifying a fitting model, lmfit() will fit the model using Levenberg-Marquadt method.
 ! typ=1 has the formula I(t)=a1*exp(-b1*t)+a2*exp(-b2*t)+...+ak*exp(-bk*t), where k=1:7;
@@ -14,6 +14,8 @@ subroutine lmfit(xdat,ydat,ndat,pars,npars,typ,transf,&
 ! typ,                 input:: integer, 1 for fitting 'cw', 2 for fitting 'lm'.
 !
 ! transf,              output:: logical, whether transform se(a[i]) to se(a[i]/b[i]) or not.
+!
+! cond,                output:: real value, estimated condition number (infinity-norm) for the hessian matrix.
 !
 ! xdat(ndat),          input:: real values, xdat (or independent variables x).
 !
@@ -39,7 +41,7 @@ subroutine lmfit(xdat,ydat,ndat,pars,npars,typ,transf,&
 !                              1.5) error when attempt to inverse the approximated hessian matrix, info=5;
 !                              1.6) if diagnal elements of inversed hessian matrix has at least one minus value, info=6.
 ! ================================================================================================================================
-! Author:: Peng Jun, 2013.05.21, revised in 2013.05.22, revised in 2013.07.24, revised in 2013.10.05.
+! Author:: Peng Jun, 2013.05.21; revised in 2013.05.22; revised in 2013.07.24; revised in 2013.10.05; revised in 2014.01.05.
 !
 ! Dependence:: subroutine lmfunc; subroutine lmfunc1; subroutine lmder1; subroutine lmhess; subroutine inverse; subroutine diag.
 !---------------------------------------------------------------------------------------------------------------------------------
@@ -54,10 +56,11 @@ subroutine lmfit(xdat,ydat,ndat,pars,npars,typ,transf,&
   real   (kind=8),intent(in)::tol
   logical,        intent(in)::transf
   real   (kind=8),intent(out)::value
+  real   (kind=8),intent(out)::cond
   integer(kind=4),intent(out)::info
   !
   ! Variables for subroutine lmhess
-  real   (kind=8),parameter::lmtol=2.220446D-16   ! used for singular matrix diagnose in subroutine (.Machine$double.eps in R)
+  real   (kind=8),parameter::lmtol=4.053817D-10   ! used for singular matrix diagnose in subroutine (.Machine$double.eps^0.6 in R)
                                                   ! lmhess and subroutine inverse
   real   (kind=8),parameter::minAbsPar=0.0D+00    ! for lmhess use
   real   (kind=8),dimension(npars,npars)::hessian ! hessian matrix by finite-difference approximation
@@ -70,31 +73,33 @@ subroutine lmfit(xdat,ydat,ndat,pars,npars,typ,transf,&
   real   (kind=8),dimension(ndat)::fvec           ! fitted residual in vector form
   real   (kind=8),dimension(ndat,npars)::fjac     ! jacobian matrix
   integer(kind=4)::i
+  real   (kind=8)::hessCond, InvHessCond
   !
   ldfjac=ndat
   !
   ! Default returned stderrors if error appears
   stderror=-99.0D+00
+  cond=1.0D+30
   ! Specify iflag to be 1 to calculate fvec
   iflag=1
   !
   ! Using initial pars to caculate fvec, which will be used in subroutine lmder1
   if(typ==1) then
-    ! For 'cw'
+    ! For "cw"
     call lmfunc(xdat,ydat,ndat,npars,pars,fvec,fjac,ldfjac,iflag)
   else if(typ==2) then
-    ! For 'lm'
+    ! For "lm"
     call lmfunc1(xdat,ydat,ndat,npars,pars,fvec,fjac,ldfjac,iflag)
   end if
   !
   ! Optimizing initial pars using Levenberg-Marquadt method
   ! and return pars and info for output
   if(typ==1) then
-    ! For 'cw'
+    ! For "cw"
     call lmder1(lmfunc,ndat,npars,pars,fvec,&
                 fjac,ldfjac,tol,info,xdat,ydat)
   else if(typ==2) then
-    ! For 'lm'
+    ! For "lm"
     call lmder1(lmfunc1,ndat,npars,pars,fvec,&
                 fjac,ldfjac,tol,info,xdat,ydat)
   end if
@@ -136,6 +141,9 @@ subroutine lmfit(xdat,ydat,ndat,pars,npars,typ,transf,&
     return
   end if
   !
+  ! Calculate the infinity-norm of the hessian matrix
+  hessCond=maxval(sum(dabs(hessian),dim=2))
+  !
   ! Set hessian to be its inverse form
   call inverse(hessian,npars,inverror,lmtol)
   ! Check if any error appears when calling inverse, 
@@ -144,6 +152,13 @@ subroutine lmfit(xdat,ydat,ndat,pars,npars,typ,transf,&
     info=5
     return
   end if
+  !
+  ! Calculate the infinity-norm of the inversed hessian matrix
+  InvHessCond=maxval(sum(dabs(hessian),dim=2))
+  ! Calculate the condition number of the hessian matrix.
+  ! Note that the value is normalized by 1.0D+10
+  cond=hessCond*InvHessCond/1.0D+10
+  !
   ! Extract diagnal elements from inversed hessian 
   ! matrix and save it in arrary stderror
   call diag(hessian,npars,stderror)
@@ -164,6 +179,10 @@ subroutine lmfit(xdat,ydat,ndat,pars,npars,typ,transf,&
                   hessian(i+npars/2,i+npars/2)/pars(i+npars/2)**2-&
                    2.0D+00*hessian(i,i+npars/2)/pars(i)/pars(i+npars/2))
     end do
+    ! Check if the error transformation is valid
+    if( any(stderror(1:npars/2) .ne. stderror(1:npars/2)) .or. &
+        any(stderror(1:npars/2)+1.0D+00==stderror(1:npars/2)) .or. &
+        any(stderror(1:npars/2)<0.0D+00) )  info=6
   end if
   !
   return

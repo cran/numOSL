@@ -1,0 +1,7 @@
+Versions of R package "numOSL"
+Version 1.0
+        * A total of eight functions are available for performing basic numeric analysis in OSL dating, such as: equivalent dose calculation; 
+          decay curve decomposition and fast-component equivalent dose estimation; statistical age models analysis and radial plot drawing.
+Version 1.1
+        * The condition number of the model has been taken into consideration in decay curve fitting to help to obtain more desirable estimates.
+        * The signal component a*exp(-b*x) has been modified to be a*b*exp(-b*x) in function "decompc" (but not in function "decomp") to make the model more stable to analyze noise data.

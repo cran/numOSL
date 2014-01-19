@@ -5,7 +5,7 @@
 Fitting dose response curve and calculating equivalent dose in optically stimulated luminescence (OSL) dating
 }
 \description{
-Fitting OSL dose response curve and calculating equivalent dose, the error of equivalent dose is estimated after Duller GAT (2007).
+Fitting OSL dose response curve and calculating equivalent dose, the error of equivalent dose is estimated after Duller GAT (2007a).
 }
 \usage{
 calED(Curvedata, Ltx, 
@@ -41,7 +41,7 @@ This function can used for both dose response curve fitting and equivalent dose 
 1) "line": linear model, y=a*x+b \bold{or} y=a*x if origin=TRUE;\cr
 2) "exp": exponential model, y=a*(1-exp(-b*x))+c \bold{or} y=a*(1-exp(-b*x)) if origin=TRUE;\cr
 3) "line+exp": exponential plus linear model, y=a*(1-exp(-b*x))+c*x+d \bold{or} y=a*(1-exp(-b*x))+c*x if origin=TRUE.\cr\cr
-Standard error of equivalent dose can be accessed using two method (Duller GAT, 2007): \cr
+Standard error of equivalent dose can be accessed using two method (Duller GAT, 2007a): \cr
 a) "sp": simple transformation of s(Lx/Tx) to s(ED); \cr
 b) "mc": Monte Carlo method \cr\cr
 Curve fitting is performed using the Levenberg-Marquardt algorithm (minpack: original FORTRAN 77 version by Jorge More, Burton Garbow, Kenneth Hillstrom. FORTRAN 90 version by John Burkardt). Interpolation is performed using a combination of golden section search and successive parabolic interpolation (the same as function \link{optimize} in package "stats").\cr\cr
@@ -56,10 +56,10 @@ Return an invisible list that contains following elements:
   \item{ED}{estimated equivalent dose (and corresponded standard error)}
 }
 \references{
-Duller, G.A.T., 2007. Assessing the error on equivalent dose estimates derived from single aliquot regenerative dose measurements. 
+Duller, G.A.T., 2007a. Assessing the error on equivalent dose estimates derived from single aliquot regenerative dose measurements. 
 Ancient TL 25(1), pp. 15-24.
 
-Duller, G., 2007. Analyst. pp. 27-28.
+Duller, G., 2007b. Analyst. pp. 27-28.
 }
 \note{
 Interpolation is performed within the maximum regenerative dose, so the value of Lt/Tx that used to calculate an equivalent dose must not larger than the maximum standardized signals that used to build the dose response curve. 
@@ -70,7 +70,7 @@ Interpolation is performed within the maximum regenerative dose, so the value of
 \examples{
   # load package "numOSL"
   library(numOSL)
-  # example 1: test using data from Duller (2007)
+  # example 1: test using data from Duller (2007a)
   data(Curvedata)
   Res<-matrix(nrow=4,ncol=3)
   par(mfrow=c(2,2))

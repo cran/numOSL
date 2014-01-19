@@ -9,7 +9,7 @@ OSL signal data of type "CW" and "LM".
 }
 \usage{data(Signaldata)}
 \format{
-  A list contains both OSL decay curves data of type "CW" and "LM"
+  A list that contains both OSL decay curves data of type "CW" and "LM"
   \describe{
     \item{cw}{a series of OSL decay curve of type "CW" obatined with SAR method that from Tengger Desert in northern china (Peng and Han, 2013)}
     \item{lm}{a set of OSL decay signal data of type "LM" from Li and Li (2006)}

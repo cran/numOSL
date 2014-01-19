@@ -41,9 +41,9 @@ subroutine decomp(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
 !                            2.2) if parameters can not be (or not have been) optimized using Levenberg-Marquadt method, errorflag(2)=1;
 !
 !                            3.1) if success in simple trails, errorflag(3)=0;
-!                            3.2) if simple trails have not been performed (or fail in simple trials), errorflag(3)=1.
+!                            3.2) if fail in simple trails, errorflag(3)=1.
 ! =====================================================================================================================================
-! Author:: Peng Jun, 2013.06.05, revised in 2013.10.05; revised in 2013.12.16.
+! Author:: Peng Jun, 2013.06.05, revised in 2013.10.05; revised in 2013.12.16; revised in 2014.01.02.
 !
 ! Dependence:: subroutine diffev; subroutine lmfit; subroutine comb_next; subroutine targfunc.
 !
@@ -89,7 +89,7 @@ subroutine decomp(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
   real   (kind=8),dimension(2*ncomp)::lmStdpars
   real   (kind=8),dimension(ntim)::lmpredtval
   real   (kind=8),parameter::lmtol=1.0D-07
-  real   (kind=8)::lmvalue
+  real   (kind=8)::lmvalue,lmcond
   integer(kind=4)::lmErr
   !
   ! Variables for subroutine targfunc and subroutine comb_next
@@ -114,7 +114,7 @@ subroutine decomp(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
   real   (kind=8),dimension(ntim)::cpredtval
   real   (kind=8)::cvalue
   logical        ::saving
-  real   (kind=8)::loopvalue,minvalue
+  real   (kind=8)::loopcond,mincond
   !
   ! A saving mark
   saving=.false.
@@ -153,7 +153,7 @@ subroutine decomp(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
   if(errorflag(1)==0) then
     lmpars=(/dithn,dlamda/)
     call lmfit(tim,sig,ntim,lmpars,2*ncomp,typ,transf,&
-               lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
+               lmcond,lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
     ! Update output [pars, stdpars, predtval and value] if possible
     if(lmErr==1) then
       pars=lmpars
@@ -175,53 +175,54 @@ subroutine decomp(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
   end if
   !
   errorflag(3)=1
-  ! If diffev() or lmfit() fails, then simple trials will be conducted
-  if(errorflag(1)/=0 .or. errorflag(2)/=0) then
-    loopvalue=1.0D+30
-    minvalue=1.0D+30
-    done=.true.
-    Loop: do i=1,permdex(ncomp)
-      ! Obtain random set of decay rates
-      call comb_next(done,7,ncomp,iarray)
-      !
-      tlamda=initry(iarray)
-      ! Obtain tithn
-      call targfunc(tlamda,ncomp,tim,sig,targtol,typ,&
-                      ntim,tvalue,tithn,targErr)
-      if(targErr==0) then
-        lmpars=(/tithn,tlamda/)
-      else 
-        lmpars(1:ncomp)=10000.0D+00*tlamda
-        lmpars(ncomp+1:)=tlamda
-      end if
-      !
-      call lmfit(tim,sig,ntim,lmpars,2*ncomp,typ,transf,&
-                 lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
-      ! Update output [pars, stdpars, predtval and value] if possible
-      if(lmErr==1 .and. lmvalue<loopvalue) then
-        pars=lmpars
-        Stdpars=lmStdpars
-        predtval=lmpredtval
-        value=lmvalue
-        loopvalue=lmvalue
-        ! If its a successful simple trail, set errorflag(3)=0
-        errorflag(3)=0
-      else if ((lmErr==4 .or. lmErr==5 .or. lmErr==6) .and. lmvalue<minvalue) then
-        ! Save those values that from which pars' std.errors can not be estimated, too
-        cpars=lmpars
-        cStdpars=lmStdpars
-        cpredtval=lmpredtval
-        cvalue=lmvalue
-        minvalue=lmvalue
-        ! Set saving to be true
-        saving=.true.
-      end if
-      !??? Exit if at least one successful simple trail has been achieved
-      !??? if(errorflag(3)==0) exit Loop
-      !
-    end do Loop
-    !
+  ! Set loopcond
+  if(errorflag(2)==0) then
+    loopcond=lmcond
+  else 
+    loopcond=1.0D+30
   end if
+  mincond=1.0D+30
+  !
+  ! Call simple trials to try to further improve the optimization
+  done=.true.
+  Loop: do i=1,permdex(ncomp)
+    ! Obtain random set of decay rates
+    call comb_next(done,7,ncomp,iarray)
+    !
+    tlamda=initry(iarray)
+    ! Obtain tithn
+    call targfunc(tlamda,ncomp,tim,sig,targtol,typ,&
+                  ntim,tvalue,tithn,targErr)
+    if(targErr==0) then
+      lmpars=(/tithn,tlamda/)
+    else 
+      lmpars(1:ncomp)=1.0D+05*tlamda
+      lmpars(ncomp+1:)=tlamda
+    end if
+    !
+    call lmfit(tim,sig,ntim,lmpars,2*ncomp,typ,transf,&
+               lmcond,lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
+    ! Update output [pars, stdpars, predtval and value] if possible
+    if(lmErr==1 .and. lmcond<loopcond) then
+      pars=lmpars
+      Stdpars=lmStdpars
+      predtval=lmpredtval
+      value=lmvalue
+      loopcond=lmcond
+      ! If its a successful simple trail, set errorflag(3)=0
+      errorflag(3)=0
+    else if ((lmErr==4 .or. lmErr==5 .or. lmErr==6) .and. lmcond<mincond) then
+      ! Save those values that from which pars' std.errors can not be estimated, too
+      cpars=lmpars
+      cStdpars=lmStdpars
+      cpredtval=lmpredtval
+      cvalue=lmvalue
+      mincond=lmcond
+      ! Set saving to be true
+      saving=.true.
+    end if
+    !
+  end do Loop
   !
   if(saving .eqv. .true.) then
     if(errorflag(2)/=0 .and. errorflag(3)/=0) then

@@ -27,7 +27,8 @@ subroutine fitlm(ncomp,tim,sig,ntim,pars,Stdpars,&
 !                            1.1) a successful work given errorflag=0; 
 !                            1.2) a totally fail work given errorflag=1.
 ! =====================================================================================================================
-!     Author:: Peng Jun, 2013.07.24, revised in 2013.08.03, revised in 2013.10.05; revised in 2013.12.16.
+!     Author:: Peng Jun, 2013.07.24; revised in 2013.08.03; 
+!              revised in 2013.10.05; revised in 2013.12.16; revised in 2014.01.02.
 !
 ! Dependence:: subroutine comb_next; subroutine targfunc; subroutine lmfit.
 ! 
@@ -58,7 +59,7 @@ subroutine fitlm(ncomp,tim,sig,ntim,pars,Stdpars,&
   real   (kind=8),dimension(2*ncomp)::lmStdpars,cStdpars
   real   (kind=8),dimension(ntim)::lmpredtval,cpredtval
   real   (kind=8),parameter::lmtol=1.0D-07
-  real   (kind=8)::lmvalue,cvalue
+  real   (kind=8)::lmvalue,cvalue,lmcond
   integer(kind=4)::lmErr
   ! Variables for subroutine targfunc() and subroutine comb_next()
   logical:: done
@@ -78,11 +79,11 @@ subroutine fitlm(ncomp,tim,sig,ntim,pars,Stdpars,&
   integer(kind=4), parameter::typ=2
   integer(kind=4):: i
   logical:: saving
-  real   (kind=8)::loopvalue,minvalue
+  real   (kind=8)::loopcond,mincond
   ! 
   saving=.false.
-  loopvalue=1.0D+30
-  minvalue=1.0D+30
+  loopcond=1.0D+30
+  mincond=1.0D+30
   errorflag=1
   done=.true.
   Loop: do i=1,permdex(ncomp)
@@ -97,28 +98,28 @@ subroutine fitlm(ncomp,tim,sig,ntim,pars,Stdpars,&
     if(targErr==0) then
       lmpars=(/tithn,tlamda/)
     else 
-      lmpars(1:ncomp)=100000.0D+00*tlamda
+      lmpars(1:ncomp)=1.0D+05*tlamda
       lmpars(ncomp+1:)=tlamda
     end if
     call lmfit(tim,sig,ntim,lmpars,2*ncomp,typ,transf,&
-               lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
+               lmcond,lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
     ! Set pars, stdpars, predtval and value if possible
-    if(lmErr==1 .and. lmvalue<loopvalue) then
+    if(lmErr==1 .and. lmcond<loopcond) then
       pars=lmpars
       Stdpars=lmStdpars
       predtval=lmpredtval
       value=lmvalue
-      loopvalue=lmvalue
+      loopcond=lmcond
       ! Successful simple trails given errorflag=0 
       errorflag=0
     end if
     ! If parameters' standard errors can not be estimated, save it too
-    if((lmErr==4 .or. lmErr==5 .or. lmErr==6) .and. lmvalue<minvalue) then
+    if((lmErr==4 .or. lmErr==5 .or. lmErr==6) .and. lmcond<mincond) then
       cpars=lmpars
       cStdpars=lmStdpars
       cpredtval=lmpredtval
       cvalue=lmvalue
-      minvalue=lmvalue
+      mincond=lmcond
       ! Set saving to be true
       saving=.true.
     end if
@@ -148,5 +149,6 @@ subroutine fitlm(ncomp,tim,sig,ntim,pars,Stdpars,&
     ! Need not to transform the solution that pars=-99.0D+00 !!!
     if(all(pars>0.0D+00)) pars(1:ncomp)=pars(1:ncomp)/pars(ncomp+1:)
   end if
+  !
   return
 end subroutine fitlm

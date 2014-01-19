@@ -5,7 +5,7 @@
 Estimating a fast-component equivalent dose in OSL dating
 }
 \description{
-With the data obtained by single aliquot regenerative (SAR) protocol (Murray and Wintle, 2000), a series decay curves are decomposed and signals of fast-component are extracted (if possible) to build a dose response curve to approximate a fast-component equivalent dose.
+With the data obtained by the single aliquot regenerative (SAR) protocol (Murray and Wintle, 2000), a series decay curves are decomposed and signals of fast-component are extracted (if possible) to build a dose response curve to approximate a fast-component equivalent dose.
 }
 \usage{
 fastED(Sigdata, Redose, ncomp = 2, constant=TRUE,  
@@ -17,7 +17,7 @@ fastED(Sigdata, Redose, ncomp = 2, constant=TRUE,
 }
   \item{Redose}{\link{vector}(\bold{required}): regenerative dose values, such as redose1, redose2, etc
 }
-  \item{ncomp}{\link{numeric}(with default): number of components used to decompose each decay curve, which must be an integer in the range [2,4]
+  \item{ncomp}{\link{numeric}(with default): number of components used to decompose each decay curve, which must be an integer in the space [2,4]
 }
   \item{constant}{\link{logical}(with default): subtract a constant in curve decomposition or not
 }
@@ -40,13 +40,13 @@ Function fastED() is used to estimated a fast-component equivalent dose with dat
 \value{
 Return a list containing following elements:\cr
   \item{pars}{estimated parameters and associated standard errors for each decay curve}
-  \item{decayRate}{summarized list about all decay rates (if zero regenerative dose appears, the corresponded decay rates will be precluded in the calculation)}
-  \item{Curvedata}{data used to build a dose response curve, see \link{calED}}
+  \item{decayRate}{summarized list about all decay rates (if zero regenerative dose appears, the corresponded decay rates will be precluded before calculating), such as the uniformity of decay rates between each component and each decay curve; the average and associated standard error of the fast-component decay rates}
+  \item{Curvedata}{data used to build the fast-component dose response curve, see \link{calED}}
   \item{Lxt}{standardized natural signal and its standard error, see \link{calED}}
-  \item{model}{model used for fitting the dose-response curve, which is chosen automatically from "line", "exp" or "line+exp" during the calculation}
-  \item{LMpars}{characteristic parameters and standard errors of the dose-response curve}
-  \item{residual}{sum of square of residual errors for the fitted dose response curve}
-  \item{ED}{estimated equivalent dose (and corresponded standard error)}
+  \item{model}{model used for fitting the dose-response curve, which is chosen automatically from "line", "exp" or "line+exp" during the calculation with the principle of the minimum of the sum of squared residuals}
+  \item{LMpars}{estimated characteristic parameters and standard errors of the dose-response curve}
+  \item{residual}{sum of the squared residuals of the fitted dose response curve}
+  \item{ED}{estimated fast-component equivalent dose (and corresponded standard error)}
   \item{RecyclingRatio}{estimated recycling ratio}
   \item{Recuperation}{estimated recuperation}
 }
@@ -59,13 +59,13 @@ Li, S.H., Li, B., 2006. Dose measurement using the fast component of LM-OSL sign
   \link{calED}; \link{decomp}; \link{decompc}
 }
 \note{
-The number of trapped electrons that corresponds to the largest decay rate will be regarded as the fast-component signal, which can not always ensure a pure fast-component signal to be extracted if ultra-fast component appears. To extract purer fast-component signal, the background from experimental data should be subtracted before analysis if possible. The arguments (factor, f, cr, maxiter, tol) in  "control.args" can be employed to achieve better performance in decay curves decomposition. For example, larger number of parents (NP) (controlled by "factor") might performs better at the cost of slowdown of the running speed. The author thank Sheng-hua Li and Geoff Duller for their helpful discussions concerning fast-component equivalent dose calculation.
+The number of trapped electrons that corresponds to the largest decay rate will be regarded as the fast-component signal, which can not always ensure a pure fast-component signal to be extracted if ultra-fast component appears. To extract purer fast-component signal, the background from experimental data should be subtracted before the analysis if possible, or it might be more reasonable to keep the argument "constant" being active. Hopefully the arguments (factor, f, cr, maxiter, tol) in  "control.args" could be employed to achieve better performance in decay curves decomposition. For example, larger number of parents (NP) (controlled by "factor") might performs better at the cost of slowdown of the running speed. The author thank Sheng-hua Li and Geoff Duller for their helpful discussions concerning fast-component equivalent dose calculation.
 }
 \examples{
 # Loading signal data
  data(Signaldata)
 # Calculating a fast-component dose with three components after removing the 
-# decay curves that correspond to zero-redose (12th) and its test-dose (13th)
+# decay curves that correspond to zero-redose (12th) and associated test-dose (13th)
  fastED(Signaldata$cw[,c(-12,-13)],Redose=c(80,160,240,320,80)*0.13,
         ncomp=3,constant=FALSE)
 # Trying with two component plus a constant

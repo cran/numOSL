@@ -136,8 +136,10 @@ subroutine fdhessian(pars,ED,Error,npars,nED,tol,minAbsPar,&
     frac(ncols+1:ncols+npars-i)=cfrac
     ! delocate ccols and cfrac, preparing
     ! for new allocations
-    deallocate(ccols)
-    deallocate(cfrac)
+    deallocate(ccols, stat=errorflag(4))
+    if( errorflag(4)/=0 ) return
+    deallocate(cfrac, stat=errorflag(4))
+    if( errorflag(4)/=0 ) return
     ! update started filling index ncols
     ncols=ncols+npars-i 
     !
@@ -149,12 +151,14 @@ subroutine fdhessian(pars,ED,Error,npars,nED,tol,minAbsPar,&
   ccols(:,1:2*npars+1)=pcols
   ccols(:,2*npars+2:npars*(npars-1)/2+2*npars+1)=cols
   ! not need cols presently, so release it
-  deallocate(cols)
+  deallocate(cols, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
   ! allocate cols again to store ccols, and release ccols
   allocate(cols(1:npars,1:npars*(npars-1)/2+2*npars+1), stat=errorflag(4))
   if( errorflag(4)/=0 ) return
   cols=ccols
-  deallocate(ccols)
+  deallocate(ccols, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
   ! now add up ffrac and frac together to be cfrac,
   ! cfrac has a total of ( 2*npars+1 + npars*(npars-1)/2 ) values
   allocate( cfrac(1:npars*(npars-1)/2+2*npars+1) ,stat=errorflag(4))
@@ -162,12 +166,14 @@ subroutine fdhessian(pars,ED,Error,npars,nED,tol,minAbsPar,&
   cfrac(1:2*npars+1)=ffrac
   cfrac(2*npars+2:npars*(npars-1)/2+2*npars+1)=frac
   ! not need frac so release it
-  deallocate(frac)
+  deallocate(frac, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
   ! allocate frac again, store cfrac in it then release cfrac
   allocate(frac(1:npars*(npars-1)/2+2*npars+1), stat=errorflag(4))
   if( errorflag(4)/=0 ) return
   frac=cfrac
-  deallocate(cfrac) 
+  deallocate(cfrac, stat=errorflag(4)) 
+  if( errorflag(4)/=0 ) return
   ! specify p to be the column number of cols
   ! that is npars*(npars-1)/2+2*npars+1
   p=npars*(npars-1)/2+2*npars+1
@@ -184,7 +190,8 @@ subroutine fdhessian(pars,ED,Error,npars,nED,tol,minAbsPar,&
   if( errorflag(4)/=0 ) return
   transcols=transpose(cols)
   ! now cols will not be needed, release it
-  deallocate(cols)
+  deallocate(cols, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
   ! allocate pxcols to store transcols 
   ! in differ style
   allocate(pxcols(p,1+2*npars), stat=errorflag(4))
@@ -208,7 +215,8 @@ subroutine fdhessian(pars,ED,Error,npars,nED,tol,minAbsPar,&
     end do
     ! store cxcols to xcols and release it
     xcols(:,ncols+1:ncols+npars-i)=cxcols
-    deallocate(cxcols)
+    deallocate(cxcols, stat=errorflag(4))
+    if( errorflag(4)/=0 ) return
     ! update started filling index
     ncols=ncols+npars-i  
   end do
@@ -218,14 +226,17 @@ subroutine fdhessian(pars,ED,Error,npars,nED,tol,minAbsPar,&
   cxcols(:,1:1+2*npars)=pxcols
   cxcols(:,2+2*npars:1+2*npars+npars*(npars-1)/2)=xcols
   ! release xcols and pxcols
-  deallocate(xcols)
-  deallocate(pxcols)
+  deallocate(xcols, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
+  deallocate(pxcols, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
   ! allocate xcols again to store cxcols
   allocate(xcols(p,1:1+2*npars+npars*(npars-1)/2), stat=errorflag(4))
   if( errorflag(4)/=0 ) return
   xcols=cxcols
   ! release cxcols
-  deallocate(cxcols)
+  deallocate(cxcols, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
   ! allocate pxcols again and store some
   ! values to it then release shifted
   ! now pxcols has p rows and 1 column
@@ -234,7 +245,8 @@ subroutine fdhessian(pars,ED,Error,npars,nED,tol,minAbsPar,&
   do i=1,p
     pxcols(i,:)=fun34(shifted(:,i))
   end do
-  deallocate(shifted)
+  deallocate(shifted, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
   ! solve xcols %*% X = pxcols
   ! store solved X values in pxcols
   call GJordan(xcols,pxcols,p,1,solerror,tol)
@@ -242,8 +254,10 @@ subroutine fdhessian(pars,ED,Error,npars,nED,tol,minAbsPar,&
   ! scale pxcols with frac and release frac,
   ! release xcols
   pxcols(:,1)=pxcols(:,1)/frac
-  deallocate(xcols)
-  deallocate(frac)
+  deallocate(xcols, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
+  deallocate(frac, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
   ncols=2*npars+2 
   ! fill diagpar with some new values,  note that
   ! non-diagnal part of digpar are zeros
@@ -263,7 +277,8 @@ subroutine fdhessian(pars,ED,Error,npars,nED,tol,minAbsPar,&
   ! estimate fun(pars)
   value=pxcols(1,1)
   ! now pxcols will not be needed, release it
-  deallocate(pxcols)
+  deallocate(pxcols, stat=errorflag(4))
+  if( errorflag(4)/=0 ) return
   ! estimate hessian matrix
   hessian=diagpar+transpose(diagpar)
   !
