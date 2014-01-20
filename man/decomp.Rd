@@ -17,7 +17,7 @@ decomp(Sigdata, ncomp = 3, typ = c("cw","lm"),
 \arguments{
   \item{Sigdata}{\link{data.frame}(\bold{required}): two columns, time (t1,t2,etc) and correspond signal values (s1,s2,etc) to be decomposed
 }
-  \item{ncomp}{\link{numeric}(with default): the number of components to be decomposed, which must be an integer in the range [1,7]
+  \item{ncomp}{\link{numeric}(with default): the number of components to be decomposed, which must be an integer in the space [1,7]
 }
   \item{typ}{\link{character}(with default): type ("cw" or "lm") of the OSL decay curve, default typ="cw"
 }
@@ -92,8 +92,7 @@ Choi, J.H., Duller G.A.T., Wintle, A.G., 2006. Analysis of quartz LM-OSL curves.
 Li, S.H., Li, B., 2006. Dose measurement using the fast component of LM-OSL signals from quartz. Radiation Measurements, 41, pp.534-541.
 }
 
-\note{Both LEDpower and LEDwavelength are used for determining the absolute photoionisation cross section. However, the estimated absolute photoionisation cross section (pcs) may not so reliable as it seems to be, because both LEDpower and LEDwavelength will vary with the age of the instrument.\cr\cr
-For fitting OSL decay curve of type "CW", in most cases, parameters can be initialized by differential evolution method, but sometimes Levenberg-Marquardt algorithm fails to obtain a final optimization (that's exactly the truth as the increasing of the number of components, which might indicate overcharging of the model), if this happened, parameters initialized with differential evolution method will be regarded as the final estimation. For better performance in CW-OSL curve fitting, trying remodifying default parameters in argument "control.args".\cr\cr
+\note{Both LEDpower and LEDwavelength are used for determining the absolute photoionisation cross section. However, the estimated absolute photoionisation cross section (pcs) may not so reliable as it seems to be, because both LEDpower and LEDwavelength will vary with the age of the instrument. For fitting OSL decay curve of type "CW", in most cases, parameters can be initialized by differential evolution method, but sometimes Levenberg-Marquardt algorithm fails to obtain a final optimization (that's exactly the truth as the increasing of the number of components, which might indicate overcharging of the model), if this happened, parameters initialized with differential evolution method will be regarded as the final estimation. For better performance in CW-OSL curve fitting, trying remodifying default parameters in argument "control.args".\cr\cr
 I thank Andrzej Bluszcz, who helps me a lot during the writting of this function. Jeong-Heon Choi (Choi et al, 2006) and Bo Li (Li and Li, 2006) are thanked for providing published data to test this routine.
 }
 
@@ -103,10 +102,8 @@ I thank Andrzej Bluszcz, who helps me a lot during the writting of this function
  # decompose natural OSL signal of type "CW" to 3 components
  res<-decomp(Signaldata$cw[,c(1,2)],ncomp=3,typ="cw",samplename="GL1")
  res 
- # decompose the whole signal table (exclude the zero-redose decay curve)
- decomp(Signaldata$cw[,-12])$pars
  # decompose OSL signal of type "LM" to 4 components
- res<-decomp(Signaldata$lm,ncomp=4,typ="lm")
+ res<-decomp(Signaldata$lm,ncomp=4,typ="lm",transf=TRUE)
  print(res)
 }
 \keyword{CW-OSL decay curve}

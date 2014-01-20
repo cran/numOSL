@@ -5,7 +5,7 @@
  Estimating parameters of Rex Galbraith's statistical age model in OSL dating and drawing radial plot  
 }
 \description{
-Depending on the specified number of components, this function performs statistical age models analysis dynamically. Statistical OSL age models
+Depending on the specified number of components, this function performs statistical age models analysis reviewed in Galbraith and Roberts (2012) dynamically. Statistical OSL age models
 that can be performed includes: central age model (CAM), minimum age model (MAM), finite mixture age model (FMM). 
 }
 \usage{
@@ -49,9 +49,7 @@ is set to be equal to the length of EDdata, but it will be both time consuming a
 \details{
 Specifying a number of components that not smaller than 2, this function will fit finite mixture age model with the specified number of components. If ncomp is set to be 0, the routine will do the optimization automatically by trying various initial values to pick out a number of components that given the minimum BIC value. Central age model will be analyzed if the number of components is specified to be 1. Minimum age model can also be fitted by specifying ncomp to be -1 (type 3) or -2 (type 4). Both central age model and finite mixture age model are fitted using the maximum likelihood method outlined by Galbraith (1988), while minimum age model can be estimated using the L-BFGS-B subroutine written by Zhu et al (1994) or the "port" rountines (R function \link{nlminb} in package "stats"). Notes that all these calculations are performed using log-scale, which means that any minus equivalent dose will not be allowed to be analyzed by this routine.\cr
 \cr
-Because both maximum likelihood method and L-BFGS-B algorithm (so is the "port" routine) find out optimized parameters that correspond to a local minimum value instead of a globle minimum value, hence to achieve an acceptable estimation, all routines (except central age model) try various initial values then picking out optimized parameters that given the minimum minus logged likelihood value.\cr
-\cr
-When fitting minimum age models (of type 3 or type 4), the lower and upper boundaries are set as following:\cr
+Because both maximum likelihood method and L-BFGS-B algorithm (so is the "port" routine) find out optimized parameters that correspond to a local minimum value instead of a globle minimum value, hence to achieve an acceptable estimation, all routines (except central age model) try various initial values then picking out optimized parameters that given the minimum minus logged likelihood value. When fitting minimum age models (of type 3 or type 4), the lower and upper boundaries are set as following:\cr
 \cr
 lower boundary for type 3: (p=1e-4, gama=min(ED), sigma=1e-3);\cr
 upper boundary for type 3: (p=0.99, gama=max(ED), sigma=5).\cr
@@ -110,9 +108,7 @@ Vermeesch, P., 2009. RadialPlotter: a Java application for fission track, lumine
 44 (4), pp. 409-410.
 }
 
-\note{The original S code for drawing radial plot is written by Rex Galbraith and is transformed to R code by Sebastian Kreutzer. The code for drawing radial plot in this package is modified from package "Luminescence" written by Sebastian Kreutzer et al (2012). I thank Rex Galbraith for his permission to modify and bundle the code to this function. \cr
-\cr
-I also thank Silke Schmidt for providing published OSL data (Silke Schmidt et al, 2012) for checking and testing this function.
+\note{The original S code for drawing radial plot is written by Rex Galbraith and is transformed to R code by Sebastian Kreutzer. The code for drawing radial plot in this package is modified from package "Luminescence" written by Sebastian Kreutzer et al (2012). I thank Rex Galbraith for his permission to modify and bundle the code to this function. I also thank Silke Schmidt for providing published OSL data (Silke Schmidt et al, 2012) for checking and testing this function.
 }
 
 \seealso{
@@ -131,10 +127,6 @@ I also thank Silke Schmidt for providing published OSL data (Silke Schmidt et al
 # Picking out the appropriate number of components then fitting automatically
   obj<-RadialPlotter(EDdata$al3,zscale=seq(24,93,7),samplename="AL3",pcolor="brown")
   obj
-# In a radical but not advisable case, one may set maxcomp to be the largest 
-# looping number of components that allowed
-  obj<-RadialPlotter(EDdata$gl11,maxcomp=35,samplename="GL11",zscale=seq(20,37,3))
-  unclass(obj)
 # Setting zscale manually
   zscale<-seq(min(EDdata$al3[,1])-1,max(EDdata$al3[,1])+1,by = 15L)
   obj<-RadialPlotter(EDdata$al3,maxcomp=13,zscale=zscale,kratio=0.5)

@@ -31,11 +31,11 @@ dbED(EDdata, aliquot=c("sa","sg"), plot = TRUE, from = NULL,
 }
 \value{
 Return a list that contains following elements:
-  \item{summaryED}{a basic summary of equvalent dose values}
+  \item{summaryED}{a basic statistical summary of equvalent dose values}
   \item{mlpED}{mean of the lowest percent [x] of equivalent dose values (Olley et al, 1998)}
   \item{homogeneity}{results of simple homogeneity test (Galbraith, 2003)}
-  \item{skewness}{skewness of equivalent dose values}
-  \item{kurtosis}{kurtosis of equivalent dose values}
+  \item{skewness}{skewness of equivalent dose values (Bailey and Arnold, 2006)}
+  \item{kurtosis}{kurtosis of equivalent dose values (Bailey and Arnold, 2006)}
   \item{proposal}{a proposed statistical age model (Bailey and Arnold, 2006; Arnold et al, 2007) that depends on used aliquot type ("sg" or "sa"), on which could not be relied absolutely}
 }
 \references{

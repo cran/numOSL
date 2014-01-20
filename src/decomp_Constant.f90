@@ -9,10 +9,10 @@
 ! 6).   lmfunc_C(): a subroutine for lmfit_C() (CW-OSL).
 ! 7).   lmhess_C(): estimate parameters' standard errors with difference-approximation method.
 ! 8). targfunc_C(): calculate magnitudes from decay rates with Linear Algebra method.
-! Edited in 2013.12.16. Peng Jun.
+! Edited in 2013.12.16. Peng Jun; revised in 2014.01.04.
 ! ****************************************************************************************************************************
 !
-subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
+subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,&
                     predtval,factor,f,cr,maxiter,tol,errorflag)
 !-------------------------------------------------------------------------------------------------------------------------------
 ! Subroutine decomp_C() is used to decompose CW OSL decay curve (plus a constant).
@@ -25,8 +25,6 @@ subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
 ! sig(ntim),         input:: real values, signal values.
 !
 ! ntim,              input:: integer, length of signal values.
-!
-! transf,            input:: logical value, whether transform estimated values or not.
 !
 ! pars(2*ncomp+1),   output:: real values, calculated parameters.
 !
@@ -55,9 +53,9 @@ subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
 !                            2.2) if parameters can not be (or not have been) optimized using Levenberg-Marquadt method, errorflag(2)=1;
 !
 !                            3.1) if success in simple trails, errorflag(3)=0;
-!                            3.2) if simple trails have not been performed (or fail in simple trials), errorflag(3)=1.
+!                            3.2) if fail in simple trials, errorflag(3)=1.
 ! =====================================================================================================================================
-! Author:: Peng Jun, 2013.12.15.
+! Author:: Peng Jun, 2013.12.15; revised in 2014.01.02.
 !
 ! Dependence:: subroutine diffev_C; subroutine lmfit_C; 
 !              subroutine comb_next; subroutine targfunc_C.
@@ -83,7 +81,6 @@ subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
   real   (kind=8),                   intent(in)::f
   real   (kind=8),                   intent(in)::cr
   real   (kind=8),                   intent(in)::tol
-  logical,                           intent(in)::transf
   real   (kind=8),dimension(ntim),   intent(in)::tim
   real   (kind=8),dimension(ntim),   intent(in)::sig
   real   (kind=8),dimension(ntim),   intent(out)::predtval
@@ -105,7 +102,7 @@ subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
   real   (kind=8),dimension(2*ncomp+1)::lmStdpars
   real   (kind=8),dimension(ntim)::lmpredtval
   real   (kind=8),parameter::lmtol=1.0D-07
-  real   (kind=8)::lmvalue
+  real   (kind=8)::lmvalue,lmcond
   integer(kind=4)::lmErr
   !
   ! Variables for subroutine targfunc_C and subroutine comb_next
@@ -131,7 +128,7 @@ subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
   real   (kind=8),dimension(ntim)::cpredtval
   real   (kind=8)::cvalue
   logical        ::saving
-  real   (kind=8)::loopvalue,minvalue
+  real   (kind=8)::loopcond,mincond
   !
   ! A saving mark
   saving=.false.
@@ -169,7 +166,7 @@ subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
   ! Call lmfit()_C if diffev()_C successed
   if(errorflag(1)==0) then
     lmpars=(/dithn,dlamda,dconstant/)
-    call lmfit_C(tim,sig,ntim,lmpars,2*ncomp+1,typ,transf,&
+    call lmfit_C(tim,sig,ntim,lmpars,2*ncomp+1,typ,lmcond,&
                  lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
     ! Update output [pars, stdpars, predtval and value] if possible
     if(lmErr==1) then
@@ -192,54 +189,56 @@ subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
   end if
   !
   errorflag(3)=1
-  ! If diffev()_C or lmfit()_C fails, then simple trials will be conducted
-  if(errorflag(1)/=0 .or. errorflag(2)/=0) then
-    loopvalue=1.0D+30
-    minvalue=1.0D+30
-    done=.true.
-    Loop: do i=1,permdex(ncomp)
-      ! Obtain random set of decay rates
-      call comb_next(done,7,ncomp,iarray)
-      !
-      tlamda=initry(iarray)
-      ! Obtain tithn
-      call targfunc_C(tlamda,ncomp,tim,sig,targtol,typ,&
-                      ntim,tvalue,tithn,tconstant,targErr)
-      if(targErr==0) then
-        lmpars=(/tithn,tlamda,tconstant/)
-      else 
-        lmpars(1:ncomp)=10000.0D+00*tlamda
-        lmpars(ncomp+1:2*ncomp)=tlamda
-        lmpars(2*ncomp+1)=200.0
-      end if
-      !
-      call lmfit_C(tim,sig,ntim,lmpars,2*ncomp+1,typ,transf,&
-                   lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
-      ! Update output [pars, stdpars, predtval and value] if possible
-      if(lmErr==1 .and. lmvalue<loopvalue) then
-        pars=lmpars
-        Stdpars=lmStdpars
-        predtval=lmpredtval
-        value=lmvalue
-        loopvalue=lmvalue
-        ! If its a successful simple trail, set errorflag(3)=0
-        errorflag(3)=0
-      else if ((lmErr==4 .or. lmErr==5 .or. lmErr==6) .and. lmvalue<minvalue) then
-        ! Save those values that from which pars' std.errors can not be estimated, too
-        cpars=lmpars
-        cStdpars=lmStdpars
-        cpredtval=lmpredtval
-        cvalue=lmvalue
-        minvalue=lmvalue
-        ! Set saving to be true
-        saving=.true.
-      end if
-      !??? Exit if at least one successful simple trail has been achieved
-      !??? if(errorflag(3)==0) exit Loop
-      !
-    end do Loop
-    !
+  ! Set loopcond
+  if(errorflag(2)==0) then
+    loopcond=lmcond
+  else 
+    loopcond=1.0D+30
   end if
+  mincond=1.0D+30
+  !
+  ! Call simple trials to try to further improve the optimization
+  done=.true.
+  Loop: do i=1,permdex(ncomp)
+    ! Obtain random set of decay rates
+    call comb_next(done,7,ncomp,iarray)
+    !
+    tlamda=initry(iarray)
+    ! Obtain tithn
+    call targfunc_C(tlamda,ncomp,tim,sig,targtol,typ,&
+                    ntim,tvalue,tithn,tconstant,targErr)
+    if(targErr==0) then
+      lmpars=(/tithn,tlamda,tconstant/)
+    else 
+      lmpars(1:ncomp)=1.0D+05
+      lmpars(ncomp+1:2*ncomp)=tlamda
+      lmpars(2*ncomp+1)=1.0D+02
+    end if
+    !
+    call lmfit_C(tim,sig,ntim,lmpars,2*ncomp+1,typ,lmcond,&
+                 lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
+    ! Update output [pars, stdpars, predtval and value] if possible
+    if(lmErr==1 .and. lmcond<loopcond) then
+      pars=lmpars
+      Stdpars=lmStdpars
+      predtval=lmpredtval
+      value=lmvalue
+      loopcond=lmcond
+      ! If its a successful simple trail, set errorflag(3)=0
+      errorflag(3)=0
+    end if
+    ! Save those values that from which pars' std.errors can not be estimated, too
+    if ((lmErr==4 .or. lmErr==5 .or. lmErr==6) .and. lmcond<mincond) then
+      cpars=lmpars
+      cStdpars=lmStdpars
+      cpredtval=lmpredtval
+      cvalue=lmvalue
+      mincond=lmcond
+      ! Set saving to be true
+      saving=.true.
+    end if
+    !
+  end do Loop
   !
   if(saving .eqv. .true.) then
     if(errorflag(2)/=0 .and. errorflag(3)/=0) then
@@ -251,21 +250,14 @@ subroutine decomp_C(ncomp,tim,sig,ntim,pars,Stdpars,value,transf,&
     end if
   end if
   !
-  ! If transf=true, then ithn (a[1],a[2],...) need to be resetted
-  ! i.e. transform a[i] to a[i]/b[i]
-  if(transf .eqv. .true.) then
-    ! Do not transform the solution that pars=-99.9D+00 !!!
-    if(all(pars>0.0D+00)) pars(1:ncomp)=pars(1:ncomp)/pars(ncomp+1:2*ncomp)
-  end if
-  !
   return
 end subroutine decomp_C
 
 subroutine diffev_C(npars,tim,sig,ntim,lamda,ithn,constant,value,&
                     predict,agents,np,f,cr,maxiter,tol,errorflag)
 !---------------------------------------------------------------------------------------------------------------------------------------
-! Fitting OSL signal decay curve using differential evolution algorithm, I=a1*exp(-b1*t)+a2*exp(-b2*t)+...+
-!                                                                          ak*exp(-bk*t)+c will be fitted.
+! Fitting OSL signal decay curve using differential evolution algorithm, I=a1*b1*exp(-b1*t)+a2*b2*exp(-b2*t)+...+
+!                                                                          ak*bk*exp(-bk*t)+c will be fitted.
 ! ======================================================================================================================================
 ! npars,                input:: integer, the dimension of the problem (length of parameters).
 !
@@ -303,7 +295,7 @@ subroutine diffev_C(npars,tim,sig,ntim,lamda,ithn,constant,value,&
 !                               2.1) if find at least one appropriate agent, errorflag(2)=0;
 !                               2.2) if fail in find at least one appropriate agent, errorflag(2)=1.
 ! =======================================================================================================================================
-! Author:: Peng Jun, 2013.12.14.
+! Author:: Peng Jun, 2013.12.14; revised in 2014.01.01.
 ! 
 ! Dependence:: subroutine leaveone; subroutine NonReplaceSample; 
 !              subroutine targfunc_C; subroutine sort; subroutine sd.
@@ -475,7 +467,7 @@ subroutine diffev_C(npars,tim,sig,ntim,lamda,ithn,constant,value,&
     ! set predict
     predict=constant
     do i=1,npars
-      predict=predict+ithn(i)*dexp(-lamda(i)*tim)
+      predict=predict+ithn(i)*lamda(i)*dexp(-lamda(i)*tim)
     end do
   else 
     value=-99.0D+00
@@ -489,7 +481,7 @@ subroutine diffev_C(npars,tim,sig,ntim,lamda,ithn,constant,value,&
 end subroutine diffev_C
 
 subroutine fitlm_C(ncomp,tim,sig,ntim,pars,Stdpars,&
-                   value,predtval,transf,errorflag)
+                   value,predtval,errorflag)
 !----------------------------------------------------------------------------------------------------------------------
 ! Subroutine fitlm_C() is used for fitting OSL signal of type "lm" (plus a constant) using Levenberg-Marquadt method,  
 ! a series combination of initial parameters will be given to call subroutine lmfit_C() to perform the fitting process.
@@ -503,8 +495,6 @@ subroutine fitlm_C(ncomp,tim,sig,ntim,pars,Stdpars,&
 !
 ! sig(ntim),         input:: real values, signal values.
 !
-! transf,            input:: logical value, whether transform estimated parameters or not.
-!
 ! pars(2*ncomp+1),  output:: real values, estimated parameters.
 !
 ! Stdpars(2*ncomp+1),output:: real values, estimated standard errors of parameters.
@@ -517,7 +507,7 @@ subroutine fitlm_C(ncomp,tim,sig,ntim,pars,Stdpars,&
 !                            1.1) a successful work given errorflag=0; 
 !                            1.2) a totally fail work given errorflag=1.
 ! =====================================================================================================================
-!     Author:: Peng Jun, 2013.07.24, revised in 2013.08.03, revised in 2013.10.05.
+!     Author:: Peng Jun, 2013.12.14; revised in 2014.01.02.
 !
 ! Dependence:: subroutine comb_next; subroutine targfunc_C; subroutine lmfit_C.
 ! 
@@ -536,7 +526,6 @@ subroutine fitlm_C(ncomp,tim,sig,ntim,pars,Stdpars,&
   integer(kind=4),                   intent(in)::ntim 
   real   (kind=8),dimension(ntim),   intent(in)::tim
   real   (kind=8),dimension(ntim),   intent(in)::sig
-  logical,                           intent(in)::transf
   real   (kind=8),dimension(ntim),   intent(out)::predtval
   real   (kind=8),dimension(2*ncomp+1),intent(out)::pars
   real   (kind=8),dimension(2*ncomp+1),intent(out)::Stdpars
@@ -548,7 +537,7 @@ subroutine fitlm_C(ncomp,tim,sig,ntim,pars,Stdpars,&
   real   (kind=8),dimension(2*ncomp+1)::lmStdpars,cStdpars
   real   (kind=8),dimension(ntim)::lmpredtval,cpredtval
   real   (kind=8),parameter::lmtol=1.0D-07
-  real   (kind=8)::lmvalue,cvalue
+  real   (kind=8)::lmvalue,cvalue,lmcond
   integer(kind=4)::lmErr
   ! Variables for subroutine targfunc_C() and subroutine comb_next()
   logical:: done
@@ -569,11 +558,11 @@ subroutine fitlm_C(ncomp,tim,sig,ntim,pars,Stdpars,&
   integer(kind=4), parameter::typ=2
   integer(kind=4):: i
   logical:: saving
-  real   (kind=8)::loopvalue,minvalue
+  real   (kind=8)::loopcond,mincond
   ! 
   saving=.false.
-  loopvalue=1.0D+30
-  minvalue=1.0D+30
+  loopcond=1.0D+30
+  mincond=1.0D+30
   errorflag=1
   done=.true.
   Loop: do i=1,permdex(ncomp)
@@ -588,29 +577,29 @@ subroutine fitlm_C(ncomp,tim,sig,ntim,pars,Stdpars,&
     if(targErr==0) then
       lmpars=(/tithn,tlamda,tconstant/)
     else 
-      lmpars(1:ncomp)=100000.0D+00*tlamda
+      lmpars(1:ncomp)=1.0D+05
       lmpars(ncomp+1:2*ncomp)=tlamda
-      lmpars(2*ncomp+1)=1500.0D+00
+      lmpars(2*ncomp+1)=1.0D+03
     end if
-    call lmfit_C(tim,sig,ntim,lmpars,2*ncomp+1,typ,transf,&
+    call lmfit_C(tim,sig,ntim,lmpars,2*ncomp+1,typ,lmcond,&
                  lmStdpars,lmpredtval,lmvalue,lmtol,lmErr)
     ! Set pars, stdpars, predtval and value if possible
-    if(lmErr==1 .and. lmvalue<loopvalue) then
+    if(lmErr==1 .and. lmcond<loopcond) then
       pars=lmpars
       Stdpars=lmStdpars
       predtval=lmpredtval
       value=lmvalue
-      loopvalue=lmvalue
+      loopcond=lmcond
       ! Successful simple trails given errorflag=0 
       errorflag=0
     end if
     ! If parameters' standard errors can not be estimated, save it too
-    if((lmErr==4 .or. lmErr==5 .or. lmErr==6) .and. lmvalue<minvalue) then
+    if((lmErr==4 .or. lmErr==5 .or. lmErr==6) .and. lmcond<mincond) then
       cpars=lmpars
       cStdpars=lmStdpars
       cpredtval=lmpredtval
       cvalue=lmvalue
-      minvalue=lmvalue
+      mincond=lmcond
       ! Set saving to be true
       saving=.true.
     end if
@@ -635,21 +624,17 @@ subroutine fitlm_C(ncomp,tim,sig,ntim,pars,Stdpars,&
       value=   -99.0D+00
     end if
   end if
-  ! Whether transform a[i] to a[i]/b[i] or not ?
-  if(transf .eqv. .true.) then
-    ! Need not to transform the solution that pars=-99.0D+00 !!!
-    if(all(pars>0.0D+00)) pars(1:ncomp)=pars(1:ncomp)/pars(ncomp+1:2*ncomp)
-  end if
+  !
   return
 end subroutine fitlm_C
 
-subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,transf,&
+subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,cond,&
                    stderror,predtval,value,tol,info)
 !--------------------------------------------------------------------------------------------------------------------------------
 ! Specifying a fitting model, lmfit_C() will fit the model using Levenberg-Marquadt method.
-! typ=1 has the formula I(t)=a1*exp(-b1*t)+a2*exp(-b2*t)+...+ak*exp(-bk*t)+c, where k=1:7;
-! typ=2 has the formula I(t)=a1*(t/max(t))*exp(-b1*t^2)/2/max(t))+...+
-!                            ak*(t/max(t))*exp(-bk*t^2)/2/max(t))+c*(t/max(t)), where k=1:7.
+! typ=1 has the formula I(t)=a1*b1*exp(-b1*t)+a2*b2*exp(-b2*t)+...+ak*bk*exp(-bk*t)+c, where k=1:7;
+! typ=2 has the formula I(t)=a1*(t/max(t))*b1*exp(-b1*t^2)/2/max(t))+...+
+!                            ak*(t/max(t))*bk*exp(-bk*t^2)/2/max(t))+c*(t/max(t)), where k=1:7.
 ! ===============================================================================================================================
 !
 ! ndat,                input:: integer, length of xdat or y dat.
@@ -657,8 +642,6 @@ subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,transf,&
 ! npars,               input:: integer, dimension of parameters (or length of pars).
 !
 ! typ,                 input:: integer, 1 for fitting 'cw', 2 for fitting 'lm'.
-!
-! transf,              output:: logical, whether transform se(a[i]) to se(a[i]/b[i]) or not.
 !
 ! xdat(ndat),          input:: real values, xdat (or independent variables x).
 !
@@ -673,6 +656,9 @@ subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,transf,&
 !
 ! value,              output:: real value, final total residual error.
 !
+! cond,               output:: real value, estimate condition number (infinity-norm) for the hessian matrix.
+!
+!
 ! tol,                 input:: real value,  termination occurs when the algorithm estimates either that the relative error in the  
 !                              sum of squares is at most TOL or that the relative error between X and the solution is at most TOL.
 !
@@ -684,7 +670,7 @@ subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,transf,&
 !                              1.5) error when attempt to inverse the approximated hessian matrix, info=5;
 !                              1.6) if diagnal elements of inversed hessian matrix has at least one minus value, info=6.
 ! ================================================================================================================================
-! Author:: Peng Jun, 2013.12.15.
+! Author:: Peng Jun, 2013.12.15; revised in 2014.01.03.
 !
 ! Dependence:: subroutine lmfunc_C; subroutine lmfunc1_C; subroutine lmder1; 
 !              subroutine lmhess_C; subroutine inverse; subroutine diag.
@@ -698,12 +684,12 @@ subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,transf,&
   real   (kind=8),dimension(npars),intent(out)::stderror
   real   (kind=8),dimension(ndat),intent(out)::predtval
   real   (kind=8),intent(in)::tol
-  logical,        intent(in)::transf
   real   (kind=8),intent(out)::value
+  real   (kind=8),intent(out)::cond
   integer(kind=4),intent(out)::info
   !
   ! Variables for subroutine lmhess_C
-  real   (kind=8),parameter::lmtol=2.220446D-16   ! used for singular matrix diagnose in subroutine (.Machine$double.eps in R)
+  real   (kind=8),parameter::lmtol=4.053817D-10   ! used for singular matrix diagnose in subroutine [.Machine$double.eps^0.6 in R]
                                                   ! lmhess and subroutine inverse
   real   (kind=8),parameter::minAbsPar=0.0D+00    ! for lmhess use
   real   (kind=8),dimension(npars,npars)::hessian ! hessian matrix by finite-difference approximation
@@ -716,11 +702,13 @@ subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,transf,&
   real   (kind=8),dimension(ndat)::fvec           ! fitted residual in vector form
   real   (kind=8),dimension(ndat,npars)::fjac     ! jacobian matrix
   integer(kind=4)::i
+  real   (kind=8)::hessCond,InvHessCond
   !
   ldfjac=ndat
   !
   ! Default returned stderrors if error appears
   stderror=-99.0D+00
+  cond=1.0D+30
   ! Specify iflag to be 1 to calculate fvec
   iflag=1
   !
@@ -782,6 +770,9 @@ subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,transf,&
     return
   end if
   !
+  ! Calculate the infinity-norm of the hessian matrix
+  hessCond=maxval(sum(dabs(hessian),dim=2))
+  !
   ! Set hessian to be its inverse form
   call inverse(hessian,npars,inverror,lmtol)
   ! Check if any error appears when calling inverse, 
@@ -790,6 +781,13 @@ subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,transf,&
     info=5
     return
   end if
+  !
+  ! Calculate the infinity-norm of the inversed hessian matrix
+  InvHessCond=maxval(sum(dabs(hessian),dim=2))
+  ! Calculate the condition number of the hessian matrix.
+  ! Note that the value is normalized by 1.0D+10
+  cond=hessCond*InvHessCond/1.0D+10
+  !
   ! Extract diagnal elements from inversed hessian 
   ! matrix and save it in arrary stderror
   call diag(hessian,npars,stderror)
@@ -802,23 +800,13 @@ subroutine lmfit_C(xdat,ydat,ndat,pars,npars,typ,transf,&
   ! Rest stderror
   stderror=dsqrt(stderror)
   !
-  ! transform se(a[i]) to se(a[i]/b[i]) or not?
-  if(transf .eqv. .true.) then
-    ! If transf=true, then std.err of ithn (a1,a2,...) need to be resetted
-    do i=1,(npars-1)/2
-      stderror(i)=pars(i)/pars(i+(npars-1)/2)*dsqrt(hessian(i,i)/pars(i)**2+&
-                  hessian(i+(npars-1)/2,i+(npars-1)/2)/pars(i+(npars-1)/2)**2-&
-                   2.0D+00*hessian(i,i+(npars-1)/2)/pars(i)/pars(i+(npars-1)/2))
-    end do
-  end if
-  !
   return
 end subroutine lmfit_C
 
 subroutine lmfunc1_C(xdat,ydat,m,n,x, &
                      fvec,fjac,ldfjac,iflag)
 ! ----------------------------------------------------------------------------------------------------------------------------
-! For formula I(t)=a1*(t/max(t))*exp(-b1*t^2)/2/max(t))+...+ak*(t/max(t))*exp(-bk*t^2)/2/max(t))+c*(t/max(t)), where k=1:7
+! For formula I(t)=a1*b1*(t/max(t))*exp(-b1*t^2)/2/max(t))+...+ak*bk*(t/max(t))*exp(-bk*t^2)/2/max(t))+c*(t/max(t)), where k=1:7
 ! lmfunc1_C() is used to calculate vectors fevc(i)=I(t,i)-ydat(i), i=1:length(ydat), or the jacobian matrix fjac, 
 ! both them will be passed to subroutine lmfit_C to perform the Levenberg-Marquadt optimization.
 ! ===========================================================================================================================
@@ -843,7 +831,7 @@ subroutine lmfunc1_C(xdat,ydat,m,n,x, &
 !                              this vector in FVEC. If IFLAG = 2 on input, FCN should calculate the jacobian at X and
 !                              return this matrix in FJAC. To terminate the algorithm, the user may set IFLAG negative.
 ! ===========================================================================================================================
-! Author:: Peng Jun, 2013.12.15.
+! Author:: Peng Jun, 2013.12.15; revised in 2014.01.01.
 !
 ! Dependence:: No
 !----------------------------------------------------------------------------------------------------------------------------
@@ -866,19 +854,18 @@ subroutine lmfunc1_C(xdat,ydat,m,n,x, &
   if(iflag==1) then
     fvec=x(n)*xdat/maxx
     do i=1,(n-1)/2
-      fvec=fvec+x(i)*(xdat/maxx)*&
+      fvec=fvec+x(i)*(xdat/maxx)*x(i+(n-1)/2)*&
            dexp(-x(i+(n-1)/2)*xdat**2/2.0D+00/maxx)
     end do
     fvec=fvec-ydat
   ! Calculate matrix jacobian in a column by column order
   else if(iflag==2)  then
     do i=1,(n-1)/2
-      fjac(:,i)=(xdat/maxx)*dexp(-x(i+(n-1)/2)*xdat**2/2.0D+00/maxx)
+      fjac(:,i)=(xdat/maxx)*x(i+(n-1)/2)*dexp(-x(i+(n-1)/2)*xdat**2/2.0D+00/maxx)
     end do
     do i=(n-1)/2+1,n-1
-      fjac(:,i)=-xdat**2/2.0D+00/maxx*&
-                dexp(-x(i)*xdat**2/2.0D+00/maxx)*&
-                x(i-(n-1)/2)*(xdat/maxx)
+      fjac(:,i)=x(i-(n-1)/2)*(xdat/maxx)*dexp(-x(i)*xdat**2/2.0D+00/maxx)-&
+               (xdat**3/2.0D+00/maxx**2)*x(i-(n-1)/2)*x(i)*dexp(-x(i)*xdat**2/2.0D+00/maxx)
     end do
     fjac(:,n)=xdat/maxx
   end if
@@ -888,7 +875,7 @@ end subroutine lmfunc1_C
 
 subroutine lmfunc_C(xdat,ydat,m,n,x,fvec,fjac,ldfjac,iflag)
 ! ---------------------------------------------------------------------------------------------------------------------------
-! For formula I(t)=a1*exp(-b1*t)+a2*exp(-b2*t)+...+ak*exp(-bk*t)+c, K=1:7,
+! For formula I(t)=a1*b1*exp(-b1*t)+a2*b2*exp(-b2*t)+...+ak*bk*exp(-bk*t)+c, K=1:7,
 ! lmfunc_C is used to calculate vectors fevc(i)=I(t,i)-ydat(i), i=1:length(ydat), 
 ! so is the jacobian matrix fjac, they will be passed to subroutine lmfit_C
 ! to perform the Levenberg-Marquadt optimization.
@@ -914,7 +901,7 @@ subroutine lmfunc_C(xdat,ydat,m,n,x,fvec,fjac,ldfjac,iflag)
 !                              this vector in FVEC. If IFLAG = 2 on input, FCN should calculate the jacobian at X and
 !                              return this matrix in FJAC. To terminate the algorithm, the user may set IFLAG negative.
 ! ===========================================================================================================================
-! Author:: Peng Jun, 2013.12.15.
+! Author:: Peng Jun, 2013.12.15; revised in 2014.01.01.
 !
 ! Dependence:: No
 !----------------------------------------------------------------------------------------------------------------------------
@@ -935,16 +922,16 @@ subroutine lmfunc_C(xdat,ydat,m,n,x,fvec,fjac,ldfjac,iflag)
   if(iflag==1) then
     fvec=x(n)
     do i=1,(n-1)/2
-      fvec=fvec+x(i)*dexp(-x(i+(n-1)/2)*xdat)
+      fvec=fvec+x(i)*x(i+(n-1)/2)*dexp(-x(i+(n-1)/2)*xdat)
     end do
     fvec=fvec-ydat
   ! calculate matrix jacobian in a column by column order
   else if(iflag==2)  then
     do i=1,(n-1)/2
-      fjac(:,i)=dexp(-x(i+(n-1)/2)*xdat)
+      fjac(:,i)=x(i+(n-1)/2)*dexp(-x(i+(n-1)/2)*xdat)
     end do
     do i=(n-1)/2+1,n-1
-      fjac(:,i)=-x(i-(n-1)/2)*xdat*dexp(-x(i)*xdat)
+      fjac(:,i)=x(i-(n-1)/2)*dexp(-x(i)*xdat)-x(i-(n-1)/2)*x(i)*xdat*dexp(-x(i)*xdat)
     end do
     fjac(:,n)=1.0D+00
   end if
@@ -988,17 +975,17 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
 !                         5) if no error appears in arrary allocation,    errorflag(5)=0, otherwise 1.
 !
 ! model                :: input, integer, a model to be used for approximation:
-!                         1) y=I(1)*exp(-lamda(1)*x)+
-!                              I(2)*exp(-lamda(2)*x)+...+
-!                              I(k)*exp(-lamda(k)*x)+c,  fitting a "cw" signal curve
+!                         1) y=I(1)*lamda(1)*exp(-lamda(1)*x)+
+!                              I(2)*lamda(2)*exp(-lamda(2)*x)+...+
+!                              I(k)*lamda(k)*exp(-lamda(k)*x)+c,  fitting a "cw" signal curve
 !
-!                         2) y=a1*(x/max(x))*exp(-b1*x^2)/2/max(x))+
-!                              a2*(x/max(x))*exp(-b2*x^2)/2/max(x))+...+
-!                              ak*(x/max(x))*exp(-bk*x^2)/2/max(x))+c*(x/max(x)), fitting a "lm" signal curve
+!                         2) y=a1*(x/max(x))*b1*exp(-b1*x^2)/2/max(x))+
+!                              a2*(x/max(x))*b2*exp(-b2*x^2)/2/max(x))+...+
+!                              ak*(x/max(x))*b3*exp(-bk*x^2)/2/max(x))+c*(x/max(x)), fitting a "lm" signal curve
 ! ======================================================================================================
 ! Dependence:: subroutine GJordan, inter function fun34.
 !
-! Author:: Peng Jun, 2013.12.15.
+! Author:: Peng Jun, 2013.12.15; revised in 2014.01.01.
 !
 ! Reference:  Jose Pinheiro, Douglas Bates, Saikat DebRoy, Deepayan Sarkar and the
 !             R Development Core Team (2013). nlme: Linear and Nonlinear Mixed
@@ -1097,8 +1084,10 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
     frac(ncols+1:ncols+npars-i)=cfrac
     ! delocate ccols and cfrac, preparing
     ! for new allocations
-    deallocate(ccols)
-    deallocate(cfrac)
+    deallocate(ccols,stat=errorflag(5))
+    if(errorflag(5)/=0) return
+    deallocate(cfrac,stat=errorflag(5))
+    if(errorflag(5)/=0) return
     ! update started filling index ncols
     ncols=ncols+npars-i 
     !
@@ -1110,12 +1099,14 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
   ccols(:,1:2*npars+1)=pcols
   ccols(:,2*npars+2:npars*(npars-1)/2+2*npars+1)=cols
   ! not need cols presently, so release it
-  deallocate(cols)
+  deallocate(cols,stat=errorflag(5))
+  if(errorflag(5)/=0) return
   ! allocate cols again to store ccols, and release ccols
   allocate(cols(1:npars,1:npars*(npars-1)/2+2*npars+1), stat=errorflag(5))
   if(errorflag(5)/=0) return
   cols=ccols
-  deallocate(ccols)
+  deallocate(ccols,stat=errorflag(5))
+  if(errorflag(5)/=0) return
   ! now add up ffrac and frac together to be cfrac,
   ! cfrac has a total of ( 2*npars+1 + npars*(npars-1)/2 ) values
   allocate( cfrac(1:npars*(npars-1)/2+2*npars+1), stat=errorflag(5))
@@ -1123,12 +1114,14 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
   cfrac(1:2*npars+1)=ffrac
   cfrac(2*npars+2:npars*(npars-1)/2+2*npars+1)=frac
   ! not need frac so release it
-  deallocate(frac)
+  deallocate(frac,stat=errorflag(5))
+  if(errorflag(5)/=0) return
   ! allocate frac again, store cfrac in it then release cfrac
   allocate(frac(1:npars*(npars-1)/2+2*npars+1), stat=errorflag(5))
   if(errorflag(5)/=0) return
   frac=cfrac
-  deallocate(cfrac) 
+  deallocate(cfrac,stat=errorflag(5)) 
+  if(errorflag(5)/=0) return
   ! specify p to be the column number of cols
   ! that is npars*(npars-1)/2+2*npars+1
   p=npars*(npars-1)/2+2*npars+1
@@ -1145,7 +1138,8 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
   if(errorflag(5)/=0) return
   transcols=transpose(cols)
   ! now cols will not be needed, release it
-  deallocate(cols)
+  deallocate(cols,stat=errorflag(5))
+  if(errorflag(5)/=0) return
   ! allocate pxcols to store transcols 
   ! in differ style
   allocate(pxcols(p,1+2*npars), stat=errorflag(5))
@@ -1169,7 +1163,8 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
     end do
     ! store cxcols to xcols and release it
     xcols(:,ncols+1:ncols+npars-i)=cxcols
-    deallocate(cxcols)
+    deallocate(cxcols,stat=errorflag(5))
+    if(errorflag(5)/=0) return
     ! update started filling index
     ncols=ncols+npars-i  
   end do
@@ -1179,14 +1174,17 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
   cxcols(:,1:1+2*npars)=pxcols
   cxcols(:,2+2*npars:1+2*npars+npars*(npars-1)/2)=xcols
   ! release xcols and pxcols
-  deallocate(xcols)
-  deallocate(pxcols)
+  deallocate(xcols,stat=errorflag(5))
+  if(errorflag(5)/=0) return
+  deallocate(pxcols,stat=errorflag(5))
+  if(errorflag(5)/=0) return
   ! allocate xcols again to store cxcols
   allocate(xcols(p,1:1+2*npars+npars*(npars-1)/2), stat=errorflag(5))
   if(errorflag(5)/=0) return
   xcols=cxcols
   ! release cxcols
-  deallocate(cxcols)
+  deallocate(cxcols,stat=errorflag(5))
+  if(errorflag(5)/=0) return
   ! allocate pxcols again and store some
   ! values to it then release shifted
   ! now pxcols has p rows and 1 column
@@ -1195,7 +1193,8 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
   do i=1,p
     pxcols(i,:)=fun34(shifted(:,i))
   end do
-  deallocate(shifted)
+  deallocate(shifted,stat=errorflag(5))
+  if(errorflag(5)/=0) return
   ! solve xcols %*% X = pxcols
   ! store solved X values in pxcols
   call GJordan(xcols,pxcols,p,1,solerror,tol)
@@ -1203,8 +1202,10 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
   ! scale pxcols with frac and release frac,
   ! release xcols
   pxcols(:,1)=pxcols(:,1)/frac
-  deallocate(xcols)
-  deallocate(frac)
+  deallocate(xcols,stat=errorflag(5))
+  if(errorflag(5)/=0) return
+  deallocate(frac,stat=errorflag(5))
+  if(errorflag(5)/=0) return
   ncols=2*npars+2 
   ! fill diagpar with some new values,  note that
   ! non-diagnal part of digpar are zeros
@@ -1224,7 +1225,8 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
   ! estimate fun(pars)
   value=pxcols(1,1)
   ! now pxcols will not be needed, release it
-  deallocate(pxcols)
+  deallocate(pxcols,stat=errorflag(5))
+  if(errorflag(5)/=0) return
   ! estimate hessian matrix
   hessian=diagpar+transpose(diagpar)
   !
@@ -1252,14 +1254,14 @@ subroutine lmhess_C(pars,xdat,ydat,npars,ndat,tol,minAbsPar,&
         ! for fitting 'cw' with a constant
         fvec=x(npars)
         do k=1,(npars-1)/2
-          fvec=fvec+x(k)*dexp(-x(k+(npars-1)/2)*xdat)   
+          fvec=fvec+x(k)*x(k+(npars-1)/2)*dexp(-x(k+(npars-1)/2)*xdat)   
         end do
       else if(model==2) then
         ! for fitting 'lm' with a constant
         maxx=maxval(xdat)
         fvec=x(npars)*xdat/maxx
         do k=1,(npars-1)/2
-          fvec=fvec+x(k)*(xdat/maxx)*&
+          fvec=fvec+x(k)*(xdat/maxx)*x(k+(npars-1)/2)*&
                dexp(-x(k+(npars-1)/2)*xdat**2/2.0D+00/maxx)  
         end do
       end if
@@ -1274,10 +1276,10 @@ subroutine targfunc_C(lamda,nlamda,tim,sig,tol,typ,&
 ! targfunc_C() is a subroutine for calculating ithn plus a constant;
 ! initial lamda values must be provided, then ithn values
 ! will be calculated using Linear Algebra method according to Bluszcz A (1996).
-! For type "cw": I(t)=ithn1*exp(-lamda1*t)+ithn2*exp(-lamda2*t)+...+
-!                     ithnk*exp(-lamdak*t)+c, where k=1,2,...,7;
-! For type "lm": I(t)=ithn1*(t/max(t))*exp(-lamda1*t^2)/2/max(t))+...+
-!                     ithnk*(t/max(t))*exp(-lamdak*t^2)/2/max(t))+c*(t/max(t)), where k=1,2,...,7.
+! For type "cw": I(t)=ithn1*lamda1*exp(-lamda1*t)+ithn2*lamda2*exp(-lamda2*t)+...+
+!                     ithnk*lamdak*exp(-lamdak*t)+c, where k=1,2,...,7;
+! For type "lm": I(t)=ithn1*lamda1*(t/max(t))*exp(-lamda1*t^2)/2/max(t))+...+
+!                     ithnk*lamdak*(t/max(t))*exp(-lamdak*t^2)/2/max(t))+c*(t/max(t)), where k=1,2,...,7.
 ! ===================================================================================================================================
 !
 ! lamda(nlamda),     input:: real values, lamda values.
@@ -1290,7 +1292,7 @@ subroutine targfunc_C(lamda,nlamda,tim,sig,tol,typ,&
 !
 ! tol,               input:: real value, maximum tolerance for identifying linear independence.
 !
-! typ,               input:: integer, fitting type, 1 for type 'cw, 2 for type 'lm'.
+! typ,               input:: integer, fitting type, 1 for type "cw", 2 for type "lm".
 !
 ! ntim,              input:: integer, length of tim and sig.
 !
@@ -1304,7 +1306,7 @@ subroutine targfunc_C(lamda,nlamda,tim,sig,tol,typ,&
 !                            1.1) if no error appears in Gjordan and no estimated ithn is below zero, errorflag=0;
 !                            1.2) if either error appears in Gjordan or any estimated ithn<0, errorflag=1.
 ! ====================================================================================================================================
-! Author:: Peng Jun, 2013.12.14.
+! Author:: Peng Jun, 2013.12.14; revised in 2014.01.01.
 !
 ! Dependence:: subroutine GJordan.
 !
@@ -1318,7 +1320,7 @@ subroutine targfunc_C(lamda,nlamda,tim,sig,tol,typ,&
   integer(kind=4),                  intent(in)::nlamda      ! length of lamda values
   integer(kind=4),                  intent(in)::ntim        ! length of tim and sig
   real   (kind=8),                  intent(in)::tol         ! maximum tolerance for linear independence
-  integer(kind=4),                  intent(in)::typ         ! fitting type ('cw' or 'lm')
+  integer(kind=4),                  intent(in)::typ         ! fitting type ("cw" or "lm")
   real   (kind=8),dimension(nlamda),intent(in)::lamda       ! lamda values
   real   (kind=8),dimension(ntim),  intent(in)::tim,sig     ! time and signal values
   real   (kind=8),                  intent(out)::value      ! targeted function value
@@ -1336,16 +1338,16 @@ subroutine targfunc_C(lamda,nlamda,tim,sig,tol,typ,&
   !
   ! Initializing coefficents 
   if(typ==1) then
-    ! For type 'cw'
+    ! For type "cw"
     do i=1,nlamda
-      coef(:,i)=dexp(-lamda(i)*tim(:))
+      coef(:,i)=lamda(i)*dexp(-lamda(i)*tim(:))
     end do
     coef(:,nlamda+1)=1.0D+00
   else if(typ==2) then
-    ! For type 'lm'
+    ! For type "lm"
     maxt=maxval(tim)
     do i=1,nlamda
-      coef(:,i)=(tim(:)/maxt)*dexp(-lamda(i)*(tim(:))**2/2.0D+00/maxt)
+      coef(:,i)=(tim(:)/maxt)*lamda(i)*dexp(-lamda(i)*(tim(:))**2/2.0D+00/maxt)
     end do
     coef(:,nlamda+1)=tim(:)/maxt
   end if
@@ -1377,15 +1379,15 @@ subroutine targfunc_C(lamda,nlamda,tim,sig,tol,typ,&
   !
   ! Reset matirx coef with calculated ithn
   if(typ==1) then
-    ! For type 'cw'
+    ! For type "cw"
     do i=1,nlamda
-      coef(:,i)=ithn(i)*dexp(-lamda(i)*tim(:))
+      coef(:,i)=ithn(i)*lamda(i)*dexp(-lamda(i)*tim(:))
     end do
     coef(:,nlamda+1)=constant
   else if(typ==2) then
-    ! For type 'lm'
+    ! For type "lm"
     do i=1,nlamda
-      coef(:,i)=ithn(i)*(tim(:)/maxt)*&
+      coef(:,i)=ithn(i)*(tim(:)/maxt)*lamda(i)*&
                 dexp(-lamda(i)*(tim(:))**2/2.0D+00/maxt)
     end do
     coef(:,nlamda+1)=constant*(tim(:)/maxt)

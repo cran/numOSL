@@ -9,7 +9,7 @@ Two sets equivalent dose values.
 }
 \usage{data(EDdata)}
 \format{
-A list contains two sets of equivalent dose values
+A list that contains two sets of equivalent dose values
 \describe{
   \item{gl11}{a data.frame contains 35 equivalent dose values from aeolain at Tengger Desert (Peng and Han, 2013)}
   \item{al3}{a data.frame contains 84 equivalent dose values from alluvial deposits at andean precordillera (Schmidt et al, 2012)}
