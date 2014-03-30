@@ -26,7 +26,7 @@ subroutine FineED(ED,Error,n,ncomp,spreadsigma,&
 !
 ! eps, input                  :: real value, the maximum tolerance for stopping the iterative process.
 ! ===========================================================================================================
-! Author:: Peng Jun, 2013.03.03.
+! Author:: Peng Jun, 2013.03.03; revised in 2014.03.30.
 !
 ! References :: Galbraith RF, 1988. Graphical Display of Estimates Having Differing 
 !               Standard Errors.Techno-metrics, 30, page 271-281.
@@ -73,7 +73,7 @@ subroutine FineED(ED,Error,n,ncomp,spreadsigma,&
     pars(1,:)=1.0D+00/real(ncomp,kind=8)
     ! Initialize characteristic equivalent doses 
     do j=1,ncomp
-      pars(2,j)=minval(sED)+(maxval(sED)-minval(sED))*real(j,kind=8)/real(ncomp+i-2,kind=8)
+      pars(2,j)=minval(sED)+(maxval(sED)-minval(sED))*real(j+i-2,kind=8)/real(ncomp+1,kind=8)
     end do
     !
     call FMMED(sED,sError,n,ncomp,spreadsigma,&

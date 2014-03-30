@@ -5,38 +5,30 @@
 Summarizing the distribution of equivalent dose values
 }
 \description{
-Calculating statistical parameters, such as average, standard deviation, skewness, kurtosis, over-dispersion, homogeneity test of equivalent dose values, supporting histogram and probability density plot drawing.
+Calculating statistical parameters (mean, standard deviation, skewness, kurtosis, over-dispersion); performing a homogeneity test; drawing a histogram and a probability density plot.
 }
 \usage{
 dbED(EDdata, aliquot=c("sa","sg"), plot = TRUE, from = NULL, 
      to = NULL, step = 0.1, nbin = 15, samplename = NULL)
 }
 \arguments{
-  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent doses and associated errors (a total of two columns), the same as that in function \link{RadialPlotter}
-}
-  \item{aliquot}{\link{character}(with default): single-aliquot ("sa") or single-grain ("sg"), default aliquot="sa"
-}
-  \item{plot}{\link{logical}(with default): whether drawing histogram and probability density plot or not
-}
-  \item{from}{\link{numeric}(optional): the desired lower limit of x-axis
-}
-  \item{to}{\link{numeric}(optional): the desired upper limit of x-axis
-}
-  \item{step}{\link{numeric}(with default): step size for generating a vector, from which densities of normal distributions will be calculated and summing up as the whole probability curve. Finer step gives smoother curve
-}
-  \item{nbin}{\link{numeric}(with default): the desired number of intervals of the histogram
-}
-  \item{samplename}{\link{character}(optional): the name of the sample
-}
+  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent doses and their standard errors (two columns)}
+  \item{aliquot}{\link{character}(with default): single-aliquot ("sa") or single-grain ("sg"), default aliquot="sa"}
+  \item{plot}{\link{logical}(with default): draw a histogram and a probability density plot or not}
+  \item{from}{\link{numeric}(optional): the desired lower limit on x-axis}
+  \item{to}{\link{numeric}(optional): the desired upper limit on x-axis}
+  \item{step}{\link{numeric}(with default): step size used for constructing the probability density plot. Finer step value gives smoother density curve}
+  \item{nbin}{\link{numeric}(with default): the desired number of intervals in the histogram}
+  \item{samplename}{\link{character}(optional): the name of the sample}
 }
 \value{
 Return a list that contains following elements:
   \item{summaryED}{a basic statistical summary of equvalent dose values}
-  \item{mlpED}{mean of the lowest percent [x] of equivalent dose values (Olley et al, 1998)}
-  \item{homogeneity}{results of simple homogeneity test (Galbraith, 2003)}
-  \item{skewness}{skewness of equivalent dose values (Bailey and Arnold, 2006)}
-  \item{kurtosis}{kurtosis of equivalent dose values (Bailey and Arnold, 2006)}
-  \item{proposal}{a proposed statistical age model (Bailey and Arnold, 2006; Arnold et al, 2007) that depends on used aliquot type ("sg" or "sa"), on which could not be relied absolutely}
+  \item{mlpED}{the mean of the lowest percent [x] of equivalent dose values (Olley et al, 1998)}
+  \item{homogeneity}{the results of simple homogeneity test (Galbraith, 2003)}
+  \item{skewness}{the skewness of equivalent dose values (Bailey and Arnold, 2006)}
+  \item{kurtosis}{the kurtosis of equivalent dose values (Bailey and Arnold, 2006)}
+  \item{proposal}{a proposed statistical age model (Bailey and Arnold, 2006; Arnold et al, 2007) that depends on the type of aliquot ("sg" or "sa"), which cannot be relied on absolutely}
 }
 \references{
 Olley, J.M., Caitcheon, G., Murray, A.S., 1998. The distribution of apparent dose as determined by optically stimulated luminescence in small aliquots of fluvial quartz: implications for dating young
@@ -54,10 +46,7 @@ Duller, G.A.T., 2008. Single-grain optical dating of Quaternary sediments: why a
 \link{RadialPlotter}
 }
 \examples{
-# Loading EDdata
  data(EDdata)
-# Analyzing equivalent dose values of sample AL3
- dbED(EDdata[[2]])
+ dbED(EDdata$al3)
 }
-\keyword{histogram plot}
-\keyword{probability density plot}
+\keyword{equivalent dose}

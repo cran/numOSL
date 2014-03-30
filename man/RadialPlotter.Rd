@@ -2,10 +2,10 @@
 \alias{RadialPlotter}
 \alias{RadialPlotter.default}
 \title{
- Estimating parameters of Rex Galbraith's statistical age model in OSL dating and drawing radial plot  
+ Estimating parameters of Rex Galbraith's statistical age model (with classic numeric methods) and drawing radial plot  
 }
 \description{
-Depending on the specified number of components, this function performs statistical age models analysis reviewed in Galbraith and Roberts (2012) dynamically. Statistical OSL age models
+Depending on the specified number of components, this function performs statistical age models analysis reviewed in Galbraith and Roberts (2012) dynamically. Age models
 that can be performed includes: central age model (CAM), minimum age model (MAM), finite mixture age model (FMM). 
 }
 \usage{
@@ -18,60 +18,45 @@ RadialPlotter(EDdata,
               kratio = 0.3, zscale = NULL, samplename = NULL)
 }
 \arguments{
-  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent doses and associated errors (a total of two columns), the routine do analyzes using log-scale, hence all equivalent doses used for fitting must be larger than 0
-}
-  \item{ncomp}{\link{numeric}(with default): the number of components used for optimizing, 0 means analyzing automatically with finite mxiture age model, 1 for fitting central age model, any other positive integer will fitting finite mixture age model with the specified number of components. As to minimum age models, -1 means performing minimum age model analysis with three parameters, -2 means fitting minimum age model with four parameters
-}
-  \item{addsigma}{\link{numeric}(with default): the added spread to the relative error of equivalent dose (log-scale), usually a number ranging from 0 to 0.2 is feasible
-}
-  \item{maxiter}{\link{numeric}(with default): the maximum iterative number allowed in optimization. For central age model and finite mixture age model, often a maximum iterative number of 300 to 500 will be enough in most cases, while in some special situations, 1000 or more will be needed. As to minimum age model, a maximum iterative number of 50 to 100 will be totally enough
-}
-  \item{maxcomp}{\link{numeric}(with default): the maximum number of components allowed for fitting finite mixture age model, the up limitation
-is set to be equal to the length of EDdata, but it will be both time consuming and make no sense if it is set to be too large. It does not exert any effect if minimum age model or central age model is analyzed
-}
-  \item{algorithm}{\link{character}(with default): the algorithm for optimizing minimum age models, available algorithms are "lbfgsb" and "port", default algorithms="lbfgsb"
-}
-  \item{eps}{\link{numeric}(with default): the maximum tolerance allowed for stopping the iterative process when performing central age model or finite mixture age model analysis, iterative process will stop if updated parameters satisfying ||pars-newpars||<=eps. It does not exert any effect if minimum age model is analyzed
-}
-  \item{plot}{\link{logical}(with default): whether drawing the radial plot using estimated parameters or not
-}
-  \item{pcolor}{\link{character}(with default): color of points for plotting, input \link{colors}() see available colors
-}
-  \item{psize}{\link{numeric}(with default): size of points for plotting
-}
-  \item{kratio}{\link{numeric}(with default): an option used for modifying zscale, a bit like a curvature for z-axis
-}
-  \item{zscale}{\link{numeric}(optional): option for modifying the z-scale of radial plot manually. Example: \code{zscale = seq(min(EDdata),max(EDdata), by = 3L)}
-}
-  \item{samplename}{\link{character}(optional): the name of the sample, such as "Tengger"
-}
+  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent doses and their standard errors (two columns). The routine do the fitting in a log-scale, so all equivalent doses should larger than 0}
+  \item{ncomp}{\link{numeric}(with default): the number of components, 0 for analyzing finite mxiture age models automatically, 1 for fitting a central age model. As to minimum age models, -1 means fitting a 3-parameter minimum age model while -2 means fitting a 4-parameter minimum age model}
+  \item{addsigma}{\link{numeric}(with default): the added spread to the relative error of equivalent dose}
+  \item{maxiter}{\link{numeric}(with default): the allowed maximum numer of iterations}
+  \item{maxcomp}{\link{numeric}(with default): the allowed maximum number of components for fitting a finite mixture age model}
+  \item{algorithm}{\link{character}(with default): a algorithm used for optimizing minimum age models, available algorithms are "lbfgsb" and "port", default algorithms="lbfgsb"}
+  \item{eps}{\link{numeric}(with default): the allowed maximum tolerance for stopping the iterative process in fitting of a central age model or a finite mixture age model}
+  \item{plot}{\link{logical}(with default): draw a radial plot with the estimates or not}
+  \item{pcolor}{\link{character}(with default): the color of points in the plot, input \link{colors}() see available colors}
+  \item{psize}{\link{numeric}(with default): the size of points in the plot}
+  \item{kratio}{\link{numeric}(with default): an option used for modifying the shape of zscale}
+  \item{zscale}{\link{numeric}(optional): an option used for modifying the z-scale of a radial plot. Example: \code{zscale = seq(min(EDdata),max(EDdata), by = 3L)}}
+  \item{samplename}{\link{character}(optional): the name of the sample}
 }
 \details{
-Specifying a number of components that not smaller than 2, this function will fit finite mixture age model with the specified number of components. If ncomp is set to be 0, the routine will do the optimization automatically by trying various initial values to pick out a number of components that given the minimum BIC value. Central age model will be analyzed if the number of components is specified to be 1. Minimum age model can also be fitted by specifying ncomp to be -1 (type 3) or -2 (type 4). Both central age model and finite mixture age model are fitted using the maximum likelihood method outlined by Galbraith (1988), while minimum age model can be estimated using the L-BFGS-B subroutine written by Zhu et al (1994) or the "port" rountines (R function \link{nlminb} in package "stats"). Notes that all these calculations are performed using log-scale, which means that any minus equivalent dose will not be allowed to be analyzed by this routine.\cr
+Both the central age model and the finite mixture age model are fitted using the maximum likelihood method outlined by Galbraith (1988), while minimum age model can be estimated using either the L-BFGS-B subroutine written by Zhu et al (1994) or the "port" rountines (R function \link{nlminb} in package "stats"). Notes that all these calculations are performed in a log-scale, so any minus equivalent dose is not allowed to be analyzed.\cr
 \cr
-Because both maximum likelihood method and L-BFGS-B algorithm (so is the "port" routine) find out optimized parameters that correspond to a local minimum value instead of a globle minimum value, hence to achieve an acceptable estimation, all routines (except central age model) try various initial values then picking out optimized parameters that given the minimum minus logged likelihood value. When fitting minimum age models (of type 3 or type 4), the lower and upper boundaries are set as following:\cr
+Because both the maximum likelihood method and the L-BFGS-B algorithm (so is the "port" routine) result in a local optimization instead of a globle one, to obtain a feasible estimation, all models (except the central age model) try various initial values during the fitting. For the fitting of minimum age models (of type 3 or type 4), the lower and upper limits are set as following:\cr
 \cr
 lower boundary for type 3: (p=1e-4, gama=min(ED), sigma=1e-3);\cr
 upper boundary for type 3: (p=0.99, gama=max(ED), sigma=5).\cr
 lower boundary for type 4: (p=1e-4, gama=min(ED), mu=min(ED), sigma=1e-3);\cr
 upper boundary for type 4: (p=0.99, gama=max(ED), mu=max(ED), sigma=5).\cr
 \cr 
-Also note that, for both finite mixture age model and minimum age model, if parameters' standard error can not be estimated, the result will be suppressed. For minimum age
-model with four parameters, if the optimization gives a gama value which is larger than the mu value, the result will be suppressed too.
+Also note that, if parameters' standard errors of a finite mixture age model or a minimum age model cannot be estimated, the estimates will be suppressed. And for a 4-parameter minimum age model, if the estimate gives a gamma value that is larger than the mu value, the result will be suppressed too.
 }
 \value{
-Return a radial plot, and an invisible list of S3 class "RadialPlotter" that contains following elements:
+Return a radial plot, and an invisible list of class "RadialPlotter" that contains following elements:
 
-  \item{errorflag}{error message generated during the fitting, 0 indicates a successful work for analyzed statistical age models. For finite mixture age model, 1 implicates that at least one parameter's standard error can not be approximated. For minimum age model, 1 indicates at least one estimated parameter is near the boundary, or at least one parameter's standard error can not be approximated, or estimated gama value is larger than mu value (for type 4), which might attribute to using of an inappropriate addsigma value or an inappropriate number of parameters (type 3 or type 4) for the sample of interest. As to central age model, a successful work will not be a problem 
+  \item{errorflag}{error message generated during the fitting, 0 indicates a successful estimate. For a finite mixture age model, 1 implicates that at least one parameter's standard error can not be approximated. For a minimum age model, 1 indicates that at least one parameter is near the specified boundary, or at least one parameter's standard error cannot be approximated, or estimated gama value is larger than mu value. As to a central age model, a successful work is not a problem 
 }
-  \item{commonED}{the equivalent dose and corresponded standard error calculated using common age model}
-  \item{ncomp}{the number of components used for optimizing}
-  \item{maxcomp}{the maximum number of components allowed for fitting finite mixture age model}
-  \item{loopcomp}{indicator of minimum BIC search for finite mixture age model, if ncomp=0 then loopcomp will be 1, else it will be 0}
+  \item{commonED}{an equivalent dose calculated using the common age model}
+  \item{ncomp}{the used number of components}
+  \item{maxcomp}{the allowed maximum number of components for a fitting finite mixture age model}
+  \item{loopcomp}{fit a finite mixture age model automatically or not, 1 for "yes" and 0 for "no"}
   \item{pars}{the estimated parameters and standard errors for related OSL age models}
   \item{BIC}{the calculated Bayesian Information Criterion (BIC) value}
-  \item{maxlik}{the estimated maximum logged likelihood value}
-  \item{BILI}{BIC and maximum logged likelihood values for different number of components in a finite mixture age model, only exist if ncomp=0, else it will be NULL}
+  \item{maxlik}{the estimated logged maximum likelihood value}
+  \item{BILI}{BIC values and logged maximum likelihood values for a varying number of components of finite mixture age models}
 }
 \references{
 Galbraith, R.F., 1988. Graphical Display of Estimates Having Differing Standard Errors. Technometrics, 30 (3), pp. 271-281.
@@ -118,30 +103,18 @@ Vermeesch, P., 2009. RadialPlotter: a Java application for fission track, lumine
 \examples{
 # Loading equivalent dose data
   data(EDdata)
-# Specifying the number of component to be 1 to do central age model analysis
-  obj<-RadialPlotter(EDdata$gl11,ncomp=1,zscale=seq(20,37,3))
-  obj
-# Fitting finite mxiture age model with  a number of components of 7 (k=7)
-  obj<-RadialPlotter(EDdata$al3,ncomp=7,zscale=seq(25,90,5),pcolor="gray")
+# Finding the appropriate number of components of a finite mixture age model
+  obj<-RadialPlotter(EDdata$al3,zscale=seq(24,93,7),samplename="AL3")
   print(obj)
-# Picking out the appropriate number of components then fitting automatically
-  obj<-RadialPlotter(EDdata$al3,zscale=seq(24,93,7),samplename="AL3",pcolor="brown")
-  obj
-# Setting zscale manually
-  zscale<-seq(min(EDdata$al3[,1])-1,max(EDdata$al3[,1])+1,by = 15L)
-  obj<-RadialPlotter(EDdata$al3,maxcomp=13,zscale=zscale,kratio=0.5)
-  print(obj)
-# Performing minimum age model analysis with three parameters
+# Fitting a 3-parameter minimum age model 
   obj<-RadialPlotter(EDdata$gl11,ncomp=-1,maxiter=100,zscale=seq(20,37,3))
-  class(obj)
-# Performing minimum age model analysis with three parameters (addsigma=0.1)
-  print(RadialPlotter(EDdata$al3,ncomp=-1,addsigma=0.1,kratio=0.5,
-        maxiter=100,algorithm="port",zscale=seq(24,93,7)))
-# Performing minimum age model analysis with four parameters
+  obj$pars
+# Fitting a 4-parameter minimum age model
   obj<-RadialPlotter(EDdata$al3,ncomp=-2,maxiter=100,zscale=seq(24,93,7))
   unclass(obj)
 }
-\keyword{statistical age models}
+\keyword{Radial Plot}
+\keyword{equivalent dose}
 \keyword{Central Age Model}
 \keyword{Finite Mixture Age Model}
 \keyword{Minimum Age Model}

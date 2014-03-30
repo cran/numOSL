@@ -36,7 +36,7 @@ subroutine FineED1(ED,Error,n,ncomp,spreadsigma,pars,&
 !                                1.1) if successed in calculating parameters' std.errors, errorflag=0;
 !                                1.2) if failed in calculating parameters' std.errors, errorflag=1.
 ! ==================================================================================================================================
-! Author:: Peng Jun, 2013.03.05.
+! Author:: Peng Jun, 2013.03.05; revised in 2014.03.30.
 !
 ! References :: Galbraith RF, 1988. Graphical Display of Estimates Having Differing 
 !               Standard Errors.Techno-metrics, 30, page 271-281.
@@ -92,7 +92,7 @@ subroutine FineED1(ED,Error,n,ncomp,spreadsigma,pars,&
     ! Initialize cpars
     cpars(1,:)=pars(1,:)
     do j=1,ncomp
-      cpars(2,j)=minval(sED)+(maxval(sED)-minval(sED))*real(j-1,kind=8)/real(ncomp-1,kind=8)
+      cpars(2,j)=minval(sED)+(maxval(sED)-minval(sED))*real(j,kind=8)/real(ncomp+1,kind=8)
     end do
     ! Set minBIC to be a large number
     minBIC=1.0D+30
@@ -103,7 +103,7 @@ subroutine FineED1(ED,Error,n,ncomp,spreadsigma,pars,&
       pars(1,:)=1.0D+00/real(ncomp,kind=8)
       ! 2) Characteristic equivalent doses (1:ncomp)
       do j=1,ncomp
-        pars(2,j)=minval(sED)+(maxval(sED)-minval(sED))*real(j,kind=8)/real(ncomp+i-2,kind=8)
+        pars(2,j)=minval(sED)+(maxval(sED)-minval(sED))*real(j+i-2,kind=8)/real(ncomp+1,kind=8)
       end do
       ! Call FMMED() to perfect the initialized parameters (pars)
       call FMMED(sED,sError,n,ncomp,spreadsigma,&

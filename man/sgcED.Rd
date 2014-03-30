@@ -2,10 +2,10 @@
 \alias{sgcED}
 \alias{sgcED.default}
 \title{
-Fitting dose response curve and calculating equivalent dose using standardised growth curves (SGC) method
+Fitting a dose response curve and calculating a number of equivalent dose values using the standardised growth curves (SGC) method
 }
 \description{
-Its a wrapped version of function calED(), fitting OSL dose response curve and calculating equivalent dose values using standardised growth curves (SGC) method after Roberts HM and Duller GAT (2004), the errors of equivalent doses are estimated after Duller GAT (2007). It is based on the fact that using information collected as part of standard SAR measurements, it is possible to construct reproducible patterns of growth from multiple-grain aliquots of a large number of samples (Roberts HM and Duller GAT, 2004).
+It is a function for fitting a dose response curve and calculating an equivalent dose values using the standardised growth curves (SGC) method after Roberts HM and Duller GAT (2004). It is based on the fact that using information collected as part of standard SAR measurements, it is possible to construct reproducible patterns of growth from multiple-grain aliquots of a large number of samples (Roberts HM and Duller GAT, 2004).
 }
 \usage{
 sgcED(Curvedata, Ltx, 
@@ -14,38 +14,27 @@ sgcED(Curvedata, Ltx,
       nsim = 1000, plot = TRUE, samplename = NULL, outfile = NULL)
 }
 \arguments{
-  \item{Curvedata}{\link{data.frame}(\bold{required}): three columns, the same as that in function \link{calED}
-}
-  \item{Ltx}{\link{data.frame}(\bold{required}): two columns (standardized signals and its standard errors), from which equivalent doses can be estimated by interpolating 
-}
-  \item{model}{\link{character}(with default): a model("linear", "exponential" or "linear+exponential") used for fitting the dose response curve, the same as that in function \link{calED}
-}
-  \item{origin}{\link{logical}(optional): whether force the fitting to pass the origin (x=0,y=0) or not
-}
-  \item{nstart}{\link{numeric}(with default): maximum number of attempts that used to initialize parameters in curve fitting, the same as that in function \link{calED}
-}
-  \item{upb}{\link{numeric}(with default): upper boundary of b value, initial b values will be generated uniformly from (0, upb), the same as that in function \link{calED}
-}
-  \item{ErrorMethod}{\link{character}(with default): method ("sp" or "mc") for estimating the standard errors of equivalent doses, see \link{calED} for more information
-}
-  \item{nsim}{\link{numeric}(with default): maximum simulative number allowed if using Monte Carlo method for error assessing
-}
-  \item{plot}{\link{logical}(with default): whether drawing a plot or not
-}
-  \item{samplename}{\link{character}(optional): name of the sample
-}
-  \item{outfile}{\link{character}(optional): if specified, calculated equivalent doses will be written to a file of name outfile in .csv format and saved to the current work directory
-}
+  \item{Curvedata}{\link{data.frame}(\bold{required}): three columns, see function \link{calED}}
+  \item{Ltx}{\link{data.frame}(\bold{required}): two columns (standardized signals and its standard errors)}
+  \item{model}{\link{character}(with default): a fitting model("linear", "exponential" or "linear+exponential"), see function \link{calED}}
+  \item{origin}{\link{logical}(optional): force the fitting to pass the origin (x=0,y=0) or not}
+  \item{nstart}{\link{numeric}(with default): the maximum number of attempts used to initialize parameters when fitting a dose response curve, see function \link{calED}}
+  \item{upb}{\link{numeric}(with default): the upper limit on b value, see function \link{calED}}
+  \item{ErrorMethod}{\link{character}(with default): a method ("sp" or "mc") for estimating the standard errors of equivalent doses, see function \link{calED}}
+  \item{nsim}{\link{numeric}(with default): the allowed maximum number of simulations if a Monte Carlo method is used for error assessing}
+  \item{plot}{\link{logical}(with default): plot the results or not}
+  \item{samplename}{\link{character}(optional): the name of the sample}
+  \item{outfile}{\link{character}(optional): if specified, calculated equivalent doses will be written to a file named "outfile" in ".csv" format will and be saved to the current work directory}
 }
 \details{
 see function \link{calED}() for details.
 }
 \value{
   Return a visible list that contains following elements:
-  \item{LMpars}{characteristic parameters and standard errors of the dose response curve obtained by Levenberg-Marquardt method}
-  \item{residual}{sum of square of residual errors}
-  \item{fit.value}{observations .VS. fitted values}
-  \item{ED}{estimated equivalent doses (standard errors)}
+  \item{LMpars}{the characteristic parameters and their standard errors of the fitted dose response curve}
+  \item{residual}{the sum of square of residuals}
+  \item{fit.value}{the fitted values}
+  \item{ED}{the estimated equivalent doses and their standard errors}
 }
 \references{
 Roberts, H.M. and Duller, G.A.T., 2004. Standardised growth curves for optical dating of sediment using multiple-grain aliquots. Radiation Measurements 38(2), pp. 241-252.
@@ -81,6 +70,4 @@ Yang, L.H., Lai, Z.P., Long, H., Zhang, J.R., 2011. Construction of a quartz OSL
                  rep(0.1,8))         # Lx/Txs from which EDs are expected
  sgcED(Curvedata,Ltx,model="line+exp",origin=TRUE) # fitting y=a*(1-exp(-b*x))+c*x
 }
-\keyword{growth curve}
 \keyword{equivalent dose}
-\keyword{SGC method}

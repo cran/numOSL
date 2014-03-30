@@ -23,7 +23,7 @@ subroutine CAM(ED,Error,n,spreadsigma,maxiter,&
 !
 ! BIC, output                   :: real value, the BIC value.
 ! ======================================================================================================================
-! Author:: Peng Jun, 2013.03.04, revised in 2013.03.05.
+! Author:: Peng Jun, 2013.03.04; revised in 2013.03.05; revised in 2014.03.30.
 !
 ! Dependence:: No
 !
@@ -48,6 +48,7 @@ subroutine CAM(ED,Error,n,spreadsigma,maxiter,&
   ! Local variables
   real   (kind=8),dimension(n)::z,sz,wz
   real   (kind=8),dimension(2,1)::newpars
+  real   (kind=8),parameter::PI=3.141592653589793238462643383279502884197D+00
   integer(kind=4)::i
   !
   ! Change data to log-scale
@@ -77,7 +78,8 @@ subroutine CAM(ED,Error,n,spreadsigma,maxiter,&
    end do
   !
   ! Calculate maximum logged likelihood value
-  100 maxlik=0.5D+00*sum(dlog(wz))-0.5D+00*sum(wz*(z-pars(2,1))**2)
+  100 maxlik=sum(dlog(1.0D+00/sqrt(2.0D+00*PI)*sqrt(wz)*dexp(-(z-pars(2,1))**2*wz/2.0D+00)))
+  ! 100 maxlik=0.5D+00*sum(dlog(wz))-0.5D+00*sum(wz*(z-pars(2,1))**2)
   ! Calculate the BIC value
   BIC=-2.0D+00*maxlik-2.0D+00*dlog(real(n,kind=8))
   ! Transform Central Dose

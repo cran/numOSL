@@ -5,3 +5,5 @@ Version 1.0
 Version 1.1
         * The condition number of the model has been taken into consideration in decay curve fitting to help to obtain more desirable estimates.
         * The signal component a*exp(-b*x) has been modified to be a*b*exp(-b*x) in function "decompc" (but not in function "decomp") to make the model more stable to analyze noise data.
+Version 1.2
+        * Three functions ("mcMAM", "mcFMM", "reportSAM") that can be used to analyze statistical age models with a MCMC algorithm (Slice Sampling) are available (see the manual for more details).

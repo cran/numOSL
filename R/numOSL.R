@@ -63,7 +63,7 @@ function(EDdata,ncomp=0,addsigma=0,maxiter=500,
   ### For argument "EDdata"
   if(!is.data.frame(EDdata))    stop("Error: EDdata must be of type data.frame!")
   if(ncol(EDdata)!=2L)          stop("Error: EDdata must contain two columns!")
-  if(!is.numeric(unlist(unclass(EDdata))))  
+  if(!is.numeric(as.matrix(EDdata)))  
                                 stop("Error: elements in EDdata must be all of type numeric!")
   if(any(!is.finite(unlist(unclass(EDdata)))))   
                                 stop("Error: EDdata nust not contain non-finite value!")
@@ -230,8 +230,8 @@ function(EDdata,ncomp=0,addsigma=0,maxiter=500,
     axis(side=1, at=reticks.values[-1L], lwd=2, labels=reticks.labels[-1L], line=4, cex.axis=1, tck=0.02, padj=-4)
     mtext(side=1, line=1.5,"Relative Error (%)", cex=1)
     axis(side=2,at=c(-2,-1,0,1,2), lwd=2, labels=c("-2","","0","","2"), cex.axis=1)
-    on.exit(par(oma=c(0,0,0,0),
-                mar=c(5,4,4,2)+0.1))
+    par(oma=c(0,0,0,0), xpd=FALSE,
+        las=0, new=FALSE, mar=c(5,4,4,2)+0.1)
   } ### end function RadialPlot
   ###
   ### ******************************************************
@@ -639,7 +639,7 @@ function(Curvedata,Ltx,model=c("line","exp","line+exp"),
   ### For argument "Curvedata"
   if(!is.data.frame(Curvedata))         stop("Error: Curvedata must be of type data.frame!")
   if(ncol(Curvedata)!=3L)               stop("Error: Curvedata must contain three columns!")
-  if(!is.numeric(unlist(unclass(Curvedata))))       
+  if(!is.numeric(as.matrix(Curvedata)))       
                                         stop("Error: all values in Curvedata must be of type numeric!")
   if(any(!is.finite(unlist(unclass(Curvedata)))))   
                                         stop("Error: Curvedata must not contain non-finite value!")
@@ -940,7 +940,7 @@ function(EDdata,aliquot=c("sa","sg"),plot=TRUE,from=NULL,
   ### For argument "EDdata"
   if(!is.data.frame(EDdata))    stop("Error: EDdata must be of type data.frame!")
   if(ncol(EDdata)!=2L)          stop("Error: EDdata must contain two columns!")
-  if(!is.numeric(unlist(unclass(EDdata))))  
+  if(!is.numeric(as.matrix(EDdata)))  
                                 stop("Error: elements in EDdata must be all of type numeric!")
   if(any(!is.finite(unlist(unclass(EDdata)))))   
                                 stop("Error: EDdata must not contain non-finite value!")
@@ -1232,7 +1232,7 @@ function(Sigdata,ncomp=3,typ=c("cw","lm"),
   if(!is.data.frame(Sigdata))             stop("Error: Sigdata must be of type data.frame!")
   if(ncol(Sigdata)<2L)                    stop("Error: Sigdata must contain at least two columns!")
   if(ncol(Sigdata)>2L && typ[1L]!="cw")   stop("Error: only signal table of type CW-OSL can be analyzed currently!")
-  if(!is.numeric(unlist(unclass(Sigdata))))           
+  if(!is.numeric(as.matrix(Sigdata)))           
                                           stop("Error: all elements in Sigdata must be of type numeric!")
   if(any(!is.finite(unlist(unclass(Sigdata)))))   
                                           stop("Error: Sigdata must not contain non-finite value!")
@@ -1593,7 +1593,7 @@ function(Sigdata,ncomp=2,typ=c("cw","lm"),
   if(!is.data.frame(Sigdata))             stop("Error: Sigdata must be of type data.frame!")
   if(ncol(Sigdata)<2L)                    stop("Error: Sigdata must contain at least two columns!")
   if(ncol(Sigdata)>2L && typ[1L]!="cw")   stop("Error: only signal table of type CW-OSL can be analyzed currently!")
-  if(!is.numeric(unlist(unclass(Sigdata))))           
+  if(!is.numeric(as.matrix(Sigdata)))           
                                           stop("Error: all elements in Sigdata must be of type numeric!")
   if(any(!is.finite(unlist(unclass(Sigdata)))))   
                                           stop("Error: Sigdata must not contain non-finite value!")
@@ -1937,7 +1937,7 @@ function(Sigdata,Redose,ncomp=2,constant=TRUE,
   if(!is.data.frame(Sigdata))                 stop("Error: Sigdata must be of type data.frame!")
   if(ncol(Sigdata)<5L)                        stop("Error: Sigdata must contain at least five columns!")
   if(ncol(Sigdata) %% 2L != 1L)               stop("Error: Sigdata must contain odd number of columns!")
-  if(!is.numeric(unlist(unclass(Sigdata))))   stop("Error: all value in Sigdata must be of type numeric!")
+  if(!is.numeric(as.matrix(Sigdata)))         stop("Error: all value in Sigdata must be of type numeric!")
   if(any(!is.finite(unlist(unclass(Sigdata)))))   
                                               stop("Error: Sigdata must not contain non-finite value!")
   if(any(Sigdata[,1L]<0.0))                   stop("Error: all value in the first column of Sigdata [time] must larger than zero!")
@@ -2257,7 +2257,7 @@ function(Curvedata,Ltx,model=c("line","exp","line+exp"),
   ### For argument "Curvedata"
   if(!is.data.frame(Curvedata))              stop("Error: Curvedata must be of type data.frame!")
   if(ncol(Curvedata)!=3L)                    stop("Error: Curvedata must contain three columns!")
-  if(!is.numeric(unlist(unclass(Curvedata))))
+  if(!is.numeric(as.matrix(Curvedata)))
                                              stop("Error: all values in Curvedata must be of type numeric!")
   if(any(!is.finite(unlist(unclass(Curvedata)))))   
                                              stop("Error: Curvedata must not contain non-finite value!")
@@ -2266,7 +2266,7 @@ function(Curvedata,Ltx,model=c("line","exp","line+exp"),
   ### For argument "Ltx"
   if(!is.data.frame(Ltx))                    stop("Error: Ltx must be a data.frame!")
   if(ncol(Ltx)!=2L)                          stop("Error: Ltx must contains two columns!")
-  if(!is.numeric(unlist(unclass(Ltx))))      stop("Error: all values in Ltx must be of type numeric!")
+  if(!is.numeric(as.matrix(Ltx)))            stop("Error: all values in Ltx must be of type numeric!")
   if(any(!is.finite(unlist(unclass(Ltx)))))  stop("Error: Ltx must not contain non-finite value!")
   if(any(Ltx[,1L]>max(Curvedata[,2L])*1.3))  stop("Error: all Ltx must not exceed maximum Lx/Tx in Curvedata!")
   if(any(Ltx[,1L]<=0.0))                     stop("Error: all Ltx must larger than zero!")
@@ -2517,3 +2517,757 @@ function(Curvedata,Ltx,model=c("line","exp","line+exp"),
   return(output)
 } # end function sgcED   
 ######################################## END FUNCTION sgcED ###############################################
+###
+################################################### FUNCTION mcMAM ###################################################
+### ******************************************************************************************************************
+#### Function mcMAM() is used to perform Galbraith's statistical age models analysis with the Slice Sampling method.
+#### Models that can be analyzed include: MAM3 and MAM4.
+###
+###     Author: Peng Jun, 2014.03.14; revised in 2014.03.17.
+###
+### References: Galbraith, R.F., 1988. Graphical Display of Estimates Having Differing Standard 
+###             Errors. Technometrics, 30 (3), pp. 271-281.
+###
+###             Neal, R. M (2003) "Slice sampling" (with discussion), Annals of Statistics,
+###             vol. 31, no. 3, pp. 705-767.
+###
+### Mandatory arguments---
+###     EDdata: a data.frame, equivalent doses (two columns).
+### ******************************************************************************************************************
+mcMAM<-
+function(EDdata,ncomp=-1,addsigma=0,iflog=TRUE,
+         nsim=5e4,inis=list(),control.args=list()) {
+    UseMethod("mcMAM")
+} # end function mcMAM
+### Set default method for function mcMAM().
+mcMAM.default<-
+function(EDdata,ncomp=-1,addsigma=0,iflog=TRUE,
+         nsim=5e4,inis=list(),control.args=list()) {
+  ###
+  ### For argument "EDdata".
+  if(!is.data.frame(EDdata))  {
+      stop("Error: EDdata should be of type data.frame!")
+  } # end if
+  if(ncol(EDdata)!=2L)  {
+      stop("Error: EDdata should contain two columns!")
+  } # end if
+  if(!is.numeric(as.matrix(EDdata)))  {
+      stop("Error: elements in EDdata should be all of type numeric!")
+  } # end if
+  if(any(!is.finite(unlist(unclass(EDdata)))))  {
+      stop("Error: EDdata should not contain non-finite value!")
+  } # end if
+  if(any(EDdata[,2L]<=0.0))  {
+      stop("Error: all std.errors in EDdata should be larger than zero!")
+  } # end if
+  ###
+  ### For argument "ncomp".
+  if(!is.numeric(ncomp))  {
+      stop("Error: ncomp should be of type numeric!")
+  } # end if
+  if(length(ncomp)!=1L)  {
+      stop("Error: ncomp should be an one-element vector!")
+  } # end if
+  if(!is.finite(ncomp))  {
+      stop("Error: ncomp should not be a non-finite value!")
+  } # end if
+  if(! ncomp %in% c(-1L,-2L) )  {
+      stop("Error: ncomp should be either -1 (MAM3) or -2 (MAM4)!")
+  } # end if
+  ###
+  ### For argument "addsigma".
+  if(!is.numeric(addsigma))  {
+      stop("Error: addsigma should be of type numeric!")
+  } # end if
+  if(length(addsigma)!=1L)  {
+      stop("Error: addsigma should be an one-element vector!")
+  } # end if
+  if(!is.finite(addsigma))  {
+      stop("Error: addsigma should not be a non-finite value!")
+  } # end if
+  if(addsigma<0.0)  {
+      stop("Error: addsigma should not be smaller than zero!")
+  } # end if
+  ###
+  ### For argument "iflog".
+  if(!is.logical(iflog))  {
+      stop("Error: iflog should be either TRUE or FALSE!")
+  } # end if
+  if(length(iflog)!=1L)  {
+      stop("Error: iflog should be an one-element vector!")
+  } # end if
+  if(any(EDdata[,1L]<=0.0) && iflog==TRUE)  {
+      stop("Error: minus (zero) ED values could not be logged, please set iflog to be FALSE!")
+  } # end if
+  ###
+  ### For argument "nsim".
+  if(!is.numeric(nsim))  {
+      stop("Error: nsim should be of type numeric!")
+  } # end if
+  if(length(nsim)!=1L)  {
+      stop("Error: nsim should be an one-element vector!")
+  } # end if
+  if(!is.finite(nsim))  {
+      stop("Error: nsim should not be a non-finite value!")
+  } # end if
+  if (abs(nsim-round(nsim))>=.Machine$double.eps^0.5)  {
+      stop("Error: nsim should be an integer!")
+  } # end if
+  if(nsim<100L || nsim>2e5)  {
+      stop("Error: nsim should be in the space [1e2,2e5]!")
+  } # end if
+  ###
+  ###
+  ### For argument "inis".
+  if(class(inis)!="list")  {
+      stop("Error: inis should be a list!")
+  } # end if
+  if(length(inis)>2L-ncomp)  {
+      stop("Error: incorrect number of parameters in inis!")
+  } # end if
+  if(ncomp==-1L && !all(names(inis) %in% c("p","gamma","sigma")) )  {
+      stop("Error: incorrect names of parameters (MAM3) in inis!")
+  } # end if
+  if(ncomp==-2L && !all(names(inis) %in% c("p","gamma","mu","sigma")) )  {
+      stop("Error: incorrect names of parameters (MAM4) in inis!")
+  } # end if
+  ###
+  ### Set the boundary of gamma (mu).
+  rangeED<-range(EDdata[,1L,drop=TRUE])
+  if(all(EDdata[,1L]>0.0))  {
+      lowerGamma<-rangeED[1L]*0.999
+      upperGamma<-rangeED[2L]*1.001
+  } else if (all(EDdata[,1L]<=0.0))  {
+      lowerGamma<-rangeED[1L]*1.001
+      upperGamma<-rangeED[2L]*0.999
+  } else {
+      lowerGamma<-rangeED[1L]*1.001
+      upperGamma<-rangeED[2L]*1.001
+  } # end if
+  ###
+  if (ncomp==-1L)  {
+      ### Default inis for simulation of MAM3.
+      args.inis<-list("p"=0.5,"gamma"=mean(EDdata[,1L,drop=TRUE]),"sigma"=0.5)
+  } else if (ncomp==-2L) {
+      ### Default inis for simulation of MAM4.
+      args.inis<-list("p"=0.5,"gamma"=min(EDdata[,1L,drop=TRUE]),"mu"=mean(EDdata[,1L,drop=TRUE]),"sigma"=0.5)
+  } # end if
+  ### Pass specified parameters to list "args.inis".
+  args.inis[names(inis)]<-inis
+  if(any(!sapply(args.inis,is.numeric)) )  {
+      stop("Error: all members in inis should be of type numeric!")
+  } # end if
+  if(any(sapply(args.inis,length)!=1L))  {
+      stop("Error: all members in inis should be one-element vector!")
+  } # end if
+  if(any(!sapply(args.inis,is.finite))) {
+      stop("Error: all members in inis should not be non-finite value!")
+  } # end if
+  if(args.inis["p"]<=0 || args.inis["p"]>=1)  {
+      stop("Error: p should be initialized in the space (0, 1)!")
+  } # end if
+  if(args.inis["gamma"]<=lowerGamma || args.inis["gamma"]>=upperGamma)  {
+      stop(paste("Error: gamma should be initialized in the space (",lowerGamma," ,",upperGamma,")!",sep=""))
+  } # end if
+  if(ncomp==-2L && (args.inis["mu"]<=lowerGamma || args.inis["mu"]>=upperGamma) )  {
+      stop(paste("Error: mu should be initialized in the space (",lowerGamma," ,",upperGamma,")!",sep=""))
+  } # end if
+  ###
+  upperSigma<-ifelse(iflog==TRUE,5.0,var(EDdata[,1L,drop=TRUE]))
+  if(args.inis["sigma"]<=0.0 || args.inis["sigma"]>=upperSigma)  {
+      stop(paste("Error: sigma must be initialized in the space (0,",upperSigma,")!",sep=""))
+  } # end if
+  ###
+  ### For argument "control.args".
+  if(class(control.args)!="list")  {
+      stop("Error: control.args should be a list!")
+  } # end if
+  if(length(control.args)>3L)  {
+      stop("Error: control.args should contain at most three parameters (w, m, nstart)!")
+  } # end if
+  if(!all(names(control.args) %in% c("w","m","nstart")))  {
+      stop("Error: incorrect names of parameters in control.args!")
+  } # end if
+  ### Default parameters in list "args.control".
+  args.control<-list(w=1.0,m=-100.0,nstart=1L)
+  ### Pass specified parameters to list "args.control".
+  args.control[names(control.args)]<-control.args
+  ### Set w, m, nstart
+  w<-args.control$w
+  m<-args.control$m
+  nstart<-args.control$nstart
+  ### For argument in "control.args".
+  if(!is.numeric(w) || !is.numeric(m) || !is.numeric(nstart))  {
+      stop("Error: all members in control.args should be of type numeric!")
+  } # end if
+  if(length(w)!=1L || length(m)!=1L || length(nstart)!=1L)  {
+      stop("Error: all members in control.args should be one-element vector!")
+  } # end if
+  if(!is.finite(w) || !is.finite(m) || !is.finite(nstart))  {
+      stop("Error: all members in control.args should not be non-finite value!")
+  } # end if
+  if(w<1e-2)  {
+      stop("Error: w is too small, the sampling will be very inefficient!")
+  } # end if
+  if(w>1e3)  {
+      stop("Error: w is too large (not exceed 1e3)!")
+  } # end if
+  if(m>1e9)  {
+     stop("Error: m should not exceed 1e9!")
+  } # end if
+  if (abs(nstart-round(nstart))>=.Machine$double.eps^0.5)  {
+      stop("Error: nstart should be an integer!")
+  } # end if
+  if(nstart<=0L || nstart>1e6)  {
+      stop("Error: nstart should be in the space [1,1e6]!")
+  } # end if
+  ###
+  ###
+  ### Arguments for Fortran subroutine mcMAM3() and mcMAM4().
+  nED<-nrow(EDdata)
+  ED<-EDdata[,1L,drop=TRUE]
+  Error<-EDdata[,2L,drop=TRUE]
+  iflag<-0
+  inis<-unlist(args.inis,use.names=FALSE)
+  chains<-matrix(nrow=nsim, ncol=2L-ncomp)
+  subFortran<-ifelse(ncomp==-1L,"mcMAM3","mcMAM4")
+  ###
+  res<-.Fortran(subFortran,as.integer(nED),as.integer(nsim),as.double(ED),as.double(Error),
+                as.double(addsigma),as.double(inis),as.integer(iflog),as.integer(nstart),
+                as.double(w),as.double(m),chains=as.double(chains),iflag=as.integer(iflag),
+                NAOK=TRUE,package="numOSL")
+  ### Error checking.
+  if(res$iflag!=0)  {
+      Count<-sum(res$chains[1L:nsim]>0.0)
+      cat(paste("Warning: the chains crashed down at the ",Count," th simulation!\n",sep=""))
+  } # end if
+  ###
+  ###
+  ### Reshape the chains
+  chains<-data.frame(matrix(res$chains,ncol=2L-ncomp,dimnames=list(NULL,names(args.inis))))
+  if (res$iflag!=0)  {
+      chains<-chains[1L:(Count-1L),,drop=FALSE]
+  } # end if
+  ### Set the output.
+  out<-list("EDdata"=EDdata, "addsigma"=addsigma, "model"=ifelse(ncomp==-1L,"MAM3","MAM4"),
+            "npars"=2L-ncomp, "iflog"=iflog, "nsim"=ifelse(res$iflag==0,nsim,Count-1L), "chains"=chains)
+  class(out)<-"mcAgeModels"
+  invisible(out)  
+} # end function mcMAM
+#################################################### END FUNCTION mcMAM ############################################
+###
+###
+### Default function for reporting S3 class object "mcAgeModels".
+##################################################### FUNCTION reportSAM ###########################################
+reportSAM<-
+function(x,burn=NULL,thin=NULL,plot=TRUE,outfile=NULL,...)  {
+    UseMethod("reportSAM")
+} #
+reportSAM.default<-
+function(x,burn=NULL,thin=NULL,plot=TRUE,outfile=NULL,...)  {
+  ### For argument "x".
+  if (class(x)!="mcAgeModels")  {
+      stop("Error: x should be an object of class 'mcAgeModels'!")
+  } # end if
+  if (length(x)!=7L) {
+      stop("Error: incorrect object x!")
+  } # end if
+  if (!all(names(x)==c("EDdata","addsigma","model","npars","iflog","nsim","chains"))) {
+      stop("Error: incorrect members in object x!")
+  } # end if
+  if (x$nsim<100L) {
+      stop("Error: the chains might be too short for a meaningful report!")
+  } # end if
+  ###
+  ### For arugment "burn".
+  if(!is.null(burn) && !is.numeric(burn))  {
+      stop("Error: burn should be either NULL or be of type numeric!")
+  } # end if 
+  if(!is.null(burn))  {
+      if(length(burn)!=1L)  {
+          stop("Error: burn should be an one-element vector!")
+      } # end if
+      if(!is.finite(burn))  {
+          stop("Error: burn should not be a non-finite value!")
+      } # end if
+      if(abs(burn-round(burn))>=.Machine$double.eps^0.5)  {
+          stop("Error: burn should be an integer!")
+      } # end if
+      if(burn<0L)  {
+          stop("Error: burn should not below zero!")
+      } # end if 
+      if(burn>=x$nsim)  {
+          stop("Error: burn should be less than the row number of the chains!")
+      } # end if
+  } else {
+      ### Default number of burn.
+      burn<-floor(x$nsim/5L)
+  } # end if
+  ###
+  ### For argument "thin".
+  if(!is.null(thin) && !is.numeric(thin))  { 
+      stop("Error: thin should either be NULL or of type numberic!")
+  } # end if
+  if(!is.null(thin))  {
+      if(length(thin)!=1L)  {
+          stop("Error: thin should be an one-element vector!")
+      } # end if
+      if(!is.finite(thin))  {
+          stop("Error: thin should not be a non-finite value!")
+      } # end if
+      if(abs(thin-round(thin))>=.Machine$double.eps^0.5)  {
+          stop("Error: thin should be an integer!")
+      } # end if
+      if(thin<1L) {
+          stop("Error: thin should not less than one!")
+      } # end if
+      if( (x$nsim-burn)/thin<16.0 )  {
+          stop("Error: resultant chains are too short after the burning and thining!")
+      } # end if
+  } else {
+      ### Fefault number of thin.
+      thin<-5L
+  } # end if
+  ###
+  ### For argument "plot".
+  if(!is.logical(plot))  {
+      stop("Error: plot should either be TRUE or FALSE!")
+  } # end if
+  if(length(plot)!=1L)  {
+      stop("Error: plot should be an one-element vector!")
+  } # end if
+  ###
+  ### For argument "outfile"
+  if(!is.null(outfile) && !is.character(outfile))  {
+      stop("Error: outfile should either be NULL or of type character!")
+  } # end if
+  if (!is.null(outfile))  {
+      if(length(outfile)!=1L) {
+          stop("Error: outfile should be an one-element vector!")
+      } # end if
+  } # end if
+  ###
+  ###
+  ### A handy function for calculating logged likelihood values.
+  calLoglik<-function(y,x,pars,model)  {
+      if(model=="CAM")  {
+          Mu<-pars[1L]
+          Sigmma<-pars[2L]
+          ###
+          Loglik<-1/sqrt(2*pi)/sqrt(x^2+Sigmma^2)*
+                  exp(-(y-Mu)^2/2/(x^2+Sigmma^2))
+          ###
+          return( sum(log(Loglik)) )
+          ###
+      } else if (model=="MAM3") {
+          P<-pars[1L]
+          Gamma<-pars[2L]
+          Sigmma<-pars[3L]
+          Mu0<-(Gamma/Sigmma^2+y/x^2)/(1/Sigmma^2+1/x^2)
+          Sigmma0<-1/sqrt(1/Sigmma^2+1/x^2)
+          ###
+          part1<-P/sqrt(2*pi)/x*exp(-(y-Gamma)^2/2/x^2)
+          part2<-(1-P)/sqrt(2*pi)/sqrt(Sigmma^2+x^2)*
+                 (1-pnorm((Gamma-Mu0)/Sigmma0))*2*
+                 exp(-(y-Gamma)^2/2/(Sigmma^2+x^2))
+          Loglik<-part1+part2
+          ###
+          return( sum(log(Loglik)) )
+          ###
+      } else if (model=="MAM4") {
+          P<-pars[1L]
+          Gamma<-pars[2L]
+          Mu<-pars[3L]
+          Sigmma<-pars[4L]
+          Mu0<-(Mu/Sigmma^2+y/x^2)/(1/Sigmma^2+1/x^2)
+          Sigmma0<-1/sqrt(1/Sigmma^2+1/x^2)
+          ###
+          part1<-P/sqrt(2*pi)/x*exp(-(y-Gamma)^2/2/x^2)
+          part2<-(1-P)/sqrt(2*pi)/sqrt(Sigmma^2+x^2)*
+          (1-pnorm((Gamma-Mu0)/Sigmma0))/(1-pnorm((Gamma-Mu)/Sigmma))*
+          exp(-(y-Mu)^2/2/(Sigmma^2+x^2))
+          Loglik<-part1+part2
+          ###
+          return( sum(log(Loglik)) )
+          ###
+      } else {
+          Ps<-pars[1L:(length(pars)/2L)]
+          Mus<-pars[(length(pars)/2L+1L):length(pars)]
+          ###
+          Loglik<-Ps[1L]/sqrt(2*pi)/x*exp(-(y-Mus[1L])^2/2/x^2)
+          for(i in 2L:(length(pars)/2L)) {
+              Loglik<-Loglik+Ps[i]/sqrt(2*pi)/x*exp(-(y-Mus[i])^2/2/x^2)
+          } # end if
+          ###
+          return( sum(log(Loglik)) )
+      } # end if
+  } # end function calLoglik
+  ###
+  ###
+  ### Reshape the chains with arguments "burn" and "thin".
+  if (burn>0L)  {
+      chains<-x$chains[-(1L:burn),]
+  } else {
+      chains<-x$chains
+  } # end if
+  ###
+  chains<-chains[seq(from=1L,to=x$nsim-burn,by=thin),,drop=FALSE]
+  ###
+  if(! x$model %in% c("CAM","MAM3","MAM4") )  {
+     ### Sort (increasing) the chains before output for the FMM model.
+      chains<-t( apply( array(t(as.matrix(chains)),dim=c(x$npars/2L,2L,nrow(chains))), MARGIN=3L, function(x)  x[order(x[,2L]),] ) )
+      colnames(chains)<-c(paste("p",1L:(x$npars/2L),sep=""),paste("mu",1L:(x$npars/2L),sep=""))
+  } # end if
+  ###
+  Pars<-apply(chains,MARGIN=2L,mean)
+  Std.Pars<-apply(chains,MARGIN=2L,sd)
+  ###
+  ### Calculate the maximum logged likelihood value.
+  if (x$iflog==TRUE)  {
+      yyy<-x$EDdata[,1L,drop=TRUE]
+      xxx<-x$EDdata[,2L,drop=TRUE]
+      xxx<-sqrt( (xxx/yyy)^2 + (x$addsigma)^2)
+      yyy<-log(yyy)
+  } else {
+      yyy<-x$EDdata[,1L,drop=TRUE]
+      xxx<-x$EDdata[,2L,drop=TRUE]
+      xxx<-sqrt( xxx^2 + (x$addsigma)^2)
+  } # end if
+  maxlik<-try(calLoglik(yyy,xxx,Pars,x$model),silent=TRUE)
+  if (class(maxlik)=="try-error")  {
+      cat("Warning: logged likelihood value (maxlik) is not avialiable!\n")
+      maxlik<-NULL
+  } # end if 
+  ###
+  if (x$iflog==TRUE)  {
+      if(x$model %in% c("MAM3","MAM4"))  {
+          if (x$npars==3L)  {
+              chains[,2L]<-exp(chains[,2L])
+              Pars[2L]<-exp(Pars[2L])
+              Std.Pars[2L]<-Pars[2L]*Std.Pars[2L]
+          } else if (x$npars==4L)  {
+              chains[,2L:3L]<-exp(chains[,2L:3L])
+              Pars[2L:3L]<-exp(Pars[2L:3L])
+              Std.Pars[2L:3L]<-Pars[2L:3L]*Std.Pars[2L:3L]
+          } # end if
+      } else if (x$model=="CAM") { 
+          chains[,1L]<-exp(chains[,1L])
+          Pars[1L]<-exp(Pars[1L]) 
+          Std.Pars[1L]<-Pars[1L]*Std.Pars[1L]
+      } else {
+          chains[,(x$npars/2L+1L):x$npars]<-exp(chains[,(x$npars/2L+1L):x$npars])
+          Pars[(x$npars/2L+1L):x$npars]<-exp(Pars[(x$npars/2L+1L):x$npars])
+          Std.Pars[(x$npars/2L+1L):x$npars]<-Pars[(x$npars/2L+1L):x$npars]*Std.Pars[(x$npars/2L+1L):x$npars]
+      } # end if
+  } # end if
+  ###
+  ### 
+  if (x$model=="CAM" && x$iflog==FALSE)  {
+      chains[,2L]<-chains[,2L]/chains[,1L]
+      Pars[2L]<-mean(chains[,2L])
+      Std.Pars[2L]<-sd(chains[,2L])
+  } # end if
+  ### Write out the chains or not.
+  if(!is.null(outfile)) {
+    write.csv(chains,file=paste(outfile,".csv"))
+  } # end if
+  ###
+  ### Plot or not ? 
+  if (plot==TRUE) {
+      ###
+      par(mfrow=c(x$npars,3L))
+      par(mgp=c(2,1,0),
+          mar=c(3,3,2,1)+0.1)
+      namesPars<-colnames(chains)
+      for (i in seq(x$npars))  {
+          DS<-density(chains[,i])
+          plot(DS, main=paste("Density of ",namesPars[i]), ylab="")
+          polygon(DS, col="grey")
+          rug(chains[,i], quiet=TRUE)
+          plot(chains[,i], type="l", main=paste("History of ",namesPars[i],sep=""), xlab="Number of simulations", ylab="")
+          Autc<-acf(chains[,i], lag.max=30L, plot=FALSE)
+          plot(Autc$lag, Autc$acf, main=paste("Autocorrelation of ",namesPars[i],sep=""), xlab="Lag", ylab="", type="h")
+          abline(h=0)
+      } # end for
+      par(mfrow=c(1,1))
+      par(mgp=c(3,1,0),
+          mar=c(5,4,4,2)+0.1)
+  } # end if
+  ###
+  list("pars"=round(data.frame("Pars"=Pars,"Std.Pars"=Std.Pars),5L),
+       "maxlik"=maxlik)
+} # end function reportSAM
+##################################################### END FUNCTION reportSAM ###########################################
+###
+################################################### FUNCTION mcFMM ###################################################
+### ******************************************************************************************************************
+#### Function mcFMM() is used to perform Galbraith's statistical age models analysis with the Slice Sampling method.
+#### Models that can be analyzed include: CAM and FMM(1-4).
+###
+###     Author: Peng Jun, 2014.03.14; revised in 2014.03.29.
+###
+### References: Galbraith, R.F., 1988. Graphical Display of Estimates Having Differing Standard 
+###             Errors. Technometrics, 30 (3), pp. 271-281.
+###
+###             Neal, R. M (2003) "Slice sampling" (with discussion), Annals of Statistics,
+###             vol. 31, no. 3, pp. 705-767.
+###
+### Mandatory arguments---
+###     EDdata: a data.frame, equivalent doses (two columns).
+### ******************************************************************************************************************
+mcFMM<-
+function(EDdata,ncomp=1,addsigma=0,iflog=TRUE,
+         nsim=5e4,inis=list(),control.args=list()) {
+    UseMethod("mcFMM")
+} # end function mcFMM
+### Default method for function mcFMM().
+mcFMM.default<-
+function(EDdata,ncomp=1,addsigma=0,iflog=TRUE,
+         nsim=5e4,inis=list(),control.args=list()) {
+  ###
+  ### For argument "EDdata".
+  if(!is.data.frame(EDdata))  {
+      stop("Error: EDdata should be of type data.frame!")
+  } # end if
+  if(ncol(EDdata)!=2L)  {
+      stop("Error: EDdata should contain two columns!")
+  } # end if
+  if(!is.numeric(as.matrix(EDdata))) {
+      stop("Error: elements in EDdata should be all of type numeric!")
+  } # end if
+  if(any(!is.finite(unlist(unclass(EDdata)))))  {
+      stop("Error: EDdata should not contain non-finite value!")
+  } # end if
+  if(any(EDdata[,2L]<=0.0))  {
+      stop("Error: all std.errors in EDdata should be larger than zero!")
+  } # end if
+  ###
+  ### For argument "ncomp".
+  if(!is.numeric(ncomp))  {
+      stop("Error: ncomp should be of type numeric!")
+  } # end if
+  if(length(ncomp)!=1L)  {
+      stop("Error: ncomp should be an one-element vector!")
+  } # end if
+  if(!is.finite(ncomp))  {
+      stop("Error: ncomp should not be a non-finite value!")
+  } # end if
+  if(! ncomp %in% (1L:4L))  {
+      stop("Error: ncomp should be an integer in the space [1,4]!")
+  } # end if
+  ###
+  ### For argument "addsigma".
+  if(!is.numeric(addsigma))  {
+      stop("Error: addsigma should be of type numeric!")
+  } # end if
+  if(length(addsigma)!=1L)  {
+      stop("Error: addsigma should be an one-element vector!")
+  } # end if
+  if(!is.finite(addsigma))  {
+      stop("Error: addsigma should not be a non-finite value!")
+  } # end if
+  if(addsigma<0.0)  {
+      stop("Error: addsigma should not be smaller than zero!")
+  } # end if
+  ###
+  ### For argument "iflog".
+  if(!is.logical(iflog))  {
+      stop("Error: iflog should be either TRUE or FALSE!")
+  } # end if
+  if(length(iflog)!=1L)  {
+      stop("Error: iflog should be an one-element vector!")
+  } # end if
+  if(any(EDdata[,1L]<=0.0) && iflog==TRUE)  {
+      stop("Error: minus (zero) ED values could not be logged, please set iflog to be FALSE!")
+  } # end if
+  ### 
+  ### For argument "nsim".
+  if(!is.numeric(nsim))  {
+       stop("Error: nsim should be of type numeric!")
+  } # end if
+  if(length(nsim)!=1L)  {
+      stop("Error: nsim should be an one-element vector!")
+  } # end if
+  if(!is.finite(nsim))  { 
+      stop("Error: nsim should not be a non-finite value!")
+  } # end if
+  if(abs(nsim-round(nsim))>=.Machine$double.eps^0.5)  {
+      stop("Error: nsim should be an integer!")
+  } # end if
+  if(nsim<100L || nsim>2e5)  {
+       stop("Error: nsim should be in the space [1e2,2e5]!")
+  } # end if
+  ###
+  ###
+  ###
+  ### For argument "inis".
+  if(class(inis)!="list")  {
+      stop("Error: inis should be a list!")
+  } # end if
+  if(length(inis)>2L*ncomp)  {
+      stop("Error: incorrect number of parameters in inis!")
+  } # end if
+  if(ncomp==1L && !all(names(inis) %in% c("mu","sigma")) )  {
+      stop("Error: incorrect names of parameters (CAM) in inis!")
+  } # end if
+  if(ncomp>1L && !all(names(inis) %in% c(paste("p",1L:ncomp,sep=""),paste("mu",1L:ncomp,sep=""))))  {
+      stop("Error: incorrect names of parameters (FMM) in inis!")
+  } # end if
+  ###
+  ### Set ranges of Mus.
+  rangeED<-range(EDdata[,1L,drop=TRUE])
+  if(all(EDdata[,1L]>0.0))  {
+      lowerMus<-rangeED[1L]*0.999
+      upperMus<-rangeED[2L]*1.001
+  } else if (all(EDdata[,1L]<=0))  {
+      lowerMus<-rangeED[1L]*1.001
+      upperMus<-rangeED[2L]*0.999
+  } else {
+      lowerMus<-rangeED[1L]*1.001
+      upperMus<-rangeED[2L]*1.001
+  } # end if
+  ### 
+  if (ncomp==1L)  {
+      ### Default inis for simulation of CAM.
+      args.inis<-list("mu"=mean(EDdata[,1L,drop=TRUE]),"sigma"=0.5)
+      upperSigma<-ifelse(iflog==TRUE,5.0,var(EDdata[,1L,drop=TRUE]))
+  } else {
+      if (ncomp==2L)  {
+          args.inis<-list("p1"=1.0,"mu1"=mean(EDdata[,1L,drop=TRUE]),
+                          "p2"=1.0,"mu2"=mean(EDdata[,1L,drop=TRUE]))
+      } # end if
+      ###
+      if (ncomp==3L)  {
+          ### Default inis for simulation of FMM3.
+          args.inis<-list("p1"=1.0,"mu1"=mean(EDdata[,1L,drop=TRUE]),
+                          "p2"=1.0,"mu2"=mean(EDdata[,1L,drop=TRUE]),
+                          "p3"=1.0,"mu3"=mean(EDdata[,1L,drop=TRUE]))
+      } # end if
+      ###
+      if (ncomp==4L)  {
+          ### Default inis for simulation of FMM3.
+          args.inis<-list("p1"=1.0,"mu1"=mean(EDdata[,1L,drop=TRUE]),
+                          "p2"=1.0,"mu2"=mean(EDdata[,1L,drop=TRUE]),
+                          "p3"=1.0,"mu3"=mean(EDdata[,1L,drop=TRUE]),
+                          "p4"=1.0,"mu4"=mean(EDdata[,1L,drop=TRUE]))
+      } # end if
+  } # end if
+  ###
+  ###
+  ### Pass specified parameters to list "args.inis".
+  args.inis[names(inis)]<-inis
+  ### For all arguments in "inis".
+  if(any(!sapply(args.inis,is.numeric))) {
+      stop("Error: all members in inis should be of type numeric!")
+  } # end if
+  if(any(sapply(args.inis,length)!=1L)) {
+      stop("Error: all members in inis should be one-element vector!")
+  } # end if
+  if(any(!sapply(args.inis,is.finite))) {
+      stop("Error: all members in inis should not be non-finite value!")
+  } # end if
+  if(ncomp==1L) {
+      if(args.inis["mu"]<=lowerMus || args.inis["mu"]>=upperMus)  {
+          stop(paste("Error: mu value should be initialized in the space (",lowerMus," ,",upperMus,")!",sep=""))
+      } # end if
+      if(args.inis["sigma"]<=0.0 || args.inis["sigma"]>=upperSigma)  {
+          stop(paste("Error: sigma must be initialized in the space (",0," ,",upperSigma,")!",sep=""))
+      } # end if
+  } else {
+      if(any(args.inis[paste("p",1L:ncomp,sep="")]<=0.0)) {
+          stop("Error: all p values in inis should be larger than zero!")
+      } # end if
+      if(any(args.inis[paste("mu",1L:ncomp,sep="")]<=lowerMus |
+             args.inis[paste("mu",1L:ncomp,sep="")]>=upperMus))  {
+          stop(paste("Error: all mu values should be initialized in the space (",lowerMus," ,",upperMus,")!",sep=""))
+      } # end if
+  } # end if
+  ###
+  ###
+  ### For argument "control.args".
+  if(class(control.args)!="list")  {
+      stop("Error: control.args should be a list!")
+  } # end if
+  if(length(control.args)>3L)  {
+      stop("Error: control.args should contain three parameters (w, m, nstart)!")
+  } # end if
+  if(!all(names(control.args) %in% c("w","m","nstart")))  {
+      stop("Error: incorrect names of parameter in control.args!")
+  } # end if
+  ### Default parameters in list "args.control".
+  args.control<-list(w=1.0,m=-100.0,nstart=1L)
+  ### Pass specified parameters to list "args.control".
+  args.control[names(control.args)]<-control.args
+  ### Set w, m, nstart
+  w<-args.control$w
+  m<-args.control$m
+  nstart<-args.control$nstart
+  ### For arguments in "control.args".
+  if(!is.numeric(w) || !is.numeric(m) || !is.numeric(nstart))  {
+      stop("Error: all members in control.args should be of type numeric!")
+  } # end if
+  if(length(w)!=1L || length(m)!=1L || length(nstart)!=1L)  {
+      stop("Error: all members in conrol.args should be one-element vector!")
+  } # end if
+  if(!is.finite(w) || !is.finite(m) || !is.finite(nstart))  {
+      stop("Error: all members in control.args should not be non-finite value!")
+  } # end if
+  if(w<1e-2)  {
+      stop("Error: w is too small, the sampling will be very inefficient!")
+  } # end if
+  if(w>1e3)  {
+      stop("Error: w is too large (not exceed 1e3)!")
+  } # end if
+  if(m>1e9)  {
+     stop("Error: m should not exceed 1e9!")
+  } # end if
+  if (abs(nstart-round(nstart))>=.Machine$double.eps^0.5)  {
+      stop("Error: nstart should be an integer!")
+  } # end if
+  if(nstart<=0L || nstart>1e6)  {
+      stop("Error: nstart should be in the space [1,1e6]!")
+  } # end if
+  ###
+  ###
+  nED<-nrow(EDdata)
+  ED<-EDdata[,1L,drop=TRUE]
+  Error<-EDdata[,2L,drop=TRUE]
+  iflag<-0 
+  chains<-matrix(nrow=nsim,ncol=2L*ncomp)
+  if(ncomp==1L) {
+      inis<-unlist(args.inis,use.names=FALSE)
+  } else {
+      inis<-matrix(unlist(args.inis,use.names=FALSE),ncol=ncomp)
+  } # end if
+  subFortran<- ifelse(ncomp==1L, "mcCAM", paste("mcFMM",ncomp,sep=""))
+  ###
+  res<-.Fortran(subFortran,as.integer(nED),as.integer(nsim),as.double(ED),as.double(Error),
+                as.double(addsigma),as.double(inis),as.integer(iflog),as.integer(nstart),
+                as.double(w),as.double(m),chains=as.double(chains),iflag=as.integer(iflag),
+                NAOK=TRUE,package="numOSL") 
+  ### Error checking.
+  if(res$iflag!=0)  {
+      Count<-sum(res$chains[1L:nsim]>0.0)
+      cat(paste("Warning: the chains crashed down at the ",Count," th simulation!\n",sep=""))
+  } # end if
+  ###
+  ###
+  chains<-matrix(res$chains,ncol=2L*ncomp)
+  ### Reshape the chains.
+  if(res$iflag!=0)  {
+      chains<-chains[1L:(Count-1L), ,drop=FALSE]
+  } # end if
+  ###
+  if (ncomp==1L) {
+      colnames(chains)<-c("mu","sigma")
+  } # end if
+  ###
+  chains<-data.frame(chains)
+  ###
+  ### Set the output
+  out<-list("EDdata"=EDdata, "addsigma"=addsigma, "model"=ifelse(ncomp==1L,"CAM",paste("FMM",ncomp,sep="")), 
+            "npars"=2L*ncomp, "iflog"=iflog, "nsim"=ifelse(res$iflag==0,nsim,Count-1L), "chains"=chains)
+  class(out)<-"mcAgeModels"
+  invisible(out)
+} # end function mcFMM      
+################################################### END FUNCTION mcFMM ###################################################
