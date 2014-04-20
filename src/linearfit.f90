@@ -1,42 +1,40 @@
-subroutine linearfit(xdat,ydat,ndat,pars,npars,calErr,&
+subroutine linearfit(xdat,ydat,ndat,pars,npars,&
                      stderror,predtval,value,info)
-!--------------------------------------------------------------------------------------------------------------------
-! linearfit() is used to fit a dose-response cuerve in OSL dating of type linear (for both origin and non-origin). 
-! ===================================================================================================================
+!------------------------------------------------------------------------------------------
+! linearfit() is used to fit a growth curve of type linear (for both origin and non-origin). 
+! =========================================================================================
 !
-! xdat(ndat),           input:: real values, the OSL dose data (De[Gy]).
+! xdat(ndat),           input:: real values, the dose values (De[Gy]).
 !
-! ydat(ndat),           input:: real values, the standardlized OSL signal data (Lx/Tx).
+! ydat(ndat),           input:: real values, the signal values (Lx/Tx).
 !
-! ndat,                 input:: integer, the length of dose or signal data.
+! ndat,                 input:: integer, the length of dose values.
 !
-! pars(npars),         output:: real values, the initial guess pars, will be overwritten in output.
+! pars(npars),         output:: real values, the estimated parameters.
 !
-! npars,                input:: integer, the length of parameters.
+! npars,                input:: integer, the length of parameters (either 1 or 2).
 !
-! calErr,               input:: logical value, whether calculate parameters' std.error or not.
-!
-! stderror(npars),     output:: real values, estimated std.error of parameters if calErr=TRUE.
+! stderror(npars),     output:: real values, estimated std.errors.
 !
 ! predtval(ndat),      output:: real values, fitted values correspond to ydat.
 !
-! value,               output:: real value, sum of square of residuals.
+! value,               output:: real value, sum of squared residuals.
 !
 ! info(2),             output:: integer, error message generated during the calling:
-!                              1.1) if successed in estimating parameters, info(1)=123;
-!                              1.2) if error generated in calculating parameters, info(1)=0;
-!                              2.1) if parameters' std.errors can be estimated successfully, info(2)=0;
-!                              2.2) if fail in calling lmhess to approximate model's hessian matrix, info(2)=1;
-!                              2.3) if fail in inverse the hessian maxtrix, info(2)=2;
-!                              2.4) if any diagnal elements of inversed hessian matrix is below zero, info(2)=3.
-!
+!                        1.1) if successed in estimating parameters, info(1)=123;
+!                        1.2) if error generated in calculating parameters, info(1)=0;
+!                        2.1) if parameters' std.errors can be estimated successfully, info(2)=0;
+!                        2.2) if fail in calling lmhess to approximate model's hessian matrix, info(2)=1;
+!                        2.3) if fail in inverse the hessian maxtrix, info(2)=2;
+!                        2.4) if any diagnal elements of inversed hessian matrix is below zero, info(2)=3.
+! ===========================================================================================================
 ! Note:: if npars=1, a linear model of the form: y=ax will be fitted, where ndat>=1, (origin).
 !        if npars=2, a linear model of the form: y=ax+b will be fitted, where ndat>=2, (non-origin).
 !
-! Author:: Peng Jun, 2013.09.21.
+! Author:: Peng Jun, 2013.09.21; revised in 2014.04.03.
 !
 ! Dependence:: subroutine lmhess; subroutine inverse; subroutine diag.
-!------------------------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------------
   
   implicit none
   integer(kind=4),                 intent(in)::ndat
@@ -47,9 +45,9 @@ subroutine linearfit(xdat,ydat,ndat,pars,npars,calErr,&
   real   (kind=8),dimension(ndat), intent(out)::predtval
   real   (kind=8),                 intent(out)::value
   integer(kind=4),                 intent(out)::info(2)
-  logical, intent(in):: calErr
+  !
   ! Variables for subroutine lmhess
-  real   (kind=8),parameter::lmtol=1.0D-09        ! maximum tolerance for singular matrix diagnosation 
+  real   (kind=8),parameter::lmtol=4.053817D-10   !.Machine$double.eps^0.6 in R        
   real   (kind=8),parameter::minAbsPar=0.0D+00    ! used in lmhess 
   real   (kind=8),dimension(npars,npars)::hessian ! hessian matrix obtained with finite-difference approximation
   real   (kind=8),dimension(npars)::gradient      ! gradient obtained with finite-difference approximation
@@ -87,7 +85,7 @@ subroutine linearfit(xdat,ydat,ndat,pars,npars,calErr,&
     predtval=pars(1)*xdat+pars(2)
     value=sum((ydat-predtval)**2)
   end if
-  if(calErr .eqv. .FALSE.)  return
+  !
   ! Set lmhessmodel
   if(npars==1) then
     lmhessmodel=6

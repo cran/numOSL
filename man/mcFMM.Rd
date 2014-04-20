@@ -27,11 +27,17 @@ observations, feasible intervals of the parameters of interest), each parameter 
 Three arguments (in control.args) are used to control the performance of the sampling:\cr\cr
 \bold{w}: the size of the steps for creating an interval from which to sample, default w=1. \cr
 \bold{m}: the limit on steps for expanding an interval, the interval is expanded to include more feasible values if possible. m<=1 means no limit on the expandation, m>1 means that the interval
-is expanded with a finite number of iterations (depends on the magnitude of m), default m=-100.\cr
-\bold{nstart}: the maximum number of trials for updating a variable in each simulation. It can be used to monitor the stability of the chains of a specified model. For example, the chains of a 4-parameter minimum age model is very likely to crash down and sometimes more number of attempts (nstart) are needed for a single simulation, default nstart=1.
+is expanded with a finite number of iterations (depends on the size of m), default m=-100.\cr
+\bold{nstart}: the allowed maximum number of trials for updating a variable in each simulation. It can be used to monitor the stability of the chains of a specified model. For example, the chains of a 4-parameter minimum age model is very likely to crash down and sometimes (for example, if the data set is less over-dispersed) more number of attempts (nstart>1) is needed to complete the simulations, default nstart=1.
 }
 \value{
-Return an invisible list of class "mcAgeModels", which can be operated with function \link{reportSAM}.
+Return an invisible list of class "mcAgeModels" including following elements, which can be operated with function \link{reportSAM}:
+  \item{EDdata}{equivalent dose values used for analyzing}
+  \item{addsigma}{the added spread to the relative (or absolute) standard error of equivalent dose}
+  \item{model}{the fitting model}
+  \item{iflog}{use log-scale or not}
+  \item{nsim}{the size of simulated chains (row number of the chains)}
+  \item{chains}{the simulated chains, note that if the analysis is performed in a log-scale, then the chains will be transformed before being returned}
 }
 \references{
 Galbraith, R.F., Green, P., 1990. Estimating the component ages in a finite mixture. International Journal of Radiation Applications and Instrumentation. Part D. Nuclear Tracks and Radiation Measurements, 17 (3), pp. 197-206.
@@ -40,7 +46,7 @@ Neal, R.M., 2003. "Slice sampling" (with discussion). Annals of Statistics, 31 (
 }
 
 \seealso{
-  \link{mcMAM}; \link{reportSAM}
+  \link{mcMAM}; \link{reportSAM}; \link{RadialPlotter}
 }
 \examples{
   data(EDdata)
@@ -51,4 +57,3 @@ Neal, R.M., 2003. "Slice sampling" (with discussion). Annals of Statistics, 31 (
 \keyword{Central Age Model}
 \keyword{Finite Mixture Age Model}
 \keyword{equivalent dose}
-\keyword{Slice sampling}

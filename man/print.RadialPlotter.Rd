@@ -4,7 +4,7 @@
 Print an object of class "RadialPlotter"
 }
 \description{
-Print an object of class "RadialPlotter"
+Print an object of class "RadialPlotter".
 }
 \usage{
 \method{print}{RadialPlotter}(x, ...)
@@ -14,7 +14,7 @@ Print an object of class "RadialPlotter"
   \item{\dots}{do not use}
 }
 \value{
-An error message, the estimates, the BIC and maximum logged likelihood value
+An error message, the estimates, the associated BIC and maximum logged likelihood value.
 }
 \seealso{
  \link{RadialPlotter}

@@ -1,4 +1,62 @@
-function fmin2(ax,bx,tol,ltx,cpars,npars)
+subroutine interpolate0(Dose,ltx,pars,npars,lowb,upb,value)
+!------------------------------------------------------------------------------
+! Subroutine interpolate0() is used for interpolating a dose 
+! value from a growth curve (pass the origin).
+! =====================================================================================
+! 
+! npars,        input:: integer, length of parameters., npars need to br either 2 or 3.
+!
+! pars(npars),  input:: real values, characteristic values for a growth curve.
+!
+! Dose,        output:: real value, calculated equivalent dose value.
+!
+! value,       output:: real value, a minimized object value.
+!
+! ltx,          input:: real value, the standardlized signal value from which a Dose is to be estimated.
+!
+! lowb,         input:: rea lvalue, low boundary of a interval from which the interpolation to take place.
+!
+! upb,          input:: real value, up boundary of a interval from which the interpolation to take place.
+! =======================================================================================================
+! Author:: Peng Jun, 2013.09.20; revised in 2014.04.02.
+!
+! Dependence:: function fmin0.
+!--------------------------------------------------------------------------------------------------------
+  implicit none
+  integer(kind=4),                 intent(in)::npars
+  real   (kind=8),                 intent(in)::ltx
+  real   (kind=8),                 intent(in)::lowb,upb
+  real   (kind=8),dimension(npars),intent(in)::pars
+  real   (kind=8),                 intent(out)::Dose
+  real   (kind=8),                 intent(out)::value
+  !
+  ! local variables
+  real   (kind=8),parameter::gtol=1.490116e-08  ! .Machine$double.eps^0.5 in R
+  real   (kind=8),dimension(3)::cpars
+  real   (kind=8)::fmin0
+  !
+  cpars=0.0D+00
+  cpars(1:npars)=pars
+  !
+  ! initialize Dose and value
+  Dose=0.0D+00 
+  value=0.0D+00
+  ! 
+  ! calculate Dose
+  Dose=fmin0(lowb,upb,gtol,ltx,cpars,npars)
+  !
+  ! calculate value
+  if(npars==2) then
+    value=(cpars(1)*(1.0D+00-dexp(-cpars(2)*Dose))-ltx)**2
+  else if(npars==3) then
+    value=(cpars(1)*(1.0D+00-dexp(-cpars(2)*Dose))+cpars(3)*Dose-ltx)**2
+  end if
+  return
+end subroutine interpolate0
+!
+!--------------------------------------------------------------------
+!
+function fmin0(ax,bx,tol,ltx,cpars,npars)
 !-------------------------------------------------------------------------------------------------------------------
 ! Approximation x to the point where  function  attains a minimum value on the interval  (ax,bx)  is determined.
 ! the method used is a combination of  golden  section  search  and successive parabolic interpolation. (origin)
@@ -16,11 +74,11 @@ function fmin2(ax,bx,tol,ltx,cpars,npars)
 !
 ! npars,    input:: integer, dimension of the fitting model.
 !
-! fmin2,   output:: real value, calculated equivalent dose correspond to ltx.
+! fmin0,   output:: real value, calculated equivalent dose correspond to ltx.
 ! =================================================================================================================
-! Author:: Peng Jun, 2013.09.20.
+! Author:: Peng Jun, 2013.09.20; revised in 2014.04.02.
 !
-! Dependence:: inner function line; inner function exper; inner function linexp.
+! Dependence:: inner function exper; inner function linexp.
 !
 ! Reference:: http://www.netlib.org/fmm/fmin.f
 !------------------------------------------------------------------------------------------------------------------
@@ -29,7 +87,7 @@ function fmin2(ax,bx,tol,ltx,cpars,npars)
   real   (kind=8)::ax,bx,tol
   real   (kind=8),dimension(3)::cpars
   real   (kind=8)::ltx
-  real   (kind=8)::fmin2
+  real   (kind=8)::fmin0
   ! Local variables
   real   (kind=8):: a,b,c,d,e,eps,xm,p,q,&
                     r,tol1,tol2,u,v,w
@@ -55,9 +113,7 @@ function fmin2(ax,bx,tol,ltx,cpars,npars)
   e=0.0D+00
   !
   ! Calculate a model dependent fx
-  if(npars==1)  then
-    fx=line(x)
-  else if(npars==2) then
+  if(npars==2) then
     fx=exper(x)
   else if(npars==3) then
     fx=linexp(x)
@@ -110,9 +166,7 @@ function fmin2(ax,bx,tol,ltx,cpars,npars)
   50 if(dabs(d) .ge. tol1) u=x+d
      if(dabs(d) .lt. tol1) u=x+dsign(tol1,d)
   ! Calculate a model dependent fu
-  if(npars==1) then
-    fu=line(u)
-  else if(npars==2) then
+  if(npars==2) then
     fu=exper(u)
   else if(npars==3) then
     fu=linexp(u)
@@ -149,27 +203,20 @@ function fmin2(ax,bx,tol,ltx,cpars,npars)
      goto 20
   !
   ! END
-  90 fmin2=x
+  90 fmin0=x
   return
   !
   contains
   ! ***************
   ! 
-  ! 1) Linear function y=a*x
-  function line(x)
-    implicit none
-    real(kind=8)::line,x
-    line=(cpars(1)*x-ltx)**2
-    return
-  end function line
-  ! 2) Exponential function y=a*(1-exp(-b*x))
+  ! 1) Exponential function y=a*(1-exp(-b*x))
   function exper(x)
     implicit none
     real(kind=8)::exper,x
     exper=(cpars(1)*(1.0D+00-dexp(-cpars(2)*x))-ltx)**2
     return
   end function exper
-  ! 3) Exponential plus linear function y=a*(1-exp(-b*x))+c*x
+  ! 2) Exponential plus linear function y=a*(1-exp(-b*x))+c*x
   function linexp(x)
     implicit none
     real(kind=8):: linexp, x
@@ -178,4 +225,4 @@ function fmin2(ax,bx,tol,ltx,cpars,npars)
   end function linexp
   !
   ! ****************
-end function fmin2
+end function fmin0

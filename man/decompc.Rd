@@ -21,13 +21,13 @@ decompc(Sigdata, ncomp = 2, typ = c("cw", "lm"),
   \item{LEDpower}{\link{numeric}(with default): the LED power (mW/cm2) used in the measurement}
   \item{LEDwavelength}{\link{numeric}(with default): the wavelength (nm) used in the measurement}
   \item{plot}{\link{logical}(with default): plot the fitted results or not}
-  \item{xlog}{\link{logical}(with default): tansform x-axis to log-scale or not}
+  \item{xlog}{\link{logical}(with default): use a log-scale x-axis for plotting or not}
   \item{lwd}{\link{numeric}(with default): the width of curves in the plot}
   \item{samplename}{\link{character}(optional): the name of the sample}
   \item{outfile}{\link{character}(optional): if specified, decomposed signal values will be written to a file named "outfile" in ".csv" format and will be saved to the current work directory}
 }
 \details{
-Function decompc() is used to decompose a decay curves with a subtracted constant component (a constant component may be regarded as the sum of signals of some slower components plus the background). For a CW-OSL decay curves:\cr
+Function decompc() is used to decompose a decay curves with a subtracted constant component (a constant component may be regarded as the sum of decaying signals of some slower components plus the background). For a CW-OSL decay curves:\cr
 I(t)=a1*b1*exp(-b1*t)+a2*b2*exp(-b2*t)+...+ak*bk*exp(-bk*t)+c , k=1, 2, ..., 7, \cr\cr
 And for LM-OSL decay curves:\cr
 I(t)=a1*b1*(t/P)*exp(-b1*t^2/(2*P))+a2*b2*(t/P)*exp(-b2*t^2/(2*P))+...+\cr
@@ -35,7 +35,7 @@ ak*bk*(t/P)*exp(-bk*t^2/(2*P))+c*(t/P) , k=1, 2, ..., 7\cr
 Note that unlike function decomp(), the fitting model is different and a transformation (transf) of parameters is not allowed here. For more details, see function \link{decomp}.
 }
 \value{
-Return an invisible list containing following elements:\cr
+Return an invisible list containing following elements:
   \item{Comp.Signal}{the fitted decaying signals for each component}
   \item{pars}{the estimates and associated standard errors}
   \item{constant}{the estimated constant component}
@@ -47,7 +47,7 @@ Return an invisible list containing following elements:\cr
 }
 \examples{
   data(Signaldata)
-  res<-decompc(Signaldata$lm1,ncomp=5,typ="lm")
+  res<-decompc(Signaldata$lm,ncomp=4,typ="lm")
   list(res$pars,res$constant)
 }
 \keyword{fitting OSL decay curve}

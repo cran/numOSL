@@ -5,13 +5,13 @@
 Report the results of statistical age models
 }
 \description{
-Return a plot and a list that summaries the posterior density distributions of the parameters, the history of simulations and the auto-correlations of those parameters. Also return the inferences.
+Return a plot and a list that summaries the posterior density distributions of the quantities of interest in a specified age model, the history of simulations and the auto-correlations of these parameters. 
 }
 \usage{
-reportSAM(x, burn = NULL, thin = NULL, plot = TRUE, outfile = NULL, ...)
+reportSAM(obj, burn = NULL, thin = NULL, plot = TRUE, outfile = NULL, ...)
 }
 \arguments{
-  \item{x}{\bold{required}: an object of class "mcAgeModels", which is produced by function \link{mcFMM} or \link{mcMAM} }
+  \item{obj}{\bold{required}: an object of class "mcAgeModels", which is produced by function \link{mcFMM} or \link{mcMAM} }
   \item{burn}{\link{numeric}(with default): the number of simulations to be discarded, i.e. the initial, non-stationary portion of the chains, default burn=floor(nsim/5L)}
   \item{thin}{\link{numeric}(with default): only one value from each portion that constains every thin values is retained, default thin=5}
   \item{plot}{\link{logical}(with default): plot the results or not}
@@ -25,14 +25,16 @@ need to be discarded. Where the "thining" protocol is used to reduce the posteri
 \value{
 Return list that contains following elements:
 \item{pars}{estimates and their standard errors}
-\item{maxlik}{the corresponding logged maximum likelihood value}
+\item{quantile}{quantiles of simulated variables}
+\item{maxlik}{the estimated logged maximum likelihood value}
 }
 \references{
-Lunn, D., Jackson, C., Best, N., Thomas, A., Spiegelhalter, D., 2013. The BUGS Book: A Practical Introduction to Bayesian Analysis. Journal of Statistical Software,
-52, pp. 1-4.
+Robert, C.P., Casella, G., 2010. Introducing Monte Carlo Methods with R. New York: Springer.
+
+Lunn, D., Jackson, C., Best, N., Thomas, A., Spiegelhalter, D., 2013. The BUGS Book: A Practical Introduction to Bayesian Analysis. Boca Raton, Florida: CRC Press.
 }
 \seealso{
   \link{mcFMM}; \link{mcMAM}
 }
 \keyword{statistical age models}
-\keyword{Slice sampling}
+\keyword{equivalent dose}

@@ -2,7 +2,7 @@
 \alias{dbED}
 \alias{dbED.default}
 \title{
-Summarizing the distribution of equivalent dose values
+Summarizing the distribution of a number of equivalent dose values
 }
 \description{
 Calculating statistical parameters (mean, standard deviation, skewness, kurtosis, over-dispersion); performing a homogeneity test; drawing a histogram and a probability density plot.
@@ -12,18 +12,18 @@ dbED(EDdata, aliquot=c("sa","sg"), plot = TRUE, from = NULL,
      to = NULL, step = 0.1, nbin = 15, samplename = NULL)
 }
 \arguments{
-  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent doses and their standard errors (two columns)}
+  \item{EDdata}{\link{data.frame}(\bold{required}): a number of equivalent doses and their standard errors (two columns)}
   \item{aliquot}{\link{character}(with default): single-aliquot ("sa") or single-grain ("sg"), default aliquot="sa"}
   \item{plot}{\link{logical}(with default): draw a histogram and a probability density plot or not}
   \item{from}{\link{numeric}(optional): the desired lower limit on x-axis}
   \item{to}{\link{numeric}(optional): the desired upper limit on x-axis}
-  \item{step}{\link{numeric}(with default): step size used for constructing the probability density plot. Finer step value gives smoother density curve}
+  \item{step}{\link{numeric}(with default): a step size used for constructing the probability density plot. Finer step value gives smoother density curve}
   \item{nbin}{\link{numeric}(with default): the desired number of intervals in the histogram}
   \item{samplename}{\link{character}(optional): the name of the sample}
 }
 \value{
 Return a list that contains following elements:
-  \item{summaryED}{a basic statistical summary of equvalent dose values}
+  \item{summaryED}{a basically statistical summary about the given equvalent dose values}
   \item{mlpED}{the mean of the lowest percent [x] of equivalent dose values (Olley et al, 1998)}
   \item{homogeneity}{the results of simple homogeneity test (Galbraith, 2003)}
   \item{skewness}{the skewness of equivalent dose values (Bailey and Arnold, 2006)}

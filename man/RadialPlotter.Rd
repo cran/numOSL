@@ -9,8 +9,7 @@ Depending on the specified number of components, this function performs statisti
 that can be performed includes: central age model (CAM), minimum age model (MAM), finite mixture age model (FMM). 
 }
 \usage{
-RadialPlotter(EDdata, 
-              ncomp = 0, addsigma = 0, 
+RadialPlotter(EDdata, ncomp = 0, addsigma = 0, 
               maxiter = 500, maxcomp = 9, 
               algorithm = c("lbfgsb","port"),
               eps = .Machine$double.eps^0.5, 
@@ -18,12 +17,12 @@ RadialPlotter(EDdata,
               kratio = 0.3, zscale = NULL, samplename = NULL)
 }
 \arguments{
-  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent doses and their standard errors (two columns). The routine do the fitting in a log-scale, so all equivalent doses should larger than 0}
+  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent dose values and their standard errors (two columns). The routine do the fitting in a log-scale, so all equivalent dose value should larger than zero}
   \item{ncomp}{\link{numeric}(with default): the number of components, 0 for analyzing finite mxiture age models automatically, 1 for fitting a central age model. As to minimum age models, -1 means fitting a 3-parameter minimum age model while -2 means fitting a 4-parameter minimum age model}
-  \item{addsigma}{\link{numeric}(with default): the added spread to the relative error of equivalent dose}
+  \item{addsigma}{\link{numeric}(with default): the added spread to the relative errors of equivalent dose values}
   \item{maxiter}{\link{numeric}(with default): the allowed maximum numer of iterations}
-  \item{maxcomp}{\link{numeric}(with default): the allowed maximum number of components for fitting a finite mixture age model}
-  \item{algorithm}{\link{character}(with default): a algorithm used for optimizing minimum age models, available algorithms are "lbfgsb" and "port", default algorithms="lbfgsb"}
+  \item{maxcomp}{\link{numeric}(with default): the allowed maximum number of components for fitting finite mixture age models}
+  \item{algorithm}{\link{character}(with default): an algorithm used for optimizing minimum age models, available algorithms are "lbfgsb" and "port", default algorithms="lbfgsb"}
   \item{eps}{\link{numeric}(with default): the allowed maximum tolerance for stopping the iterative process in fitting of a central age model or a finite mixture age model}
   \item{plot}{\link{logical}(with default): draw a radial plot with the estimates or not}
   \item{pcolor}{\link{character}(with default): the color of points in the plot, input \link{colors}() see available colors}
@@ -42,7 +41,7 @@ upper boundary for type 3: (p=0.99, gama=max(ED), sigma=5).\cr
 lower boundary for type 4: (p=1e-4, gama=min(ED), mu=min(ED), sigma=1e-3);\cr
 upper boundary for type 4: (p=0.99, gama=max(ED), mu=max(ED), sigma=5).\cr
 \cr 
-Also note that, if parameters' standard errors of a finite mixture age model or a minimum age model cannot be estimated, the estimates will be suppressed. And for a 4-parameter minimum age model, if the estimate gives a gamma value that is larger than the mu value, the result will be suppressed too.
+Also note that, if parameters' standard errors in a finite mixture age model or a minimum age model cannot be estimated, the estimates will be warned (no characteristic dose values will be drawn). For a 4-parameter minimum age model, if the estimate gives a gamma value that is larger than the mu value, the result will be suppressed.
 }
 \value{
 Return a radial plot, and an invisible list of class "RadialPlotter" that contains following elements:
@@ -50,13 +49,13 @@ Return a radial plot, and an invisible list of class "RadialPlotter" that contai
   \item{errorflag}{error message generated during the fitting, 0 indicates a successful estimate. For a finite mixture age model, 1 implicates that at least one parameter's standard error can not be approximated. For a minimum age model, 1 indicates that at least one parameter is near the specified boundary, or at least one parameter's standard error cannot be approximated, or estimated gama value is larger than mu value. As to a central age model, a successful work is not a problem 
 }
   \item{commonED}{an equivalent dose calculated using the common age model}
-  \item{ncomp}{the used number of components}
-  \item{maxcomp}{the allowed maximum number of components for a fitting finite mixture age model}
+  \item{ncomp}{the used number of components in a finite mixture age model}
+  \item{maxcomp}{the allowed maximum number of components for fitting a finite mixture age model}
   \item{loopcomp}{fit a finite mixture age model automatically or not, 1 for "yes" and 0 for "no"}
-  \item{pars}{the estimated parameters and standard errors for related OSL age models}
+  \item{pars}{the estimated parameters and standard errors for a given age models}
   \item{BIC}{the calculated Bayesian Information Criterion (BIC) value}
   \item{maxlik}{the estimated logged maximum likelihood value}
-  \item{BILI}{BIC values and logged maximum likelihood values for a varying number of components of finite mixture age models}
+  \item{BILI}{BIC values and logged maximum likelihood values for a varying number of components in finite mixture age models (if ncomp=0)}
 }
 \references{
 Galbraith, R.F., 1988. Graphical Display of Estimates Having Differing Standard Errors. Technometrics, 30 (3), pp. 271-281.
@@ -97,7 +96,7 @@ Vermeesch, P., 2009. RadialPlotter: a Java application for fission track, lumine
 }
 
 \seealso{
-  \link{dbED}; \link{print.RadialPlotter}; \link{optim}; \link{nlminb}
+  \link{dbED}; \link{print.RadialPlotter}; \link{mcMAM}; \link{mcFMM}; \link{optim}; \link{nlminb}
 }
 
 \examples{
@@ -108,9 +107,6 @@ Vermeesch, P., 2009. RadialPlotter: a Java application for fission track, lumine
   print(obj)
 # Fitting a 3-parameter minimum age model 
   obj<-RadialPlotter(EDdata$gl11,ncomp=-1,maxiter=100,zscale=seq(20,37,3))
-  obj$pars
-# Fitting a 4-parameter minimum age model
-  obj<-RadialPlotter(EDdata$al3,ncomp=-2,maxiter=100,zscale=seq(24,93,7))
   unclass(obj)
 }
 \keyword{Radial Plot}
