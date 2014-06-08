@@ -1,6 +1,7 @@
 Thanks Rex Gablraith's permission to revise the R code concerning radial plot drawing and to use it in this package.
-Thanks Silke Schmidt for providing published OSL data for checking and testing routines concerning MAM and CAM analysis.
+Thanks Silke Schmidt for providing published OSL data for checking and testing routines of statistical age models.
 Thanks Andrzej Bluszcz, who helps me a lot during the programming of function "decomp()" and function "decompc()".
 Sheng-Hua Li and Geoff Duller are thanked for helpful discussions concerning fast-component equivalent dose calculation. 
 Thanks Jeong-Heon Chio for providing published data to test function "decomp()".
 Thanks Bo Li for providing published data to test function "decomp()".
+Thanks Helena Rodnight for providing published OSL data for checking and testing routines of statistical age models.

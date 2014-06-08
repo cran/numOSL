@@ -49,8 +49,8 @@ subroutine FineED(ED,Error,n,ncomp,spreadsigma,&
   real   (kind=8),dimension(2,ncomp),intent(out)::pars
   !
   ! Arguments for subroutine kmeans()
-  integer(kind=4),parameter::iter=20
-  integer(kind=4),parameter::nstart=100
+  integer(kind=4),parameter::iter=10
+  integer(kind=4),parameter::nstart=1000
   integer(kind=4)::belo(n),clusp(ncomp)
   real   (kind=8)::energ(ncomp),clust(ncomp)
   integer(kind=4)::ifault
@@ -92,7 +92,8 @@ subroutine FineED(ED,Error,n,ncomp,spreadsigma,&
   call kmeans(1,n,ncomp,iter,nstart,sED,&
               belo,clust,clusp,energ,ifault)
   !
-  kpars(1,:)=1.0D+00/real(ncomp,kind=8)
+  !kpars(1,:)=1.0D+00/real(ncomp,kind=8)
+  kpars(1,:)=real(clusp,kind=8)/sum(clusp)
   kpars(2,:)=clust
   !
   call FMMED(sED,sError,n,ncomp,spreadsigma,&

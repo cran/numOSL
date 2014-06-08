@@ -10,18 +10,18 @@ that can be performed includes: central age model (CAM), minimum age model (MAM)
 }
 \usage{
 RadialPlotter(EDdata, ncomp = 0, addsigma = 0, 
-              maxiter = 500, maxcomp = 9, 
+              maxiter = 500, maxcomp = 6, 
               algorithm = c("lbfgsb","port"),
               eps = .Machine$double.eps^0.5, 
               plot = TRUE, pcolor = "blue", psize = 1.5, 
               kratio = 0.3, zscale = NULL, samplename = NULL)
 }
 \arguments{
-  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent dose values and their standard errors (two columns). The routine do the fitting in a log-scale, so all equivalent dose value should larger than zero}
+  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent dose values and their standard errors (two columns). The routine do the fitting in a log-scale, so all equivalent dose values should larger than zero}
   \item{ncomp}{\link{numeric}(with default): the number of components, 0 for analyzing finite mxiture age models automatically, 1 for fitting a central age model. As to minimum age models, -1 means fitting a 3-parameter minimum age model while -2 means fitting a 4-parameter minimum age model}
-  \item{addsigma}{\link{numeric}(with default): the added spread to the relative errors of equivalent dose values}
+  \item{addsigma}{\link{numeric}(with default): the added spread to the relative errors of equivalent dose values, i.e., an additional uncertainty other than those result from counting statistics, instrument reproducibility and curve-fitting}
   \item{maxiter}{\link{numeric}(with default): the allowed maximum numer of iterations}
-  \item{maxcomp}{\link{numeric}(with default): the allowed maximum number of components for fitting finite mixture age models}
+  \item{maxcomp}{\link{numeric}(with default): the allowed maximum number of components (up to 9) for fitting finite mixture age models}
   \item{algorithm}{\link{character}(with default): an algorithm used for optimizing minimum age models, available algorithms are "lbfgsb" and "port", default algorithms="lbfgsb"}
   \item{eps}{\link{numeric}(with default): the allowed maximum tolerance for stopping the iterative process in fitting of a central age model or a finite mixture age model}
   \item{plot}{\link{logical}(with default): draw a radial plot with the estimates or not}
@@ -32,7 +32,7 @@ RadialPlotter(EDdata, ncomp = 0, addsigma = 0,
   \item{samplename}{\link{character}(optional): the name of the sample}
 }
 \details{
-Both the central age model and the finite mixture age model are fitted using the maximum likelihood method outlined by Galbraith (1988), while minimum age model can be estimated using either the L-BFGS-B subroutine written by Zhu et al (1994) or the "port" rountines (R function \link{nlminb} in package "stats"). Notes that all these calculations are performed in a log-scale, so any minus equivalent dose is not allowed to be analyzed.\cr
+Both the central age model and the finite mixture age model are fitted using the maximum likelihood method outlined by Galbraith (1988), while minimum age model can be estimated using either the "L-BFGS-B" subroutine written by Zhu et al (1994) or the "port" rountines (R function \link{nlminb} in package "stats"). Notes that all these calculations are performed in a log-scale, so any minus equivalent dose is not allowed to be analyzed.\cr
 \cr
 Because both the maximum likelihood method and the L-BFGS-B algorithm (so is the "port" routine) result in a local optimization instead of a globle one, to obtain a feasible estimation, all models (except the central age model) try various initial values during the fitting. For the fitting of minimum age models (of type 3 or type 4), the lower and upper limits are set as following:\cr
 \cr
@@ -52,7 +52,7 @@ Return a radial plot, and an invisible list of class "RadialPlotter" that contai
   \item{ncomp}{the used number of components in a finite mixture age model}
   \item{maxcomp}{the allowed maximum number of components for fitting a finite mixture age model}
   \item{loopcomp}{fit a finite mixture age model automatically or not, 1 for "yes" and 0 for "no"}
-  \item{pars}{the estimated parameters and standard errors for a given age models}
+  \item{pars}{the estimated parameters and standard errors for a given age model}
   \item{BIC}{the calculated Bayesian Information Criterion (BIC) value}
   \item{maxlik}{the estimated logged maximum likelihood value}
   \item{BILI}{BIC values and logged maximum likelihood values for a varying number of components in finite mixture age models (if ncomp=0)}
@@ -84,6 +84,10 @@ Bailey, R.M., Arnold, L.J., 2006. Statistical modelling of single grain quartz D
 
 Duller, G.A.T., 2008. Single-grain optical dating of Quaternary sediments: why aliquot size matters in luminescence dating. Boreas, 37 (4), pp. 589-612.
 
+Rodnight, H., 2008. How many equivalent dose values are needed to obtain a reproducible distribution? Ancient TL, 26 (1), pp. 3-10.
+
+Rodnight, H., Duller, G.A.T., Wintle, A.G., Tooth, S., 2006. Assessing the reproducibility and accuracy of optical dating of fluvial deposits. Quaternary Geochronology, 1, pp. 109-120.
+
 Schmidt, S., Tsukamoto, S., Salomon, E., Frechen, M., Hetzel, R., 2012. Optical dating of alluvial deposits at the orogenic front of the andean precordillera (Mendoza, Argentina). Geochronometria, 39 (1), pp. 62-75.
 
 Sebastian, K., Christoph, S., Margret, C., F., Michael, D., Manfred, F., Markus, F., 2012. Introducing an R package for luminescence dating analysis. Ancient TL, 30 (1), pp. 1-8.
@@ -92,7 +96,7 @@ Vermeesch, P., 2009. RadialPlotter: a Java application for fission track, lumine
 44 (4), pp. 409-410.
 }
 
-\note{The original S code for drawing radial plot is written by Rex Galbraith and is transformed to R code by Sebastian Kreutzer. The code for drawing radial plot in this package is modified from package "Luminescence" written by Sebastian Kreutzer et al (2012). I thank Rex Galbraith for his permission to modify and bundle the code to this function. I also thank Silke Schmidt for providing published OSL data (Silke Schmidt et al, 2012) for checking and testing this function.
+\note{The original S code for drawing radial plot is written by Rex Galbraith and is transformed to R code by Sebastian Kreutzer. The code for drawing radial plot in this package is modified from package "Luminescence" written by Sebastian Kreutzer et al (2012). I thank Rex Galbraith for his permission to modify and bundle the code to this function. I also thank Silke Schmidt (Silke Schmidt et al, 2012) and Helena Rodnight (Rodnight 2008; Rodnight et al, 2006) for providing published OSL data  for checking and testing this function.
 }
 
 \seealso{

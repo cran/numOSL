@@ -11,4 +11,7 @@ Version 1.3
         * A bug in function "RadialPlotter" was fixted. 
         * Uninitialized memory used in function "calED" was fixed, function "calED" was improved through a merge with function "sgcED" (the latter was removed).
         * An optional argument called "model" was added to function "fastED".
+Version 1.4
+        * The optional argument "maxcomp" in function "RadialPlotter" was modified to be 6 (maxcomp=6).
+        * A warning regarding possible change of value in conversion from REAL(8) to INTEGER(4) in Fortran codes was fixed.
         

@@ -30,7 +30,7 @@ subroutine kmeans(ndim,npoi,nclu,maxiter,nstart, &
 !
 ! ifault             :: output, integer, 0 for a successful work, otherwise 2.
 ! ==================================================================================
-! Author:: Peng Jun, 2013.03.14.
+! Author:: Peng Jun, 2013.03.14; revised in 2014.06.08.
 ! 
 ! References:: Hartigan JA. and Wong MA, (1979).  A K-means clustering
 !              algorithm. Applied Statistics V28, pp.100-108.
@@ -65,6 +65,8 @@ subroutine kmeans(ndim,npoi,nclu,maxiter,nstart, &
   do i=1, npoi
     TotalSample(i)=i
   end do
+  !
+  call random_seed()
   !
   do i=1, nstart
     !

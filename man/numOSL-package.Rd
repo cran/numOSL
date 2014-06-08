@@ -9,15 +9,15 @@ Available functions in package "numOSL" include:\cr\cr
 \bold{3)}Function decomp() and decompc() decompose an OSL decay curve (type "CW" or "LM") to a specified number of components, which perform the fitting using a combination of differential evolution and
 Levenberg-Marquardt algorithm suggested by Bluszcz and Adamiec (2006).\cr
 \bold{4)}Function fastED() estimates a fast-component equivalent dose with data abtained by the single aliquot regenerative (SAR) protocol (Murray and Wintle, 2000).\cr
-\bold{5)}Function RadialPlotter() performs statistical age models (log-scale) analysis (Galbraith and Roberts, 2012) using classic numeric methods and draws a radial plot(Galbraith, 1988).\cr
+\bold{5)}Function RadialPlotter() performs statistical age models (log-scale) analysis (Galbraith and Roberts, 2012) using classic numeric methods and draws a radial plot (Galbraith, 1988).\cr
 \bold{6)}Function mcFMM() and mcMAM() estimate parameters of statistical age models with a Markov chain Monte Carlo method (i.e. Slice Sampling, Neal, 2003).
 }
 \details{
 \tabular{ll}{
 Package: \tab numOSL\cr
 Type: \tab Package\cr
-Version: \tab 1.3\cr
-Date: \tab 2014-04-20\cr
+Version: \tab 1.4\cr
+Date: \tab 2014-06-08\cr
 License: \tab GPL-3\cr
 }
 }

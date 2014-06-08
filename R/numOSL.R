@@ -46,7 +46,7 @@
 ### ******************************************************************************************************************
 RadialPlotter<-
 function(EDdata, ncomp=0, addsigma=0, maxiter=500,
-         maxcomp=9, algorithm=c("lbfgsb","port"),
+         maxcomp=6, algorithm=c("lbfgsb","port"),
          eps=.Machine$double.eps^0.5, plot=TRUE,
          pcolor="blue", psize=1.5, kratio=0.3,
          zscale=NULL, samplename=NULL)  {
@@ -55,7 +55,7 @@ function(EDdata, ncomp=0, addsigma=0, maxiter=500,
 ### set default method for function RadialPlotter().
 RadialPlotter.default<-
 function(EDdata, ncomp=0, addsigma=0, maxiter=500,
-         maxcomp=9, algorithm=c("lbfgsb","port"),
+         maxcomp=6, algorithm=c("lbfgsb","port"),
          eps=.Machine$double.eps^0.5, plot=TRUE,
          pcolor="blue", psize=1.5, kratio=0.3,
          zscale=NULL, samplename=NULL)  {
@@ -80,16 +80,15 @@ function(EDdata, ncomp=0, addsigma=0, maxiter=500,
   if(!is.finite(maxcomp))       stop("Error: maxcomp should not be a non-finite value!")
   if(abs(maxcomp-round(maxcomp))
      >=.Machine$double.eps^0.5) stop("Error: maxcomp should be an integer!")                                
-  if(maxcomp<0L)                stop("Error: maxcomp should not smaller than 0!")
-  if(maxcomp>=nrow(EDdata))     stop("Error: maxcomp is too large, or size of equivalent doses is too small!")
-  if(maxcomp>15L)               stop("Error: maxcomp should not exceed 15!")
+  if(maxcomp<2L)                stop("Error: maxcomp should not smaller than 2!")
+  if(maxcomp>=nrow(EDdata))     stop("Error: maxcomp should not exceed the number of equivalent doses!")
+  if(maxcomp>9L)                stop("Error: maxcomp should not exceed 9!")
   ###
   ### For argument "ncomp".
   if(!is.numeric(ncomp))        stop("Error: ncomp should be of type numeric!")
   if(length(ncomp)!=1L)         stop("Error: ncomp should be an one-element vector!")
   if(!is.finite(ncomp))         stop("Error: ncomp should not be a non-finite value!")
   if(!ncomp %in% (-2L:maxcomp)) stop("Error: ncomp should be an integer ranging from -2 to maxcomp!")
-  if(ncomp==0L && maxcomp<2L)   stop("Error: maxcomp should not smaller than 2 if ncomp is 0!")  
   ###
   ### For argument "addsigma".
   if(!is.numeric(addsigma))     stop("Error: addsigma should be of type numeric!")

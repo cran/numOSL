@@ -1,5 +1,5 @@
 ! ***************************************************************************************************************************
-! FILE "decomp_Constant" consists a series of subroutines rewritten from "SRC" file of R package RadialPlotter(version 2.2).
+! FILE "decomp_Constant.f90" consists a series of subroutines rewritten from "SRC" file of R package RadialPlotter(version 2.2).
 ! Those subroutines are used for decompose decay curve plus constant subtracted.
 ! 1).   decomp_C(): decompose CW-OSL decay curves.
 ! 2).   deffev_C(): initilize parameters in with differential evolution method.
@@ -1333,7 +1333,7 @@ subroutine targfunc_C(lamda,nlamda,tim,sig,tol,typ,&
   real(kind=8),dimension(nlamda+1,1)::iithn                 ! for storing ithn values using matrix
   real(kind=8),dimension(ntim)::rowsumcoef                  ! sum values in matrix coef by row
   real(kind=8),dimension(nlamda+1,nlamda+1)::ccoef          ! t(coef)%*%coef 
-  integer(kind=4)::maxt                                     ! total stimulation time (P)
+  real(kind=8)::maxt                                        ! total stimulation time (P)
   integer(kind=4)::i                                        ! iterative lopping index
   !
   ! Initializing coefficents 

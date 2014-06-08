@@ -54,10 +54,12 @@ The number of trapped electrons that corresponds to the largest decay rate will 
 }
 \examples{
  data(Signaldata)
-# Calculating a fast-component equivalent dose with 3 components (decay curves that
-# correspond to the 0-regenerative dose (12th) and its test-dose (13th) are removed)
- fastED(Signaldata$cw[,c(-12,-13)],Redose=c(80,160,240,320,80)*0.13,
-        ncomp=3,constant=FALSE)
+ ### Use only the first two regenerative dose data. 
+ fastED(Signaldata$cw[,-(8:15)],Redose=c(80,160)*0.13,
+        ncomp=2,constant=TRUE,model="line",origin=TRUE)
+ ### Use all regenerative dose data (except the zero-dose).
+ # fastED(Signaldata$cw[,c(-12,-13)],Redose=c(80,160,240,320,80)*0.13,
+ #        ncomp=3,constant=FALSE)
 }
 \keyword{fitting OSL decay curve}
 \keyword{fast-component equivalent dose}
