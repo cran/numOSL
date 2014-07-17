@@ -16,8 +16,8 @@ Levenberg-Marquardt algorithm suggested by Bluszcz and Adamiec (2006).\cr
 \tabular{ll}{
 Package: \tab numOSL\cr
 Type: \tab Package\cr
-Version: \tab 1.4\cr
-Date: \tab 2014-06-08\cr
+Version: \tab 1.5\cr
+Date: \tab 2014-07-17\cr
 License: \tab GPL-3\cr
 }
 }

@@ -97,12 +97,12 @@ subroutine calED(Dose,ltx,ndose,ninltx,inltx,outDose,mcED,pars,npars,&
   !
   ! Fitting the growth curve.
   if (npars==2) then  
-      ! for a linear model.
+      ! For a linear model.
       call linearfit(Dose,ltx(:,1),ndose,pars,npars,&
                      parserrors,predtval,value,errorflag) 
       if (any(pars<=0.0D+00)) errorflag(2)=1
   else if (npars==3 .or. npars==4) then  
-      ! for an expentional or a linear plus expentional model.
+      ! For an expentional or a linear plus expentional model.
       cpars=0.0
       loopvalue=1.0D+30
       call random_seed()
@@ -123,6 +123,10 @@ subroutine calED(Dose,ltx,ndose,ninltx,inltx,outDose,mcED,pars,npars,&
           !
           call  growFit(Dose,ltx(:,1),ndose,lmpars,npars,.false.,&
                         lmparserrors,lmpredtval,lmvalue,lmtol,lmerrorflag)
+          !
+          ! Check if the exponential curve becomes saturation.
+          if (npars==3 .and. lmpars(1)*lmpars(2)*dexp(-lmpars(2)*maxval(Dose))<=2.013409D-05) cycle Loop
+          !
           ! Only store improved estimates.
           if (lmerrorflag(1)==123 .and. lmerrorflag(2)==0 .and. &
               all(lmpars>0.0D+00) .and. lmvalue<loopvalue) then
@@ -218,8 +222,10 @@ subroutine calED(Dose,ltx,ndose,ninltx,inltx,outDose,mcED,pars,npars,&
                   !     
                   call growFit(Dose,simltx,ndose,lmpars,npars,.false.,&
                                lmparserrors,lmpredtval,lmvalue,lmtol,lmerrorflag)  
+                  !
+                  ! Check if the exponential curve becomes saturation.
+                  if (npars==3 .and. lmpars(1)*lmpars(2)*dexp(-lmpars(2)*maxval(Dose))<=2.013409D-05) cycle Inner
               end if   
-              !
               !
               ! Error check.
               if (lmerrorflag(1)==123 .and. lmerrorflag(2)==0 .and. all(lmpars>0.0D+00)) then

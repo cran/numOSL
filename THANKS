@@ -4,4 +4,4 @@ Thanks Andrzej Bluszcz, who helps me a lot during the programming of function "d
 Sheng-Hua Li and Geoff Duller are thanked for helpful discussions concerning fast-component equivalent dose calculation. 
 Thanks Jeong-Heon Chio for providing published data to test function "decomp()".
 Thanks Bo Li for providing published data to test function "decomp()".
-Thanks Helena Rodnight for providing published OSL data for checking and testing routines of statistical age models.
+Thanks Helena Rodnight for providing published OSL data for checking and testing routines for fitting statistical age models.

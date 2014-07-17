@@ -47,7 +47,7 @@ subroutine linearfit(xdat,ydat,ndat,pars,npars,&
   integer(kind=4),                 intent(out)::info(2)
   !
   ! Variables for subroutine lmhess
-  real   (kind=8),parameter::lmtol=4.053817D-10   !.Machine$double.eps^0.6 in R        
+  real   (kind=8),parameter::lmtol=2.220446D-16   !.Machine$double.eps in R        
   real   (kind=8),parameter::minAbsPar=0.0D+00    ! used in lmhess 
   real   (kind=8),dimension(npars,npars)::hessian ! hessian matrix obtained with finite-difference approximation
   real   (kind=8),dimension(npars)::gradient      ! gradient obtained with finite-difference approximation

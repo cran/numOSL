@@ -1562,7 +1562,7 @@ function(Sigdata, ncomp=3, typ=c("cw","lm"),
   ###
   ### If wirte fitted signal values to a file or not ?
   if(!is.null(outfile)) {
-    write.csv(CompSig, file=paste(outfile, ".csv"))
+    write.csv(CompSig, file=paste(outfile, ".csv",sep=""))
   } # end if
   ###
   ### Set output to be invisible!
@@ -1909,7 +1909,7 @@ function(Sigdata, ncomp=2, typ=c("cw","lm"),
   ###
   ### If wirte fitted signal values to a file or not ?
   if(!is.null(outfile)) {
-    write.csv(CompSig, file=paste(outfile, ".csv"))
+    write.csv(CompSig, file=paste(outfile, ".csv",sep=""))
   } # end if
   ###
   ### Set output to be invisible!
