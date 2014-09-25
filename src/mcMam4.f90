@@ -157,10 +157,13 @@ subroutine SliceMam4(iniP,iniGama,iniMu,iniSigma,nED,ED,Error,&
   real   (kind=8):: logy
   real   (kind=8):: U, L, R, J, K
   real   (kind=8):: gL, gR
+  real   (kind=8):: Error2(nED)
   !
   iflag=0
   Value=-99.0
   ! 
+  Error2=Error**2
+  !
   ! Calculate the specified function value.
   if (which==1) then 
       gx0=funcP(iniP)
@@ -355,13 +358,13 @@ subroutine SliceMam4(iniP,iniGama,iniMu,iniSigma,nED,ED,Error,&
     real   (kind=8):: pnormValues(nED)
     logical, parameter:: right=.false.
     !
-    pnormValues= (iniGama- (iniMu/iniSigma**2+ED/Error**2)/(1.0/iniSigma**2+1.0/Error**2) ) * &
-                  sqrt(1.0/Error**2+1.0/iniSigma**2)
+    pnormValues= (iniGama- (iniMu/iniSigma**2+ED/Error2)/(1.0/iniSigma**2+1.0/Error2) ) * &
+                  sqrt(1.0/Error2+1.0/iniSigma**2)
     ! 
     call pnorm(pnormValues, nED, right)
     !
-    funcP=sum(log( x/Error*exp(-(ED-iniGama)**2/2.0/Error**2) + &
-                  (1.0-x)/sqrt(Error**2+iniSigma**2)*exp(-(ED-iniMu)**2/2.0/(iniSigma**2+Error**2)) * &
+    funcP=sum(log( x/Error*exp(-(ED-iniGama)**2/2.0/Error2) + &
+                  (1.0-x)/sqrt(Error2+iniSigma**2)*exp(-(ED-iniMu)**2/2.0/(iniSigma**2+Error2)) * &
                   (1.0-pnormValues)/(1.0-alnorm((iniGama-iniMu)/iniSigma, right))  ))
     ! Checking NaN (NA)
     if (funcP .ne. funcP) iflag=1
@@ -378,13 +381,13 @@ subroutine SliceMam4(iniP,iniGama,iniMu,iniSigma,nED,ED,Error,&
     real   (kind=8):: pnormValues(nED)
     logical, parameter:: right=.false.
     !
-    pnormValues= (x- (iniMu/iniSigma**2+ED/Error**2)/(1.0/iniSigma**2+1.0/Error**2) ) * &
-                  sqrt(1.0/Error**2+1.0/iniSigma**2)
+    pnormValues= (x- (iniMu/iniSigma**2+ED/Error2)/(1.0/iniSigma**2+1.0/Error2) ) * &
+                  sqrt(1.0/Error2+1.0/iniSigma**2)
     ! 
     call pnorm(pnormValues, nED, right)
     !
-    funcGama=sum(log( iniP/Error*exp(-(ED-x)**2/2.0/Error**2) + &
-                     (1.0-iniP)/sqrt(Error**2+iniSigma**2)*exp(-(ED-iniMu)**2/2.0/(iniSigma**2+Error**2)) * &
+    funcGama=sum(log( iniP/Error*exp(-(ED-x)**2/2.0/Error2) + &
+                     (1.0-iniP)/sqrt(Error2+iniSigma**2)*exp(-(ED-iniMu)**2/2.0/(iniSigma**2+Error2)) * &
                      (1.0-pnormValues)/(1.0-alnorm((x-iniMu)/iniSigma, right))  ))
     ! Checking NaN (NA)
     if (funcGama .ne. funcGama) iflag=1
@@ -401,13 +404,13 @@ subroutine SliceMam4(iniP,iniGama,iniMu,iniSigma,nED,ED,Error,&
     real   (kind=8):: pnormValues(nED)
     logical, parameter:: right=.false.
     !
-    pnormValues= (iniGama- (x/iniSigma**2+ED/Error**2)/(1.0/iniSigma**2+1.0/Error**2) ) * &
-                  sqrt(1.0/Error**2+1.0/iniSigma**2)
+    pnormValues= (iniGama- (x/iniSigma**2+ED/Error2)/(1.0/iniSigma**2+1.0/Error2) ) * &
+                  sqrt(1.0/Error2+1.0/iniSigma**2)
     ! 
     call pnorm(pnormValues, nED, right)
     !
-    funcMu=sum(log( iniP/Error*exp(-(ED-iniGama)**2/2.0/Error**2) + &
-                   (1.0-iniP)/sqrt(Error**2+iniSigma**2)*exp(-(ED-x)**2/2.0/(iniSigma**2+Error**2)) * &
+    funcMu=sum(log( iniP/Error*exp(-(ED-iniGama)**2/2.0/Error2) + &
+                   (1.0-iniP)/sqrt(Error2+iniSigma**2)*exp(-(ED-x)**2/2.0/(iniSigma**2+Error2)) * &
                    (1.0-pnormValues)/(1.0-alnorm((iniGama-x)/iniSigma, right))  ))
     ! Checking NaN (NA)
     if (funcMu .ne. funcMu) iflag=1
@@ -424,13 +427,13 @@ subroutine SliceMam4(iniP,iniGama,iniMu,iniSigma,nED,ED,Error,&
     real   (kind=8):: pnormValues(nED)
     logical, parameter:: right=.false.
     !
-    pnormValues= (iniGama- (iniMu/x**2+ED/Error**2)/(1.0/x**2+1.0/Error**2) ) * &
-                  sqrt(1.0/Error**2+1.0/x**2)
+    pnormValues= (iniGama- (iniMu/x**2+ED/Error2)/(1.0/x**2+1.0/Error2) ) * &
+                  sqrt(1.0/Error2+1.0/x**2)
     ! 
     call pnorm(pnormValues, nED, right)
     !
-    funcSigma=sum(log( iniP/Error*exp(-(ED-iniGama)**2/2.0/Error**2) + &
-                      (1.0-iniP)/sqrt(Error**2+x**2)*exp(-(ED-iniMu)**2/2.0/(x**2+Error**2)) * &
+    funcSigma=sum(log( iniP/Error*exp(-(ED-iniGama)**2/2.0/Error2) + &
+                      (1.0-iniP)/sqrt(Error2+x**2)*exp(-(ED-iniMu)**2/2.0/(x**2+Error2)) * &
                       (1.0-pnormValues)/(1.0-alnorm((iniGama-iniMu)/x, right))  ))
     ! Checking NaN (NA)
     if (funcSigma .ne. funcSigma) iflag=1

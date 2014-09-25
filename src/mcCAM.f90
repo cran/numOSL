@@ -128,9 +128,12 @@ subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,&
   real   (kind=8):: logy
   real   (kind=8):: U, L, R, J, K
   real   (kind=8):: gL, gR
+  real   (kind=8):: Error2(nED)
   !
   iflag=0
   Value=-99.0
+  !
+  Error2=Error**2
   !
   ! Calculate the specified function value.
   if (which==1) then
@@ -281,7 +284,7 @@ subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,&
     real   (kind=8):: x
     real   (kind=8):: funcMu
     ! 
-    funcMu=sum(log( 1.0/sqrt(iniSigma**2+Error**2)*exp(-(ED-x)**2/2.0/(iniSigma**2+Error**2)) ))
+    funcMu=sum(log( 1.0/sqrt(iniSigma**2+Error2)*exp(-(ED-x)**2/2.0/(iniSigma**2+Error2)) ))
     ! Checking NAN (NA).
     if (funcMu .ne. funcMu) iflag=1
     !
@@ -294,7 +297,7 @@ subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,&
     real   (kind=8):: x
     real   (kind=8):: funcSigma
     ! 
-    funcSigma=sum(log( 1.0/sqrt(x**2+Error**2)*exp(-(ED-iniMu)**2/2.0/(x**2+Error**2)) ))
+    funcSigma=sum(log( 1.0/sqrt(x**2+Error2)*exp(-(ED-iniMu)**2/2.0/(x**2+Error2)) ))
     ! Checking NAN (NA).
     if (funcSigma .ne. funcSigma) iflag=1
     !

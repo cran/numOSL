@@ -1,83 +1,81 @@
 \name{calED}
 \alias{calED}
 \alias{calED.default}
+
 \title{
-Fitting a dose response curve and calculating some equivalent dose values
+Calculating an equivalent dose value and estimating its standard error
 }
+
 \description{
-Fitting a dose response curve and calculating some equivalent dose values, the error of an equivalent dose is assessed with methods described in Duller GAT (2007a).
+Calculating an equivalent dose value and assessing its standard error using methods described in Duller (2007).
 }
+
 \usage{
-calED(Curvedata, Ltx, 
-      model = c("line","exp","line+exp"), origin = FALSE,
-      nstart = 100, upb = 1, ErrorMethod = c("mc", "sp"),
+calED(Curvedata, Ltx, model = c("line","exp","lexp","dexp"), 
+      origin = FALSE, nstart = 100, upb = 0.5, ErrorMethod = c("mc","sp"),
       nsim = 1000, plot = TRUE, outfile = NULL)
 }
+
 \arguments{
-  \item{Curvedata}{\link{data.frame}(\bold{required}): three columns, i.e. regenerative doses (redose1, redose2, etc), standardised OSL signals (Lx1/Tx1, Lx2/Tx2, etc), and standard errors of 
+  \item{Curvedata}{\link{matrix}(\bold{required}): three columns, i.e., regenerative doses, standardised OSL signals, and standard errors of 
 standardised OSL signals}
-  \item{Ltx}{\link{vector} or \link{matrix}(\bold{required}): a vector contains two values (corresponding to the standardised OSL signal and its standard error) or a matrix contains two 
-columns (each row corresponds to a standardised OSL signal and an associated standard error in an application of the SGC method)}
-  \item{model}{\link{character}(with default): a model used for fitting the growth curve ("line", "exp" or "line+exp"), default model="line". See details}
-  \item{origin}{\link{logical}(optional): force the fitting to pass the origin (x=0,y=0) or not}
-  \item{nstart}{\link{numeric}(with default): the maximum number of attempts of initializations in the non-linear growth curve fitting}
-  \item{upb}{\link{numeric}(with default): the upper limit on b value, initial b value is generated uniformly from the space (0,upb), see details}
-  \item{ErrorMethod}{\link{character}(with default): method ("sp" or "mc") used for assessing the standard error of an equivalent dose. Default ErrorMethod="mc", see details}
-  \item{nsim}{\link{numeric}(with default): the allowed maximum number of simulations for applying a Monte Carlo method to assess the standard error of an equivalent dose}
-  \item{plot}{\link{logical}(with default): draw the fitted dose response curve or not}
-  \item{outfile}{\link{character}(with default): if specified, simulated ED values will be written to a file named "outfile" in ".csv" format and will be saved to the current work directory}
+
+  \item{Ltx}{\link{vector} or \link{matrix}(\bold{required}): natural standardised OSL signal(s) and standard error(s), see details}
+
+  \item{model}{\link{character}(with default): a fitting model, default \code{model="line"}, see \link{fitGrowth} for available models}
+
+  \item{origin}{\link{logical}(optional): force the fitting to pass the origin or not}
+
+  \item{nstart}{\link{numeric}(with default): the maximum number of attempts of initializing the non-linear growth curve fitting, see function \link{fitGrowth} for details}
+
+  \item{upb}{\link{numeric}(with default): the upper limit on \code{b} value (i.e., the reciprocal of the saturating dose), initial \code{b} value is generated uniformly from the space \code{(0,upb)}, see function \link{fitGrowth} for details}
+
+  \item{ErrorMethod}{\link{character}(with default): method used for assessing the standard error of an equivalent dose, default ErrorMethod="mc", see details}
+
+  \item{nsim}{\link{numeric}(with default): the allowed maximum number of simulations when applying a Monte Carlo method to assess the standard error of an equivalent dose}
+
+  \item{plot}{\link{logical}(with default): draw a plot or not}
+
+  \item{outfile}{\link{character}(with default): if specified, simulated ED values will be written to a file named \code{"outfile"} in \code{".csv"} format and saved to the current work directory}
 }
+
 \details{
-This function can be used for both dose response curve fitting and equivalent dose calculating. Calculating a single ED value or a number of ED values (SGC method) are possible, three fitting methods are available: \cr
-1) "line": a linear model, y=a*x+b \bold{or} y=a*x if origin=TRUE;\cr
-2) "exp": an exponential model, y=a*(1-exp(-b*x))+c \bold{or} y=a*(1-exp(-b*x)) if origin=TRUE;\cr
-3) "line+exp": an exponential plus linear model, y=a*(1-exp(-b*x))+c*x+d \bold{or} y=a*(1-exp(-b*x))+c*x if origin=TRUE.\cr\cr
-Standard error of an equivalent dose can be assessd using two method (Duller GAT, 2007a): \cr
-a) "sp": a simple transformation of s(Lx/Tx) to s(ED); \cr
-b) "mc": a Monte Carlo method \cr\cr
-Curve fitting is performed using the Levenberg-Marquardt algorithm (minpack: original FORTRAN 77 version by Jorge More, Burton Garbow, Kenneth Hillstrom. FORTRAN 90 version by John Burkardt). Interpolation is performed using a combination of golden section search and successive parabolic interpolation (the same as function \link{optimize} in package "stats").\cr\cr
-As for the fitting of a linear model, initialization is not a problem, but if the model to be fitted is either an exponential or an exponential plus linear model, then a series of b values are initialized randomly with a uniform distribution in the space (0,upb), then other parameters (a or a, c or a, c, d) can be estimated with a Linear Algebra method. User is advised to set the default setting "plot" to be TRUE if possible in order to see if the fitted growth curve is correct.
+This function can be used for calculating a single ED value (if \code{Ltx} is a two-element \link{vector}) or a number of ED values using the "Standardised Growth Curve" method (if \code{Ltx} is a two-column multi-row \link{matrix}).\cr\cr
+Standard error of an equivalent dose can be assessd using two method outlined by Duller (2007): \cr
+\bold{(a)} \code{"sp"}: a simple transformation of \code{s(Lx/Tx)} to \code{s(ED)}; \cr
+\bold{(b)} \code{"mc"}: a Monte Carlo method \cr\cr
+Interpolation is performed using a combination of golden section search and successive parabolic interpolation (available at \url{http://www.netlib.org/fmm/fmin.f}).\cr\cr
+See function \link{fitGrowth} for more details.
 }
+
 \value{
-Return an invisible list that contains following elements:
-  \item{LMpars}{the estimated characteristic parameters and standard errors of the growth curve}
-  \item{value}{the sum of squared residuals}
+Return an list that contains following elements:
+  \item{LMpars}{parameters and standard errors of the growth curve}
+  \item{value}{the minimized chi-square value of the fitted growth curve}
   \item{fit.value}{observations and fitted values}
-  \item{ED}{the estimated equivalent dose (and its standard error), which may be a two-element vector or a two-column matrix, depending on argument "Ltx"}
+  \item{ED}{equivalent dose(s) and standard error(s)}
 }
+
 \references{
-Roberts, H.M. and Duller, G.A.T., 2004. Standardised growth curves for optical dating of sediment using multiple-grain aliquots. Radiation Measurements 38(2), pp. 241-252.
+Duller GAT, 2007. Assessing the error on equivalent dose estimates derived from single aliquot regenerative dose measurements. 
+Ancient TL, 25: 15-24.
 
-Duller, G.A.T., 2007a. Assessing the error on equivalent dose estimates derived from single aliquot regenerative dose measurements. 
-Ancient TL 25(1), pp. 15-24.
+Roberts HM, Duller GAT, 2004. Standardised growth curves for optical dating of sediment using multiple-grain aliquots. Radiation Measurements, 38: 241-252.
+}
 
-Duller, G., 2007b. Analyst. pp. 27-28.
-}
-\note{
-Interpolation is performed within the maximum regenerative dose, so the value of Ltx that used to calculate an equivalent dose cannot be larger than the maximum standardised signals that used to construct the growth curve if the growth curve is fitted with a non-linear model. Also note that if any estimated characteristic parameter of the growth curve is below or equal to zero, the estimates will be suppressed and will be regarded as a fail.
-}
 \seealso{
-  \link{optimize}
+  \link{analyst}; \link{fastED}; \link{fitGrowth}
 }
+
+
+\note{
+Interpolation is performed within the maximum regenerative dose, so the value of \code{Ltx} that used to calculate an equivalent dose cannot be larger than the maximum standardised OSL that is used to construct the growth curve when applying a non-linear model.\cr\cr
+For a given model, this routine will return an error if any standard errors of parameters of the growth curve cannot be estimated by numerical approximation.\cr\cr
+Function \emph{sgcED} in previous version was bundled to function \emph{calED}.
+}
+
 \examples{
-  # load package "numOSL"
-  library(numOSL)
-  # Example 1: calculating equivalent doses using data from Duller (2007a)
-  data(Curvedata)
-  Res<-matrix(nrow=4,ncol=3)
-  for (i in 1:4)  {
-    model<-ifelse(i==1 || i==2,"exp","line")    
-    Simple<-calED(Curvedata[[i]][[1]],Curvedata[[i]][[2]],
-                  model=model,ErrorMethod="sp",plot=FALSE)
-    MonteCarlo<-calED(Curvedata[[i]][[1]],Curvedata[[i]][[2]],
-                      model=model,ErrorMethod="mc",plot=FALSE)
-    Res[i,1:2]<-Simple$ED
-    Res[i,3]<-MonteCarlo$ED[2]
-  } # end for
-  colnames(Res)<-c("ED","Simp.Error","MC.Error")
-  rownames(Res)<-c("Exponential","Exponential","linear","linear")
-  Res
-  # Example 2: performing a SGC method
+  # Calculating a number of ED values (a SGC method).
   ltx1<-c(0.032,1.61,2.55,3.21,3.87,0.031,1.55) # Lx/Tx for the first aliquot
   ltx2<-c(0.025,1.44,2.47,3.35,4.17,0.033,1.47) # Lx/Tx for the second aliquot
   ltx3<-c(0.027,1.51,2.68,3.52,4.41,0.021,1.39) # Lx/Tx for the third aliquot
@@ -91,4 +89,5 @@ Interpolation is performed within the maximum regenerative dose, so the value of
   Ltx<-cbind(c(0.5,1.0,1.8,2.3,2.8,3.1,3.6,4.0),rep(0.1,8))         
   calED(Curvedata,Ltx,model="exp",origin=FALSE) # fitting y=a*(1-exp(-b*x))+c
 }
+\keyword{growth curve}
 \keyword{equivalent dose}

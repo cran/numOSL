@@ -2,27 +2,27 @@
 \alias{Signaldata}
 \docType{data}
 \title{
-Signaldata is used for exemplifying the usage of function decomp(), decompc() and fastED()
+Decay curves datasets
 }
 \description{
-Decay curves of type "CW" and "LM".
+CW-OSL and lLM-OSL decay curves.
 }
 \usage{data(Signaldata)}
 \format{
-  A list that contains both decay curves of type "CW" and "LM":
+  A list that contains CW-OSL and LM-OSL decay curves:
   \describe{
-    \item{cw}{a number of decay curves of type "CW" of sand samples from Tengger Desert in northern china (Peng and Han, 2013)}
+    \item{cw}{14 CW-OSL decay curves of a sand sample from the Tengger Desert in northern china (Peng and Han, 2013)}
     \item{lm}{a LM-OSL decay curve from Li and Li (2006)}
 }
 }
 \references{
-Li, S.H., Li, B., 2006. Dose measurement using the fast component of LM-OSL signals from quartz. Radiation Measurements, 41, pp.534-541.
+Li SH, Li B, 2006. Dose measurement using the fast component of LM-OSL signals from quartz. Radiation Measurements, 41: 534-541.
 
-Peng, J., Han, F.Q., 2013. Selections of fast-component OSL signal using sediments from the south edge of Tengger Desert. Acta Geoscientica Sinica, 34 (6), pp. 757-762.
+Peng J, Han FQ, 2013. Selections of fast-component OSL signal using sediments from the south edge of Tengger Desert. Acta Geoscientica Sinica, 34: 757-762.
 }
 \examples{
 data(Signaldata)
 names(Signaldata)
 }
 \keyword{OSL dating}
-\keyword{fitting OSL decay curve}
+\keyword{OSL decay curve}

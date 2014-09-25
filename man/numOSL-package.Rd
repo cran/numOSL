@@ -3,21 +3,22 @@
 \docType{package}
 \title{Package for tackling basic numeric problems in optically stimulated luminescence dating}
 \description{
-Available functions in package "numOSL" include:\cr\cr
-\bold{1)}Function calED() fits a dose-response curve and calculates some equivalent dose values, the standard errors of which can be assessed using either a simple transformation protocol or a monte Carlo method (Duller, 2007).\cr
-\bold{2)}Function dbED() summarizes the distribution of equivalent dose values and draws a histogram and a probability density plot. \cr
-\bold{3)}Function decomp() and decompc() decompose an OSL decay curve (type "CW" or "LM") to a specified number of components, which perform the fitting using a combination of differential evolution and
-Levenberg-Marquardt algorithm suggested by Bluszcz and Adamiec (2006).\cr
-\bold{4)}Function fastED() estimates a fast-component equivalent dose with data abtained by the single aliquot regenerative (SAR) protocol (Murray and Wintle, 2000).\cr
-\bold{5)}Function RadialPlotter() performs statistical age models (log-scale) analysis (Galbraith and Roberts, 2012) using classic numeric methods and draws a radial plot (Galbraith, 1988).\cr
-\bold{6)}Function mcFMM() and mcMAM() estimate parameters of statistical age models with a Markov chain Monte Carlo method (i.e. Slice Sampling, Neal, 2003).
+Available functions in package \bold{\emph{numOSL}} include:\cr\cr
+\bold{Function} \link{analyst} calculates an equivalent dose value using data from a SAR sequence. \cr\cr
+\bold{Function} \link{calED} calculates equivalent dose values and assesses their standard errors (Duller, 2007).\cr\cr
+\bold{Function} \link{dbED} summarizes the distribution of equivalent dose values. \cr\cr
+\bold{Function} \link{decomp} decomposes an OSL decay curve (type "CW" or "LM") to a specified number of components, which perform the fitting using a combination of differential evolution and Levenberg-Marquardt algorithm suggested by Bluszcz and Adamiec (2006).\cr\cr
+\bold{Function} \link{fastED} estimates a fast-component equivalent dose using data from a SAR sequence.\cr\cr
+\bold{Function} \link{fitGrowth} fits a growth curve.\cr\cr
+\bold{Function} \link{mcFMM} and \link{mcMAM} estimate parameters of statistical age models with a Markov chain Monte Carlo method.\cr\cr
+\bold{Function} \link{RadialPlotter} performs statistical age models (log-scale) analysis (Galbraith and Roberts, 2012) using the Maximum Likelihood Estimation method.
 }
 \details{
 \tabular{ll}{
 Package: \tab numOSL\cr
 Type: \tab Package\cr
-Version: \tab 1.5\cr
-Date: \tab 2014-07-17\cr
+Version: \tab 1.6\cr
+Date: \tab 2014-09-25\cr
 License: \tab GPL-3\cr
 }
 }
@@ -31,10 +32,10 @@ Peng Jun
 \email{pengjun10@mails.ucas.ac.cn}
 }
 \references{
-Peng, J., Dong, Z.B., Han, F.Q., Long, H., Liu, X.J., 2013. R package numOSL: numeric routines for optically stimulated luminescence dating. Ancient TL, 31(2), pp. 41-48.
+Peng J, Dong ZB., Han FQ, Long H, Liu XJ, 2013. R package numOSL: numeric routines for optically stimulated luminescence dating. Ancient TL, 31: 41-48.
 }
 \keyword{OSL dating}
 \keyword{statistical age models}
-\keyword{fitting OSL decay curve}
+\keyword{OSL decay curve}
 \keyword{fast-component equivalent dose}
 \keyword{equivalent dose}

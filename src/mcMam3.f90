@@ -142,9 +142,12 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
   real   (kind=8)::logy
   real   (kind=8)::U,L,R,J,K
   real   (kind=8)::gL,gR
+  real   (kind=8):: Error2(nED)
   !
   iflag=0
   Value=-99.0
+  !
+  Error2=Error**2
   !
   ! Calculate the specified function value.
   if (which==1) then
@@ -319,13 +322,13 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
     real   (kind=8)::pnormValues(nED)
     logical,parameter::right=.false.   
     !
-    pnormValues= (iniGama- (iniGama/iniSigma**2+ED/Error**2)/(1.0/iniSigma**2+1.0/Error**2) ) * &
-                  sqrt(1.0/Error**2+1.0/iniSigma**2)
+    pnormValues= (iniGama- (iniGama/iniSigma**2+ED/Error2)/(1.0/iniSigma**2+1.0/Error2) ) * &
+                  sqrt(1.0/Error2+1.0/iniSigma**2)
     !
     call pnorm(pnormValues,nED,right)
     !
-    funcP=sum(log( x/Error*exp(-(ED-iniGama)**2/2.0/Error**2) + &
-	          (1.0-x)/sqrt(Error**2+iniSigma**2)*exp(-(ED-iniGama)**2/2.0/(Error**2+iniSigma**2)) * &
+    funcP=sum(log( x/Error*exp(-(ED-iniGama)**2/2.0/Error2) + &
+	          (1.0-x)/sqrt(Error2+iniSigma**2)*exp(-(ED-iniGama)**2/2.0/(Error2+iniSigma**2)) * &
 	           2.0*(1.0-pnormValues)  ))  
     ! Checking NaN (NA)
     if( funcP .ne. funcP) iflag=1
@@ -341,13 +344,13 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
     real   (kind=8)::pnormValues(nED)
     logical,parameter::right=.false.   
     !
-    pnormValues= (x-  (x/iniSigma**2+ED/Error**2)/(1.0/iniSigma**2+1.0/Error**2) ) * &
-                  sqrt(1.0/Error**2+1.0/iniSigma**2)
+    pnormValues= (x-  (x/iniSigma**2+ED/Error2)/(1.0/iniSigma**2+1.0/Error2) ) * &
+                  sqrt(1.0/Error2+1.0/iniSigma**2)
     !
     call pnorm(pnormValues,nED,right)
     !
-    funcGama=sum(log( iniP/Error*exp(-(ED-x)**2/2.0/Error**2) + &
-	             (1.0-iniP)/sqrt(Error**2+iniSigma**2)*exp(-(ED-x)**2/2.0/(Error**2+iniSigma**2)) * &
+    funcGama=sum(log( iniP/Error*exp(-(ED-x)**2/2.0/Error2) + &
+	             (1.0-iniP)/sqrt(Error2+iniSigma**2)*exp(-(ED-x)**2/2.0/(Error2+iniSigma**2)) * &
 	              2.0*(1.0-pnormValues)  ))  
     ! Checking NaN (NA)
     if( funcGama .ne. funcGama ) iflag=1
@@ -363,13 +366,13 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
     real   (kind=8)::pnormValues(nED)
     logical,parameter::right=.false.   
     !
-    pnormValues= (iniGama-  (iniGama/x**2+ED/Error**2)/(1.0/x**2+1.0/Error**2) ) * &
-                  sqrt(1.0/Error**2+1.0/x**2)
+    pnormValues= (iniGama-  (iniGama/x**2+ED/Error2)/(1.0/x**2+1.0/Error2) ) * &
+                  sqrt(1.0/Error2+1.0/x**2)
     !
     call pnorm(pnormValues,nED,right)
     !
-    funcSigma=sum(log( iniP/Error*exp(-(ED-iniGama)**2/2.0/Error**2) + &
-	              (1.0-iniP)/sqrt(Error**2+x**2)*exp(-(ED-iniGama)**2/2.0/(Error**2+x**2)) * &
+    funcSigma=sum(log( iniP/Error*exp(-(ED-iniGama)**2/2.0/Error2) + &
+	              (1.0-iniP)/sqrt(Error2+x**2)*exp(-(ED-iniGama)**2/2.0/(Error2+x**2)) * &
 	               2.0*(1.0-pnormValues)  ))  
     ! Checking NaN (NA)
     if( funcSigma .ne. funcSigma) iflag=1

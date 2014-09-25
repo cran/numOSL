@@ -1,261 +1,243 @@
-subroutine calED(Dose,ltx,ndose,ninltx,inltx,outDose,mcED,pars,npars,&
-                 predtval,upb,nstart,parserrors,value,method,nsim,errorflag)
-!----------------------------------------------------------------------------------------
-! Calculate a number of equivalent dose values. (do not pass the origin).
-! =======================================================================================
-!
-! ndose,             input:: integer, length of regenerative dose values.
-!
-! ninltx,            input:: integer, number of wanted equivalent doses.
-!
-! nstart,            input:: integer, number of random trials.
-!
-! upb,               input:: real value, upper boundary for b value, b generates uniformly in (0, upb).
-!
-! npars,             input:: integer, model used for fitting the dose-response curve:
-!                      if npars=2, fit a linear model of the form: y=ax+b (ndat>=2);
-!                      if npars=3, fit an exponential model of the form: y=a(1-exp(-bx))+c (ndat>=3);
-!                      if npars=4, fit a linear+Exponential model of the form: y=a(1-exp(-bx))+cx+d (ndat>=4).
-!
-! dose(ndose),       input:: real values, regenerative dose values.
-!
-! ltx(ndose,2),      input:: real values, standardlized OSL signal values.
-!
-! inltx(ninltx,2),   input:: real values, inputs used for calculating EDs and standard errors.
-!
-! outDose(ninltx,2),output:: real values, calculated EDs (standard errors).
-!
-! mcED(nsim,ninltx),output:: real values, simulate ED values.
-!
-! pars(npars),      output:: real values, calculated characteristical parameters of the growth curve.
-!
-! parserrors(npars),output:: real values, parameters' standard errors.
-!
-! predtval(ndose),  output:: real values, fitted values that correspond to ltx.
-!
-! value,            output:: real value, sum of the squared residuals.
-!
-! nsim,              input:: integer, numbers of Moto Carlo simulations used to estimate EDs' standard errors.
-!
-! method,            input:: integer, method for error assessing, 1 for simple method; 2 for Moto Carlo method.
-!
-! errorflag(2),     output:: integer, error messages:
-!                     if success in fitting growth curve, errorflag(1)=123;
-!                     if parameters' standard errors can be estimated and all pars>0.0, errorflag(2)=0. 
-!================================================================================================================
-! Author:: Peng Jun, 2013.08.01, revised in 2013.08.04, revised in 2013.09.21; revised in 2014.04.03.
-!
-! Dependence:: subroutine inipars; subroutine interpolate; subroutine growFit; 
-!              subroutine linearfit; subroutine r8vec_normal.
-!
-!              Duller, G.A.T., 2007. Assessing the error on equivalent dose estimates derived 
-!              from single aliquot regenerative dose measurements. Ancient TL 25, pp. 15-24.
-!--------------------------------------------------------------------------------------------------------------
-  implicit none
-  integer(kind=4),                        intent(in):: ndose
-  integer(kind=4),                        intent(in):: npars
-  integer(kind=4),                        intent(in):: ninltx
-  integer(kind=4),                        intent(in):: nsim
-  integer(kind=4),                        intent(in):: method
-  integer(kind=4),                        intent(in):: nstart
-  real   (kind=8),                        intent(in):: upb
-  real   (kind=8),dimension(ndose),       intent(in):: Dose
-  real   (kind=8),dimension(ndose,2),     intent(in):: ltx
-  real   (kind=8),dimension(ninltx,2),    intent(in):: inltx
-  real   (kind=8),                       intent(out):: value
-  integer(kind=4),dimension(2),          intent(out):: errorflag
-  real   (kind=8),dimension(ninltx,2),   intent(out):: outDose
-  real   (kind=8),dimension(nsim,ninltx),intent(out):: mcED
-  real   (kind=8),dimension(npars),      intent(out):: pars
-  real   (kind=8),dimension(npars),      intent(out):: parserrors
-  real   (kind=8),dimension(ndose),      intent(out):: predtval
-  !
-  ! Local variables.
-  real   (kind=8),parameter          :: lmtol=1.0D-07
-  real   (kind=8),parameter          :: initol=4.053817e-10  !.Machine$double.eps^0.6 in R    
-  real   (kind=8),dimension(4)       :: cpars
-  real   (kind=8),dimension(npars-1) :: outpars 
-  real   (kind=8),dimension(ninltx)  :: lowltx, upltx
-  real   (kind=8),dimension(ninltx,2):: lowup
-  real   (kind=8),dimension(nDose)   :: lmpredtval, simltx
-  real   (kind=8),dimension(npars)   :: lmpars, lmparserrors
-  real   (kind=8)                    :: mcDose, sumDose, sumDose2, maxDose, minValue,&
-                                        avgErr, bvalue, lmvalue, loopvalue, ran, mcSig(1)
-  !
-  integer(kind=4):: seed, mcCount, info, i, j, lmerrorflag(2)
-  !
-  ! Default return values.
-  value=-99.0
-  ! Initialize errorflag.
-  errorflag(1)=0
-  errorflag(2)=1
-  outDose=-99.0
-  mcED=-99.0
-  pars=-99.0
-  parserrors=-99.0
-  predtval=-99.0
-  !
-  ! Fitting the growth curve.
-  if (npars==2) then  
-      ! For a linear model.
-      call linearfit(Dose,ltx(:,1),ndose,pars,npars,&
-                     parserrors,predtval,value,errorflag) 
-      if (any(pars<=0.0D+00)) errorflag(2)=1
-  else if (npars==3 .or. npars==4) then  
-      ! For an expentional or a linear plus expentional model.
-      cpars=0.0
-      loopvalue=1.0D+30
-      call random_seed()
-      Loop: do i=1, nstart
-          call random_number(ran)
-          bvalue=upb*ran
-          call inipars(bvalue,npars,ndose,Dose,&
-                       ltx(:,1),outpars,initol,info)
-          ! Error checking.
-          if (info/=0) cycle Loop
-          !
-          if (info==0) then
-              cpars(1)=outpars(1)
-              cpars(2)=bvalue
-              cpars(3:npars)=outpars(2:npars-1)
-              lmpars=cpars(1:npars)
-          end if       
-          !
-          call  growFit(Dose,ltx(:,1),ndose,lmpars,npars,.false.,&
-                        lmparserrors,lmpredtval,lmvalue,lmtol,lmerrorflag)
-          !
-          ! Check if the exponential curve becomes saturation.
-          if (npars==3 .and. lmpars(1)*lmpars(2)*dexp(-lmpars(2)*maxval(Dose))<=2.013409D-05) cycle Loop
-          !
-          ! Only store improved estimates.
-          if (lmerrorflag(1)==123 .and. lmerrorflag(2)==0 .and. &
-              all(lmpars>0.0D+00) .and. lmvalue<loopvalue) then
-              loopvalue=lmvalue
-              pars=lmpars
-              parserrors=lmparserrors
-              predtval=lmpredtval
-              value=lmvalue
-              errorflag=lmerrorflag
-          end if
-      end do Loop
-  end if
-  !
-  ! Error checking, return if fails.
-  if (errorflag(1)/=123 .or. errorflag(2)/=0) return
-  !
-  ! Set upper limits on maxDose.
-  if (npars==3 .or. npars==4) then
-      maxDose=1.5D+00*maxval(Dose)
-  end if
-  !
-  ! Calculate ED values.
-  if (npars==2)  then
-      outDose(:,1)=(inltx(:,1)-pars(2))/pars(1)
-  else if (npars==3 .or. npars==4)  then
-      do i=1, ninltx
-          call interpolate(outDose(i,1),inltx(i,1),pars,npars,&
-                           -5.0D+00,maxDose,minValue)
-      end do
-  end if
-  !
-  !
-  ! Calculate standard errors of EDs.
-  if (method==1) then
-      ! 1) Method 1, simple transformation.
-      avgErr=value/real(ndose,kind=8)
-      lowltx=inltx(:,1)-sqrt((inltx(:,2))**2+avgErr)
-      upltx =inltx(:,1)+sqrt((inltx(:,2))**2+avgErr)
-      !
-      if (npars==2)  then
-          lowup(:,1)=(lowltx(:)-pars(2))/pars(1)
-          lowup(:,2)=( upltx(:)-pars(2))/pars(1) 
-          !
-      else if (npars==3 .or. npars==4)  then
-          do i=1, ninltx
-              call interpolate(lowup(i,1),lowltx(i),pars,npars,&
-                               -5.0D+00,maxDose,minValue)
-              call interpolate(lowup(i,2),upltx(i),pars,npars,&
-                               -5.0D+00,maxDose,minValue)
-          end do
-      end if
-      !
-      outDose(:,2)=(lowup(:,2)-lowup(:,1))/2.0D+00
-      !
-  ! 2) Method 2, Monte Carlo simulation.
-  else if (method==2) then
-      ! Set random seed 
-      seed=123456789
-      ! Looping the ith inltx. 
-      do i=1, ninltx
-          mcCount=0
-          sumDose=0.0
-          sumDose2=0.0
-          !
-          ! Moto Carlo simulations.
-          Inner: do 
-              ! Generate random ltx values.
-              do j=1, ndose
-                  call r8vec_normal(1,ltx(j,1),ltx(j,2),seed,simltx(j))
-              end do
-              !
-              ! Fitting simulated observations.
-              if (npars==2) then
-                  ! for a linear model.
-                  call linearfit(Dose,simltx,ndose,lmpars,npars,&
-                                 lmparserrors,lmpredtval,lmvalue,lmerrorflag)
-                  !
-              else if (npars==3 .or. npars==4) then 
-                  ! for an expentional or a linear plus expentional model.
-                  call random_number(ran)
-                  bvalue=upb*ran
-                  call inipars(bvalue,npars,ndose,Dose,&
-                               simltx,outpars,initol,info)
-                  ! Error checking.
-                  if (info/=0) cycle Inner
-                  !
-                  if (info==0) then
-                      cpars(1)=outpars(1)
-                      cpars(2)=bvalue
-                      cpars(3:npars)=outpars(2:npars-1)
-                      lmpars=cpars(1:npars)
-                  end if  
-                  !     
-                  call growFit(Dose,simltx,ndose,lmpars,npars,.false.,&
-                               lmparserrors,lmpredtval,lmvalue,lmtol,lmerrorflag)  
-                  !
-                  ! Check if the exponential curve becomes saturation.
-                  if (npars==3 .and. lmpars(1)*lmpars(2)*dexp(-lmpars(2)*maxval(Dose))<=2.013409D-05) cycle Inner
-              end if   
-              !
-              ! Error check.
-              if (lmerrorflag(1)==123 .and. lmerrorflag(2)==0 .and. all(lmpars>0.0D+00)) then
-                  ! Simulate mcSig.
-                  call r8vec_normal(1,inltx(i,1),inltx(i,2),seed,mcSig(1))
-                  ! Interpolation.
-                  if (npars==2)  then
-                      mcDose=(mcSig(1)-lmpars(2))/lmpars(1)
-                  else if (npars==3 .or. npars==4)  then
-                      call interpolate(mcDose,mcSig(1),lmpars,npars,&
-                                       -5.0D+00,maxDose,minValue)
-                      if ( (minValue .ne. minValue) .or. (minValue>1.0D-03) ) cycle Inner
-                  end if
-                  !
-                  ! Accumulate McCount, SumDose, Sum of EDs.
-                  mcCount=mcCount+1
-                  sumDose=sumDose+mcDose
-                  sumDose2=sumDose2+mcDose**2
-                  mcED(mcCount,i)=mcDose
-              end if
-              !
-              ! Checking termination.
-              if (mcCount==nsim) exit Inner
-          end do Inner
-          !
-          ! Calculate standard error for the ith ED.
-          outDose(i,2)=sqrt((real(mcCount,kind=8)*sumDose2-sumDose**2)/ &
-                             real(mcCount,kind=8)/real(mcCount-1,kind=8))
-      end do
-  end if
-  !
-  return
-end subroutine calED
+subroutine calED(dose,ltx,sltx,ndat,ninltx,n2,inltx,&
+                 outDose,mcED,pars,stdp,upb,model,origin,&
+                 method,nstart,nsim,fvec1,fvalue,message)
+!---------------------------------------------------------------------------
+! Subroutine calED() is used for calculating  
+! ED values and assess their standard errors.
+!---------------------------------------------------------------------------
+!        dose(ndat):: input, real values, the dose values.
+!         ltx(ndat):: input, real values, Lx/Tx values
+!        sltx(ndat):: input, real values, the errors of Lx/Txs.
+!              ndat:: input, integer, the number of data points.
+!            ninltx:: input, integer, number of ED values.
+!                n2:: input, integer, dimension of the problem.
+!   inltx(ninltx,2):: input, real values, the natural Lx/Txs and errors.
+! outDose(ninltx,2):: output, real values, the estimated EDs and errors.
+! mcED(nsim,ninltx):: output, real values, the simulated ED values.
+!          pars(n2):: output, real values, pars of growth curve.
+!          stdp(n2):: output, real values, the std errors of pars.
+!               upb:: input, real value, upper bound of b value.
+!             model:: input, integer, 0=linear, 1=exp, 2=lexp, 3=dexp.
+!            origin:: input, integer, 0=origin, 1=non-origin.
+!            method:: input, integer, 0=simple transformation, 1=Monte Carlo.
+!            nstart:: input, integer, number of trails.
+!              nsim:: input, integer, number of simulations.
+!       fvec1(ndat):: output, real values, the fitted Lx/Tx values.
+!            fvalue:: output, real value, the minimized chi-square.
+!           message:: output, integer, 0=success, 1=fail.
+!---------------------------------------------------------------------------
+! Author:: Peng Jun, 2014.09.12.
+!---------------------------------------------------------------------------
+! Dependence:: subroutine linearFit; subroutine inipars;--------------------
+!              subroutine lmgrwcve; subroutine interpolate;-----------------
+!              subroutine r8vec_normal.-------------------------------------
+!---------------------------------------------------------------------------
+    implicit none
+    ! Arguments.
+    integer(kind=4), intent(in):: ndat, ninltx, n2, model,&
+                                  origin, method, nstart, nsim
+    real   (kind=8), intent(in):: dose(ndat), ltx(ndat), sltx(ndat),&
+                                  upb, inltx(ninltx,2)
+    real   (kind=8), intent(out):: outDose(ninltx,2), mcED(nsim,ninltx),&
+                                   pars(n2), stdp(n2), fvec1(ndat), fvalue
+    integer(kind=4), intent(out):: message
+    ! Local variables.
+    integer(kind=4):: i, j, info, seed, mcCount, niter
+    real   (kind=8):: minCond, ran(2), outp(3),&
+                      locp(5), cpars(n2), cstdp(n2),&
+                      cfvec1(ndat), cfvalue, cond, grad,&
+                      maxDose, ivalue, avg, low(ninltx), up(ninltx),&
+                      low1(ninltx), up1(ninltx), sumdose, sumdose2,& 
+                      simltx(ndat), mcSig(1), mcDose
+    !
+    outDose = -99.0
+    mcED = -99.0
+    pars = -99.0
+    stdp = -99.0
+    fvec1 = -99.0
+    fvalue = -99.0
+    message = 1
+    !
+    if (model==0) then
+        call linearFit(dose,ltx,sltx,ndat,pars,&
+                       stdp,n2,fvec1,fvalue,info)
+        if (info==0) message = 0
+        if (message/=0) return
+    else if (model==1 .or. model==2 .or. model==3) then
+        minCond = 1.0D+20
+        maxDose = maxval(dose)
+        ! call random_seed()
+        !
+        loopA: do i=1, nstart
+            call random_number(ran)
+            ran = ran*upb
+            call inipars(ran(1),ran(2),model,origin,&
+                         dose,ltx,sltx,ndat,outp,info)
+            if (info/=0) cycle loopA
+            !
+            if (info==0) then
+                locp = 0.0
+                if (model==1 .or. model==2) then
+                    locp(1) = outp(1)
+                    locp(2) = ran(1)
+                    locp(3) = outp(2)
+                    locp(4) = outp(3)
+                else if (model==3) then
+                    locp(1) = outp(1)
+                    locp(2) = ran(1)
+                    locp(3) = outp(2)
+                    locp(4) = ran(2)
+                    locp(5) = outp(3)
+                end if 
+                cpars = locp(1:n2)
+            end if
+            !
+            call lmgrwcve(dose,ltx,sltx,ndat,cpars,cstdp,n2,&
+                          model,origin,cfvec1,cfvalue,cond,info)
+            !
+            if (info/=0) cycle loopA
+            !
+            if (model==1 .or. model==3) then
+                locp = 0.0
+                locp(1:n2) = cpars
+                grad = locp(1)*locp(2)*exp(-locp(2)*maxDose)+&
+                       locp(3)*locp(4)*exp(-locp(4)*maxDose)
+                if (grad<1.0D-13) cycle loopA
+            end if
+            !
+            if (cond<minCond) then
+                pars = cpars
+                stdp = cstdp
+                fvec1 = cfvec1
+                fvalue = cfvalue
+                minCond = cond
+                message = 0
+            end if
+        end do loopA
+        !
+        if (message/=0) return
+    end if
+    !
+    !
+    ! Calculate quivalent dose values. 
+    if (model==0) then
+        locp = 0.0
+        locp(1:n2) = pars
+        outDose(:,1) = (inltx(:,1)-locp(2))/locp(1)
+    else if (model==1 .or. model==2 .or. model==3) then 
+        do i=1, ninltx
+            call interpolate(inltx(i,1),pars,n2,model,&
+                             -5.0D+00,1.3*maxDose,outDose(i,1),ivalue)
+            if (ivalue>1.0D-7) then
+                message = 1
+                return
+            end if
+        end do
+    end if
+    !
+    ! Assess the standard errors of 
+    ! equivalent dose values.
+    if (method==0) then
+        ! Simple transformation.
+        avg = sum((ltx-fvec1)**2)/real(ndat)
+        low = inltx(:,1) - sqrt((inltx(:,2))**2+avg)
+        up = inltx(:,1) + sqrt((inltx(:,2))**2+avg)
+        !
+        if (model==0) then 
+            locp = 0.0
+            locp(1:n2) = pars
+            low1 = (low-locp(2))/locp(1)
+            up1 = (up-locp(2))/locp(1)
+        else if (model==1 .or. model==2 .or. model==3) then
+            do i=1, ninltx
+                call interpolate(low(i),pars,n2,model,&
+                                 -5.0D+00,1.3*maxDose,low1(i),ivalue)
+                call interpolate(up(i),pars,n2,model,&
+                                 -5.0D+00,1.3*maxDose,up1(i),ivalue)
+            end do
+        end if
+        !
+        outDose(:,2) = (up1-low1)/2.0
+    else if (method==1) then
+        ! Monte Carlo simulation.
+        seed = 123456789
+        do i=1, ninltx
+            mcCount = 0
+            sumdose = 0.0
+            sumdose2 = 0.0
+            niter = 0
+            Innerloop: do
+                niter = niter + 1
+                if (niter>100*nsim) then
+                    message = 1
+                    return
+                end if
+                !
+                do j=1, ndat
+                    call r8vec_normal(1,ltx(j),sltx(j),seed,simltx(j))
+                end do
+                !
+                if (model==0) then
+                    call linearFit(dose,simltx,sltx,ndat,cpars,&
+                                   cstdp,n2,cfvec1,cfvalue,info)
+                    if (info/=0) cycle Innerloop
+                else if (model==1 .or. model==2 .or. model==3) then
+                    call random_number(ran)
+                    ran = ran*upb
+                    call inipars(ran(1),ran(2),model,origin,dose,&
+                                 simltx,sltx,ndat,outp,info)
+                    if (info/=0) cycle Innerloop
+                    if (info==0) then
+                        locp = 0.0
+                        if (model==1 .or. model==2) then
+                            locp(1) = outp(1)
+                            locp(2) = ran(1)
+                            locp(3) = outp(2)
+                            locp(4) = outp(3)
+                        else if (model==3) then
+                            locp(1) = outp(1)
+                            locp(2) = ran(1)
+                            locp(3) = outp(2)
+                            locp(4) = ran(2)
+                            locp(5) = outp(3)
+                        end if 
+                        cpars = locp(1:n2)
+                    end if
+                    !
+                    call lmgrwcve(dose,simltx,sltx,ndat,cpars,cstdp,n2,&
+                                  model,origin,cfvec1,cfvalue,cond,info)
+                    if (info/=0) cycle Innerloop
+                    if (model==1 .or. model==3) then
+                        locp = 0.0
+                        locp(1:n2) = cpars
+                        grad = locp(1)*locp(2)*exp(-locp(2)*maxDose)+&
+                               locp(3)*locp(4)*exp(-locp(4)*maxDose)
+                        if (grad<1.0D-13) cycle Innerloop
+                    end if
+                end if
+                !
+                call r8vec_normal(1,inltx(i,1),inltx(i,2),seed,mcSig(1))
+                !
+                if (model==0) then
+                    locp = 0.0
+                    locp(1:n2) = cpars
+                    mcDose = (mcSig(1)-locp(2))/locp(1)
+                else if (model==1 .or. model==2 .or. model==3) then 
+                    call interpolate(mcSig(1),cpars,n2,model,&
+                                     -5.0D+00,1.3*maxDose,mcDose,ivalue)
+                    if (ivalue>1.0D-7) cycle Innerloop
+                end if
+                mcCount = mcCount + 1
+                sumdose = sumdose +mcDose
+                sumdose2 = sumdose2 +mcDose**2
+                mcED(mcCount,i) = mcDose
+                if (mcCount==nsim) exit Innerloop
+            end do Innerloop
+            !
+            outDose(i,2) = sqrt((real(nsim)*sumdose2-sumdose**2)/&
+                                 real(nsim)/real(nsim-1))
+        end do
+    end if
+    !
+    return
+end subroutine calED 

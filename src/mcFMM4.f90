@@ -219,9 +219,12 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   real   (kind=8):: gL, gR
   real   (kind=8):: locVal
   real   (kind=8):: part1(nED), part2(nED), part3(nED), part4(nED)
+  real   (kind=8):: Error2(nED)
   !
   iflag=0
   Value=-99.0
+  !
+  Error2=Error**2
   !
   ! Calculate the specified function value.
   if (which==1)  then
@@ -476,10 +479,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
       real   (kind=8):: sumPs
       !
       sumPs=x+iniP2+iniP3+iniP4
-      part1=    x/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
-      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error**2 )
-      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error**2 )
+      part1=    x/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
+      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error2 )
+      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error2 )
       funcP1=sum( log(part1+part2+part3+part4) )
       ! Error checking.
       if (funcP1 .ne. funcP1) iflag=1
@@ -494,10 +497,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+x+iniP3+iniP4
-      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=    x/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
-      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error**2 )
-      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=    x/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
+      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error2 )
+      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error2 )
       funcP2=sum( log(part1+part2+part3+part4) )
       ! Error checking.
       if (funcP2 .ne. funcP2) iflag=1
@@ -512,10 +515,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+iniP2+x+iniP4
-      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
-      part3=    x/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error**2 )
-      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
+      part3=    x/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error2 )
+      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error2 )
       funcP3=sum( log(part1+part2+part3+part4) )
       ! Error checking.
       if (funcP3 .ne. funcP3) iflag=1
@@ -530,10 +533,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+x
-      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
-      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error**2 )
-      part4=    x/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
+      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error2 )
+      part4=    x/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error2 )
       funcP4=sum( log(part1+part2+part3+part4) )
       ! Error checking.
       if (funcP4 .ne. funcP4) iflag=1
@@ -548,10 +551,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+iniP4
-      part1=iniP1/sumPs/Error*exp( -(ED-     x)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
-      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error**2 )
-      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-     x)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
+      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error2 )
+      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error2 )
       funcMu1=sum( log(part1+part2+part3+part4) )
       ! Error checking.
       if (funcMu1 .ne. funcMu1) iflag=1
@@ -566,10 +569,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+iniP4
-      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-     x)**2/2.0/Error**2 )
-      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error**2 )
-      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-     x)**2/2.0/Error2 )
+      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error2 )
+      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error2 )
       funcMu2=sum( log(part1+part2+part3+part4) )
       ! Error checking.
       if (funcMu2 .ne. funcMu2) iflag=1
@@ -584,10 +587,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+iniP4
-      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
-      part3=iniP3/sumPs/Error*exp( -(ED-     x)**2/2.0/Error**2 )
-      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
+      part3=iniP3/sumPs/Error*exp( -(ED-     x)**2/2.0/Error2 )
+      part4=iniP4/sumPs/Error*exp( -(ED-iniMu4)**2/2.0/Error2 )
       funcMu3=sum( log(part1+part2+part3+part4) )
       ! Error checking.
       if (funcMu3 .ne. funcMu3) iflag=1
@@ -602,10 +605,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+iniP4
-      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
-      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error**2 )
-      part4=iniP4/sumPs/Error*exp( -(ED-     x)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
+      part3=iniP3/sumPs/Error*exp( -(ED-iniMu3)**2/2.0/Error2 )
+      part4=iniP4/sumPs/Error*exp( -(ED-     x)**2/2.0/Error2 )
       funcMu4=sum( log(part1+part2+part3+part4) )
       ! Error checking.
       if (funcMu4 .ne. funcMu4) iflag=1

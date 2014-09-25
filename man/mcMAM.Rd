@@ -2,43 +2,51 @@
 \alias{mcMAM}
 \alias{mcMAM.default}
 \title{
-Estimating parameters of minimum age models (3- or 4-parameter) with a Markov chain Monte Carlo method
+Estimating parameters of a minimum age model with a Markov chain Monte Carlo method
 }
 \description{
-Constructing Markov chains for the parameters of interest in minimum age models.
+Sampling from the joint-likelihood function of a minimum age model using a Markov chain Monte Carlo method.
 }
 \usage{
 mcMAM(EDdata, ncomp = -1, addsigma = 0, iflog = TRUE, 
       nsim = 50000, inis = list(), control.args = list())
 }
 \arguments{
-  \item{EDdata}{\link{data.frame}(\bold{required}): equivalent doses and associated errors (a total of two columns), minus equivalent dose values can also be analyzed}
-  \item{ncomp}{\link{numeric}(with default): the number of components used for optimizing, -1 for the MAM3, -2 for the MAM4}
-  \item{addsigma}{\link{numeric}(with default): the added spread to the relative (or absolute) standard error of equivalent dose}
-  \item{iflog}{\link{logical}(with default): use log-scale or not}
-  \item{nsim}{\link{numeric}(with default): the total number of simulations (desired row number of the chains)}
-  \item{inis}{\link{list}(with default): initials of the chains, such as inis=list(p=0.2,gamma=20,sigma=0.2) for a 3-parameter minimum age model}
-  \item{control.args}{\link{list}(with default): some further arguments (w, m, nstart) used in a Slice Sampling method, see \link{mcFMM} for details}
-}
-\details{
-see \link{mcFMM} for details.
-}
-\value{
-Return an invisible list of class "mcAgeModels" (has the same members as that returned by function \link{mcFMM}), which can be operated with function \link{reportSAM}.
-}
-\references{
-Galbraith, R.F., Roberts, R.G., Laslett, G.M., Yoshida, H. & Olley, J.M., 1999. Optical dating of single grains of quartz from Jinmium rock shelter, northern Australia. Part I: experimental design and statistical models. Archaeometry, 41 (2), pp. 339-364.
+  \item{EDdata}{\link{matrix}(\bold{required}): two columns, i.e., equivalent doses and associated errors}
 
-Neal, R.M., 2003. "Slice sampling" (with discussion). Annals of Statistics, 31 (3), pp. 705-767.
+  \item{ncomp}{\link{numeric}(with default): the number of components, \code{-1=MAM3}, \code{-2=MAM4}}
+
+  \item{addsigma}{\link{numeric}(with default): an additional uncertainty}
+
+  \item{iflog}{\link{logical}(with default): use log-scale or not}
+
+  \item{nsim}{\link{numeric}(with default): the total number of iteration}
+
+  \item{inis}{\link{list}(with default): initials of the chains. 
+Example: \code{inis=list(p=0.1,gamma=20,sigma=0.5)} in MAM3}
+
+  \item{control.args}{\link{list}(with default): arguments used by slice sampling method, see function \link{mcFMM} for details}
 }
+
+\value{
+Return an invisible list of S3 class \code{"mcAgeModels"}, which can be operated with function \link{reportSAM}. See \code{value} of \link{mcFMM} for details.
+}
+
+\references{
+Galbraith RF, Roberts RG, Laslett GM, Yoshida H, Olley JM, 1999. Optical dating of single grains of quartz from Jinmium rock shelter, northern Australia. Part I: experimental design and statistical models. Archaeometry, 41: 339-364.
+
+Neal RM, 2003. "Slice sampling" (with discussion). Annals of Statistics, 31: 705-767. Software is available at \url{http://www.cs.utoronto.ca/~radford/slice.software.html}.
+}
+
 \seealso{
   \link{mcFMM}; \link{reportSAM}; \link{RadialPlotter}
 }
+
 \examples{
   data(EDdata)
   # Construct MCMC chains for a MAM3.
-  obj<-mcMAM(EDdata$al3,ncomp=-1,addsigma=0.1,nsim=1e4)
-  reportSAM(obj,burn=1e3)
+  obj<-mcMAM(EDdata$al3,ncomp=-1,addsigma=0.1,nsim=5000)
+  reportSAM(obj,burn=1e3,thin=2)
   #
   # The convergence of the simulations may be diagnosed with 
   # the Gelman and Rubin's convergence diagnostic.
@@ -53,5 +61,6 @@ Neal, R.M., 2003. "Slice sampling" (with discussion). Annals of Statistics, 31 (
   # chains<-mcmc.list(chain1,chain2)
   # gelman.plot(chains)
 }
+\keyword{statistical age models}
 \keyword{Minimum Age Model}
 \keyword{equivalent dose}

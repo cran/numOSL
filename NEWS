@@ -16,4 +16,9 @@ Version 1.4
         * A warning regarding possible change of value in conversion from REAL(8) to INTEGER(4) in Fortran codes was fixed.
 Version 1.5
         * A bug in function "calED" was fixed.
+Version 1.6
+        * New functions "analyst" and "fitGrowth" were added.
+        * Function "calED" was improved to be able to fit a double exponential model.
+        * Function "decompc" was bundled to function "decomp".
+        
         

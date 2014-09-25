@@ -1,78 +1,86 @@
-subroutine comb_next ( done, n, k, iarray )
-!
-!*******************************************************************************
+subroutine comb_next ( n, k, a, done )
+
+!*****************************************************************************80
 !
 !! COMB_NEXT computes combinations of K things out of N.
-!
 !
 !  Discussion:
 !
 !    The combinations are computed one at a time, in lexicographical order.
 !
-!  Reference:
+!    10 April 2009: Thanks to "edA-qa mort-ora-y" for supplying a
+!    correction to this code!
 !
-!    Charles Mifsud,
-!    Combination in Lexicographic Order,
-!    ACM algorithm 154,
-!    March 1963.
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
 !
 !  Modified:
 !
-!    15 April 1999
+!    10 April 2009
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Reference:
+!
+!    Charles Mifsud,
+!    Algorithm 154:
+!    Combination in Lexicographic Order,
+!    Communications of the ACM,
+!    March 1963.
 !
 !  Parameters:
 !
-!    Input/output, logical DONE, indicator.
-!    On input, if this is the first call, the user should set
-!    DONE to FALSE.  On each subsequent call, the value of
-!    DONE should be left at its output value from the previous
-!    call.
+!    Input, integer ( kind = 4 ) N, the total number of things.
 !
-!    On output, if DONE is TRUE, then a new combination was
-!    computed and returned.  If DONE is FALSE, then the list
-!    of combinations was finished on the previous call.
+!    Input, integer ( kind = 4 ) K, the number of things in each combination.
 !
-!    Input, integer N, the total number of things.
-!
-!    Input, integer K, the number of things in each combination.
-!
-!    Output, integer IARRAY(K), contains the list of elements in
+!    Input/output, integer ( kind = 4 ) A(K), contains the list of elements in
 !    the current combination.
 !
+!    Input/output, logical DONE.  On first call, set DONE to TRUE,
+!    and thereafter, its input value should be the output value from
+!    the previous call.  The output value will normally be FALSE,
+!    indicating that there are further combinations that can be
+!    returned.  When DONE is returned TRUE, the sequence is exhausted.
+!
   implicit none
-!
-  integer k
-!
-  logical done
-  integer i
-  integer iarray(k)
-  integer j
-  integer n
-!
-  if ( done ) then
-    iarray=(/(i,i=1,k)/)
 
-    if ( k > 1 ) then
-      done = .false.
-    else
-      done = .true.
+  integer ( kind = 4 ) k
+
+  integer ( kind = 4 ) a(k)
+  logical done
+  integer ( kind = 4 ) i
+  integer ( kind = 4 ) j
+  integer ( kind = 4 ) n
+
+  if ( done ) then
+
+    if ( k <= 0 ) then
+      return
     end if
+
+    call i4vec_indicator ( k, a )
+
+    done = .false.
 
   else
 
-    if ( iarray(k) < n ) then
-      iarray(k) = iarray(k) + 1
+    if ( a(k) < n ) then
+      a(k) = a(k) + 1
       return
     end if
 
     do i = k, 2, -1
 
-      if ( iarray(i-1) < n-k+i-1 ) then
+      if ( a(i-1) < n-k+i-1 ) then
 
-        iarray(i-1) = iarray(i-1) + 1
+        a(i-1) = a(i-1) + 1
 
         do j = i, k
-          iarray(j) = iarray(i-1) + j - ( i-1 )
+          a(j) = a(i-1) + j - ( i-1 )
         end do
 
         return
@@ -86,4 +94,42 @@ subroutine comb_next ( done, n, k, iarray )
   end if
 
   return
-end subroutine comb_next
+end
+
+subroutine i4vec_indicator ( n, a )
+
+!*****************************************************************************80
+!
+!! I4VEC_INDICATOR sets an I4VEC to the indicator vector.
+!
+!  Licensing:
+!
+!    This code is distributed under the GNU LGPL license.
+!
+!  Modified:
+!
+!    09 November 2000
+!
+!  Author:
+!
+!    John Burkardt
+!
+!  Parameters:
+!
+!    Input, integer ( kind = 4 ) N, the number of elements of A.
+!
+!    Output, integer ( kind = 4 ) A(N), the array to be initialized.
+!
+  implicit none
+
+  integer ( kind = 4 ) n
+
+  integer ( kind = 4 ) a(n)
+  integer ( kind = 4 ) i
+
+  do i = 1, n
+    a(i) = i
+  end do
+
+  return
+end

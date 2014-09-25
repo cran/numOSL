@@ -163,9 +163,12 @@ subroutine SliceFMM2(iniP1,iniP2,iniMu1,iniMu2,nED,ED,Error,&
   real   (kind=8):: gL, gR
   real   (kind=8):: locVal
   real   (kind=8):: part1(nED), part2(nED)
+  real   (kind=8):: Error2(nED)
   !
   iflag=0
   Value=-99.0
+  !
+  Error2=Error**2
   !
   ! Calculate the specified function value.
   if (which==1)  then
@@ -353,8 +356,8 @@ subroutine SliceFMM2(iniP1,iniP2,iniMu1,iniMu2,nED,ED,Error,&
       real   (kind=8):: sumPs
       !
       sumPs=x+iniP2
-      part1=    x/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
+      part1=    x/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
       funcP1=sum( log(part1+part2) )
       ! Error checking.
       if (funcP1 .ne. funcP1) iflag=1
@@ -369,8 +372,8 @@ subroutine SliceFMM2(iniP1,iniP2,iniMu1,iniMu2,nED,ED,Error,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+x
-      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=    x/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=    x/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
       funcP2=sum( log(part1+part2) )
       ! Error checking.
       if (funcP2 .ne. funcP2) iflag=1
@@ -385,8 +388,8 @@ subroutine SliceFMM2(iniP1,iniP2,iniMu1,iniMu2,nED,ED,Error,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+iniP2
-      part1=iniP1/sumPs/Error*exp( -(ED-     x)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-     x)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-iniMu2)**2/2.0/Error2 )
       funcMu1=sum( log(part1+part2) )
       ! Error checking.
       if (funcMu1 .ne. funcMu1) iflag=1
@@ -401,8 +404,8 @@ subroutine SliceFMM2(iniP1,iniP2,iniMu1,iniMu2,nED,ED,Error,&
       real   (kind=8):: sumPs
       !
       sumPs=iniP1+iniP2
-      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error**2 )
-      part2=iniP2/sumPs/Error*exp( -(ED-     x)**2/2.0/Error**2 )
+      part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
+      part2=iniP2/sumPs/Error*exp( -(ED-     x)**2/2.0/Error2 )
       funcMu2=sum( log(part1+part2) )
       ! Error checking.
       if (funcMu2 .ne. funcMu2) iflag=1
