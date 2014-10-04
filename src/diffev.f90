@@ -1,43 +1,46 @@
-subroutine diffev(tim,sig,ntim,np,f,cr,maxiter,tol,typ,addc,&
-                  n1,lamda,ithn,constant,agents,fvec1,fvalue,iflag)
-!-----------------------------------------------------------------------------------
+subroutine diffev(tim,sig,wght,ntim,np,f,cr,maxiter,tol,typ,addc,&
+                  n1,lamda,ithn,constant,agents,fvec1,fmin,iflag)
+!------------------------------------------------------------------------------
 ! Subroutine diffev() is used for estimating parameters of an 
 ! OSL decay curve by the differential evolution method.
-!-----------------------------------------------------------------------------------
-!     tim(ntim):: input, real values, the time values.
-!     sig(ntim):: input, real values, the decay signal values.
+!------------------------------------------------------------------------------
+!     tim(ntim):: input, real values, time values.
+!     sig(ntim):: input, real values, decay signal values.
+!    wght(ntim):: input, real values, weigths od signal values.
 !          ntim:: input, integer, number of data points.
 !            np:: input, integer, number of differential populations (np>=4).
-!             f:: input, real value, the differential weight.
-!            cr:: input, real value, the crossover probability.
-!       maxiter:: input, integer, the maximum number of iterations.
-!           tol:: input, real value, a tolerance for stopping the iteration.
+!             f:: input, real value, differential weight.
+!            cr:: input, real value, crossover probability.
+!       maxiter:: input, integer, maximum number of iterations.
+!           tol:: input, real value, tolerance for stopping the iteration.
 !           typ:: input, integer, type of decay curve, 1=CW-OSL, 2=LM-OSL.
-!          addc:: input, integer, allowing background subtraction (1) or not (0).
-!            n1:: input, integer, dimension of the problem.
-!     lamda(n1):: output, real values, the estimated decay rates.
-!      ithn(n1):: output, real values, the estimated number of trapped electrons.
-!      constant:: output, real value, the estimated constant background.
-! agents(np,n1):: output, real values, the differential populations.
-!   fvec1(ntim):: output, real values, the predicted decay signal values.
-!        fvalue:: output, real value, the best (minimum) sum of sqaured residuals.
-!         iflag:: output, integer, 0 means a successful work, else 1.
-!-----------------------------------------------------------------------------------
-! Author:: Peng Jun, 2014.08.30.
-!-----------------------------------------------------------------------------------
-! Dependence:: subroutine leaveOne; subroutine sample;------------------------------
-!              subroutine targfunc; subroutine hpsort; subroutine relSD.------------
-!-----------------------------------------------------------------------------------
-! Reference:: Bluszcz, A., Adamiec, G., 2006. Application of differential evolution 
-!             to fitting OSL decay curves. Radiation Measurements 41, 886-891.
-!        Differential evolution, http://en.wikipedia.org/wiki/Differential_evolution
-!-----------------------------------------------------------------------------------
+!          addc:: input, integer, 0=non-constant, 1=constant.
+!            n1:: input, integer, dimension of the problem (>=1).
+!     lamda(n1):: output, real values, estimated decay rates.
+!      ithn(n1):: output, real values, estimated number of trapped electrons.
+!      constant:: output, real value, estimated constant background.
+! agents(np,n1):: output, real values, differential populations.
+!   fvec1(ntim):: output, real values, predicted decay signal values.
+!          fmin:: output, real value, best (minimum) objective.
+!         iflag:: output, integer, 0=success, 1=fail.
+!------------------------------------------------------------------------------
+! Author:: Peng Jun, 2014.09.28.
+!------------------------------------------------------------------------------
+! Dependence:: subroutine leaveOne; subroutine sample;-------------------------
+!              subroutine targfunc; subroutine hpsort; subroutine relSD.-------
+!------------------------------------------------------------------------------
+! Reference:: Bluszcz, A., Adamiec, G., 2006. Application of 
+!             differential evolution  to fitting OSL decay 
+!             curves. Radiation Measurements 41, 886-891.
+! Differential evolution, http://en.wikipedia.org/wiki/Differential_evolution
+!------------------------------------------------------------------------------
     implicit none
     ! Arguments.
     integer(kind=4), intent(in):: ntim, np, maxiter, typ, addc, n1
-    real   (kind=8), intent(in):: tim(ntim), sig(ntim), f, cr, tol
+    real   (kind=8), intent(in):: tim(ntim), sig(ntim), wght(ntim),&
+                                  f, cr, tol
     real   (kind=8), intent(out):: lamda(n1), ithn(n1), constant,&
-                                   agents(np,n1), fvec1(ntim), fvalue                               
+                                   agents(np,n1), fvec1(ntim), fmin                              
     integer(kind=4), intent(out):: iflag
     ! Local variables.
     real   (kind=8), dimension(2,7), parameter::&
@@ -54,12 +57,11 @@ subroutine diffev(tim,sig,ntim,np,f,cr,maxiter,tol,typ,addc,&
     integer(kind=4):: npsamp(np), n1samp(n1), npsamp1(np-1),&
                       samp3(3), order(n1), indx(1)
     integer(kind=4):: i, j, k, iflag1, iflag2
-    real   (kind=8):: fvalue1, fvalue2, minValue,&
+    real   (kind=8):: fmin1, fmin2, minValue,&
                       constant1, constant2, maxt
     !
     space = log(tSpace(:,1:n1))
     !
-    call random_seed()
     do i=1, np
         call random_number(ran)
         agents(i,:) = exp(space(1,:) + ran*(space(2,:)-space(1,:)))
@@ -92,15 +94,15 @@ subroutine diffev(tim,sig,ntim,np,f,cr,maxiter,tol,typ,addc,&
             end do
             !
             if (all(yy>0.0)) then
-                call targfunc(yy, n1, tim, sig, ntim, typ, addc,&
-                              ithn1, constant1, fvalue1, iflag1)
+                call targfunc(yy, n1, tim, sig, wght, ntim, typ, addc,&
+                              ithn1, constant1, fmin1, iflag1)
                 !
-                call targfunc(agents(j,:), n1, tim, sig, ntim, typ,&
-                              addc, ithn2, constant2, fvalue2, iflag2)
-                if (iflag1==0 .and. fvalue1<fvalue2)  then
+                call targfunc(agents(j,:), n1, tim, sig, wght, ntim, typ,&
+                              addc, ithn2, constant2, fmin2, iflag2)
+                if (iflag1==0 .and. fmin1<fmin2)  then
                     agents(j,:) = yy
                     ithns(j,:) =  ithn1
-                    fagents(j) = fvalue1
+                    fagents(j) = fmin1
                     constants(j) = constant1
                 end if
             end if
@@ -114,7 +116,7 @@ subroutine diffev(tim,sig,ntim,np,f,cr,maxiter,tol,typ,addc,&
     end do loopA
     !
     iflag = 1
-    fvalue = -99.0
+    fmin = -99.0
     constant = -99.0 
     fvec1 = -99.0
     lamda = -99.0
@@ -122,7 +124,7 @@ subroutine diffev(tim,sig,ntim,np,f,cr,maxiter,tol,typ,addc,&
     do i=1, np
         if (fagents(i)<minValue) then
             minValue = fagents(i)
-            fvalue = fagents(i)
+            fmin = fagents(i)
             lamda = agents(i,:)
             ithn = ithns(i,:)
             constant = constants(i)
@@ -136,14 +138,14 @@ subroutine diffev(tim,sig,ntim,np,f,cr,maxiter,tol,typ,addc,&
         fvec1 = constant
         do i=1, n1
             fvec1 = fvec1 + ithn(i)*lamda(i)*&
-                   exp(-lamda(i)*tim)
+                    exp(-lamda(i)*tim)
         end do
     else if (typ==2) then
-        maxt = maxval(tim)
+        maxt = tim(ntim)
         fvec1 = constant*tim/maxt
         do i=1, n1
             fvec1 = fvec1 + ithn(i)*tim/maxt*lamda(i)*&
-                   exp(-lamda(i)*tim**2/maxt/2.0)
+                    exp(-lamda(i)*tim**2/maxt/2.0)
         end do
     end if
     !

@@ -3,18 +3,19 @@ decomp<-
 function(Sigdata, ncomp=2, constant=TRUE, 
          typ=c("cw","lm"), control.args=list(),
          transf=TRUE, LEDpower=60, LEDwavelength=470,
-         plot=TRUE, xylog=FALSE, lwd=3, outfile=NULL) {
+         weight=FALSE, plot=TRUE, xylog=FALSE, lwd=3, outfile=NULL) {
     UseMethod("decomp")
 } ###
-### 2014.09.03.
+### 2014.10.03.
 decomp.default<-
 function(Sigdata, ncomp=2, constant=TRUE, 
          typ=c("cw","lm"), control.args=list(),
          transf=TRUE, LEDpower=60, LEDwavelength=470,
-         plot=TRUE, xylog=FALSE, lwd=3, outfile=NULL) {
-    ####
-    stopifnot(ncol(Sigdata)==2L, nrow(Sigdata)>=5L,
-              length(ncomp)==1L, ncomp %in% (1L:7L),
+         weight=FALSE, plot=TRUE, xylog=FALSE, lwd=3, outfile=NULL) {
+    #### Stop if not.
+    stopifnot(ncol(Sigdata)==2L,
+              all(Sigdata[,2L,drop=TRUE]>0),
+              length(ncomp)==1L, ncomp %in% seq(7L),
               length(constant)==1L, is.logical(constant),
               is.character(typ), all(typ %in% c("cw","lm")),
               class(control.args)=="list",
@@ -23,6 +24,7 @@ function(Sigdata, ncomp=2, constant=TRUE,
               length(transf)==1L, transf==TRUE,
               length(LEDpower)==1L, is.numeric(LEDpower),
               length(LEDwavelength)==1L, is.numeric(LEDwavelength),
+              length(weight)==1L, is.logical(weight),
               length(plot)==1L, is.logical(plot),
               length(xylog)==1L, is.logical(xylog),
               length(lwd)==1L, is.numeric(lwd),
@@ -33,8 +35,13 @@ function(Sigdata, ncomp=2, constant=TRUE,
     ntim<-nrow(Sigdata)
     addc<-ifelse(constant==TRUE,1L,0L)
     n2<-2L*ncomp+addc
+    uw<-ifelse(weight==FALSE,0L,1L)
     pars<-stdp<-vector(length=n2)
     typ1<-ifelse(typ[1L]=="cw",1L,2L)
+    ### Check if data points is enough for fitting.
+    if (ntim<n2) {
+        stop("Error: data points is not enough for the model!")
+    } # end if
     ### Default differential parameters.
     args<-list(factor=10L,f=0.5,cr=0.99,maxiter=500L,tol=0.1)
     args[names(control.args)]<-control.args
@@ -43,21 +50,26 @@ function(Sigdata, ncomp=2, constant=TRUE,
     cr<-args$cr
     maxiter<-args$maxiter
     tol<-args$tol
-    stopifnot(is.numeric(factor), factor>=3L, factor<=50L,
-              is.numeric(f), f>0.0, f<=1.2,
-              is.numeric(cr), cr>0.0, cr<=1.0,
-              is.numeric(maxiter), maxiter>=10L, maxiter<=5000L,
-              is.numeric(tol), tol>0.0)
+    stopifnot(is.numeric(factor), length(factor)==1L,
+              factor>=5L, factor<=50L,
+              is.numeric(f), length(f)==1L,
+              f>0.0, f<=1.2,
+              is.numeric(cr), length(cr)==1L,
+              cr>0.0, cr<=1.0,
+              is.numeric(maxiter), length(maxiter)==1L,
+              maxiter>=10L, maxiter<=5000L,
+              is.numeric(tol), length(tol)==1L, tol>0.0)
     ####
-    fvec1=vector(length=ntim)
-    fvalue<-0
+    fvec1<-vector(length=ntim)
+    fmin<-0
     message<-0
     ###
     res<-.Fortran("decomp",as.double(tim),as.double(sig),as.integer(ntim), 
-          pars=as.double(pars),stdp=as.double(stdp),as.integer(n2),as.integer(addc), 
-          as.integer(typ1),as.integer(factor),as.double(f),as.double(cr), 
-          as.integer(maxiter),as.double(tol),fvec1=as.double(fvec1), 
-          fvalue=as.double(fvalue),message=as.integer(message),PACKAGE="numOSL")
+                  pars=as.double(pars),stdp=as.double(stdp),as.integer(n2),
+                  as.integer(uw),as.integer(addc),as.integer(typ1),as.integer(factor), 
+                  as.double(f),as.double(cr),as.integer(maxiter),as.double(tol), 
+                  fvec1=as.double(fvec1),fmin=as.double(fmin),
+                  message=as.integer(message),PACKAGE="numOSL")
     if (res$message!=0) {
         stop("Error: fail in decay curve decomposition!")
     } # end if
@@ -174,7 +186,7 @@ function(Sigdata, ncomp=2, constant=TRUE,
     ###
     output<-list("pars"=pars, 
                  "constant"=constant, 
-                 "value"=res$fvalue)
+                 "value"=res$fmin)
     ###
     if(!is.null(outfile)) {
         write.csv(CompSig, file=paste(outfile,".csv",sep=""))

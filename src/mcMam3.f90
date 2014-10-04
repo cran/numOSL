@@ -112,7 +112,7 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
 ! =====================================================================================================
 ! Update parameters in a MAM-3 age model with the Slice Sampling.
 !
-! Author:: Peng Jun, 2014.03.11.
+! Author:: Peng Jun, 2014.10.03.
 !
 ! Dependence:: Inner function funcP(); funcGama(); funcSigma(); external subroutine pnorm().
 !
@@ -328,8 +328,8 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
     call pnorm(pnormValues,nED,right)
     !
     funcP=sum(log( x/Error*exp(-(ED-iniGama)**2/2.0/Error2) + &
-	          (1.0-x)/sqrt(Error2+iniSigma**2)*exp(-(ED-iniGama)**2/2.0/(Error2+iniSigma**2)) * &
-	           2.0*(1.0-pnormValues)  ))  
+          (1.0-x)/sqrt(Error2+iniSigma**2)*exp(-(ED-iniGama)**2/2.0/(Error2+iniSigma**2)) * &
+           2.0*(1.0-pnormValues)  ))  
     ! Checking NaN (NA)
     if( funcP .ne. funcP) iflag=1
     !
@@ -350,8 +350,8 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
     call pnorm(pnormValues,nED,right)
     !
     funcGama=sum(log( iniP/Error*exp(-(ED-x)**2/2.0/Error2) + &
-	             (1.0-iniP)/sqrt(Error2+iniSigma**2)*exp(-(ED-x)**2/2.0/(Error2+iniSigma**2)) * &
-	              2.0*(1.0-pnormValues)  ))  
+             (1.0-iniP)/sqrt(Error2+iniSigma**2)*exp(-(ED-x)**2/2.0/(Error2+iniSigma**2)) * &
+              2.0*(1.0-pnormValues)  ))  
     ! Checking NaN (NA)
     if( funcGama .ne. funcGama ) iflag=1
     !
@@ -372,8 +372,8 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
     call pnorm(pnormValues,nED,right)
     !
     funcSigma=sum(log( iniP/Error*exp(-(ED-iniGama)**2/2.0/Error2) + &
-	              (1.0-iniP)/sqrt(Error2+x**2)*exp(-(ED-iniGama)**2/2.0/(Error2+x**2)) * &
-	               2.0*(1.0-pnormValues)  ))  
+              (1.0-iniP)/sqrt(Error2+x**2)*exp(-(ED-iniGama)**2/2.0/(Error2+x**2)) * &
+               2.0*(1.0-pnormValues)  ))  
     ! Checking NaN (NA)
     if( funcSigma .ne. funcSigma) iflag=1
     !

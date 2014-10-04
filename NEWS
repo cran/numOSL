@@ -20,5 +20,8 @@ Version 1.6
         * New functions "analyst" and "fitGrowth" were added.
         * Function "calED" was improved to be able to fit a double exponential model.
         * Function "decompc" was bundled to function "decomp".
+Version 1.7
+        * A compiler-dependent Fortran bug was fixed.
+        
         
         

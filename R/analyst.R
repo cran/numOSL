@@ -3,33 +3,39 @@ analyst<-
 function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL, 
          mr=0.01, disb=c("p","op"), typ="cw", nstart=100,  
          upb=0.5, ErrorMethod=c("mc","sp"), nsim=1000,
-         plot=TRUE, model=NULL, origin=NULL) {
+         weight=TRUE, plot=TRUE, model=NULL, origin=NULL) {
     UseMethod("analyst")
 } #
-### 2014.09.23.
+### 2014.10.03.
 analyst.default<-
 function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL, 
          mr=0.01, disb=c("p","op"), typ="cw", nstart=100,  
          upb=0.5, ErrorMethod=c("mc","sp"), nsim=1000,
-         plot=TRUE, model=NULL, origin=NULL) {
+         weight=TRUE, plot=TRUE, model=NULL, origin=NULL) {
     ### Stop if not.
     stopifnot(is.data.frame(Sigdata), nrow(Sigdata)>=25L,
               ncol(Sigdata)>=5L, ncol(Sigdata)%%2L==1L,
               is.vector(Redose), length(Redose)==(ncol(Sigdata)-3L)/2L,
+              is.numeric(Redose), all(Redose>=0),
               is.null(sig.channel) || is.vector(sig.channel),
               all(sig.channel %in% seq(nrow(Sigdata))),
               is.null(back.channel) || is.vector(back.channel),
               all(back.channel %in% seq(nrow(Sigdata))),
               length(mr)==1L, is.numeric(mr),
-              all(disb %in% c("p","op")),
+              is.character(disb), all(disb %in% c("p","op")),
               length(typ)==1L, typ=="cw",
-              is.numeric(nstart), nstart>=10L, nstart<=5000L,
-              length(upb)==1L, is.numeric(upb), upb>0, upb<=100,
+              is.numeric(nstart), length(nstart)==1L,
+              nstart>=10L, nstart<=5000L,
+              length(upb)==1L, is.numeric(upb), upb>0, upb<=10,
+              is.character(ErrorMethod), length(ErrorMethod)>=1L,
               all(ErrorMethod %in% c("mc","sp")),
-              is.numeric(nsim), nsim>=100L, nsim<=3000L,
+              is.numeric(nsim), length(nsim)==1L,
+              nsim>=100L, nsim<=3000L,
+              length(weight)==1L, is.logical(weight),
               length(plot)==1L, is.logical(plot), 
               all(model %in% c("line","exp","lexp","dexp")),
-              is.null(origin) || is.logical(origin))
+              is.null(origin) || is.logical(origin),
+              length(origin) %in% c(0L,1L))
     ###
     ndat<-nrow(Sigdata)
     if (is.null(sig.channel)) {
@@ -140,20 +146,20 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
     ###
     Models<-if(is.null(model)) c("line","exp","lexp") else model
     Origins<-if(is.null(origin)) c(TRUE,FALSE) else origin
-    min.chi.square<-1e20
+    minf<-1e20
     ###
     for (i in Models) {
         for (j in Origins) {
             res<-try(calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=i,
                            origin=j, nstart=nstart, upb=upb, 
                            ErrorMethod=ErrorMethod, nsim=100L, 
-                           plot=FALSE), silent=TRUE)
+                           weight=weight, plot=FALSE), silent=TRUE)
             ###
             if (class(res)!="try-error") {
-                if (res$value<min.chi.square) {
+                if (res$value<minf) {
                     model<-i
                     origin<-j
-                    min.chi.square<-res$value
+                    minf<-res$value
                     OK<-1L
                 } # end if
             } # end if
@@ -163,8 +169,8 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
     if (exists("OK")) {
         res<-calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=model, 
                    origin=origin, nstart=nstart, upb=upb, 
-                   ErrorMethod=ErrorMethod, 
-                   nsim=nsim, plot=plot)
+                   ErrorMethod=ErrorMethod, nsim=nsim,
+                   weight=weight, plot=plot)
     } else {
         stop("Error: fail in calculating ED!")
     } # end if   

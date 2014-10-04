@@ -14,13 +14,13 @@ RadialPlotter(EDdata, ncomp = 0, addsigma = 0,
               kratio = 0.3, zscale = NULL)
 }
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): two columns, equivalent dose values and their standard errors}
+  \item{EDdata}{\link{matrix}(\bold{required}): two columns, e.g., a number of equivalent dose values (un-logged) and their standard errors}
 
   \item{ncomp}{\link{numeric}(with default): the number of components, \code{-1=MAM3}, \code{-2=MAM4}, \code{0} means fitting FMM automatically, \code{1=CAM}, and \code{>=1} means fitting FMM with a given number of components}
 
   \item{addsigma}{\link{numeric}(with default): an additional uncertainty}
 
-  \item{maxcomp}{\link{numeric}(with default): the allowed maximum number of components (up to \code{9}) when applying FMM}
+  \item{maxcomp}{\link{numeric}(with default): the allowed maximum number of components when applying FMM}
 
   \item{algorithm}{\link{character}(with default): an algorithm used for optimizing MAM, 
 default \code{algorithm="port"}}
@@ -31,9 +31,9 @@ default \code{algorithm="port"}}
 
   \item{psize}{\link{numeric}(with default): the size of a data point}
 
-  \item{kratio}{\link{numeric}(with default): an option used for modifying the shape of zscale}
+  \item{kratio}{\link{numeric}(with default): an argument controlling the shape of zscale}
 
-  \item{zscale}{\link{numeric}(optional): an option used for modifying the z-scale of a radial plot. 
+  \item{zscale}{\link{numeric}(optional): an argument controlling the scale of z-axis of a radial plot. 
 Example: \code{zscale=seq(min(EDdata),max(EDdata),by=3L)}}
 }
 
@@ -95,11 +95,11 @@ The original \bold{\emph{S}} code for drawing radial plot was written by Rex Gal
 }
 
 \examples{
-# Loading equivalent dose data.
   data(EDdata)
-# Finding the appropriate number of components in FMM.
+  # Find out the appropriate number of components 
+  # in FMM and fit automatically.
   RadialPlotter(EDdata$al3,zscale=seq(24,93,7))
-# Fitting a 3-parameter minimum age model. 
+  # Fit MAM3. 
   RadialPlotter(EDdata$gl11,ncomp=-1,zscale=seq(20,37,3))
 }
 \keyword{statistical age models}

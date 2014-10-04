@@ -14,7 +14,7 @@ subroutine compED(ed1,sed1,ndat,ncomp,addsigma,&
 !           bic:: output, real value, BIC value.
 !          info:: output, integer, 0=success, 1=fail.
 !--------------------------------------------------------
-! Author:: Peng Jun, 2014.09.16.
+! Author:: Peng Jun, 2014.10.01.
 !--------------------------------------------------------
 ! Dependence:: subroutine fmmED; Subroutine camED.-------
 !--------------------------------------------------------
@@ -26,10 +26,10 @@ subroutine compED(ed1,sed1,ndat,ncomp,addsigma,&
                                    maxlik, bic
     integer(kind=4), intent(out):: info
     ! Local variables.
-    integer(kind=4):: i, j, message
+    integer(kind=4):: i, message
     real   (kind=8):: ed(ndat), sed(ndat), maxMaxlik,&
                       cpars(2,ncomp), cstdp(2,ncomp),&
-                      cmaxlik, cbic
+                      cmaxlik, cbic, inimu(ncomp+4)
     !
     ed = log(ed1)
     sed = sed1/ed1
@@ -45,12 +45,15 @@ subroutine compED(ed1,sed1,ndat,ncomp,addsigma,&
         info = 1
         maxMaxlik = -1.0D+20
         !
+        do i=1, ncomp+4
+            inimu(i) = minval(ed) +&
+                      (maxval(ed)-minval(ed))/(ncomp+3)*&
+                       real(i-1)
+        end do
+        !           
         do i=1, 5
             pars(1,:) = 1.0/real(ncomp)
-            do j=1, ncomp
-                pars(2,j) = minval(ed)+(maxval(ed)-minval(ed))*&
-                            real(i+j-2)/real(ncomp+3)
-            end do
+            pars(2,:) = inimu(i:i+ncomp-1)
             !
             call fmmED(ed,sed,ndat,ncomp,addsigma,&
                        pars,stdp,maxlik,bic,message)

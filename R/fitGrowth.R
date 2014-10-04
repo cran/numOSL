@@ -1,21 +1,26 @@
 #####
 fitGrowth<-
 function(Curvedata, model=c("line","exp","lexp","dexp"),
-         origin=FALSE, nstart=100, upb=0.5, plot=TRUE) {
+         origin=FALSE, nstart=100, upb=0.5, 
+         weight=TRUE, plot=TRUE) {
     UseMethod("fitGrowth")
 } #
-### 2014.09.24.
+### 2014.10.02.
 fitGrowth.default<-
 function(Curvedata, model=c("line","exp","lexp","dexp"),
-         origin=FALSE, nstart=100, upb=0.5, plot=TRUE) {
+         origin=FALSE, nstart=100, upb=0.5, 
+         weight=TRUE, plot=TRUE) {
     ### Stop if not.
     stopifnot(ncol(Curvedata)==3L,
               all(Curvedata[,1L,drop=TRUE]>=0),
               all(Curvedata[,3L,drop=TRUE]>0),
+              is.character(model), length(model)>=1L,
               all(model %in% c("line","exp","lexp","dexp")),
               length(origin)==1L, is.logical(origin),
-              is.numeric(nstart), nstart>=10L, nstart<=5000L,
-              length(upb)==1L, is.numeric(upb), upb>0, upb<=100,
+              is.numeric(nstart), length(nstart)==1L,
+              nstart>=10L, nstart<=5000L,
+              length(upb)==1L, is.numeric(upb), upb>0, upb<=10,
+              length(weight)==1L, is.logical(weight),
               length(plot)==1L, is.logical(plot))
     ###
     dose<-as.numeric(Curvedata[,1L,drop=TRUE])
@@ -32,11 +37,8 @@ function(Curvedata, model=c("line","exp","lexp","dexp"),
             4L+!origin
     } # end if  
     ###
-    if ( (model[1L]=="line" && ndat<n2) ||
-         (model[1L]=="exp" && ndat<n2)  ||
-         (model[1L]=="lexp" && ndat<n2) ||
-         (model[1L]=="dexp" && ndat<n2) ) {
-        stop("Error: data points is not enough!")
+    if (ndat<n2) {
+        stop("Error: data points is not enough for the model!")
     } # end if
     ###
     pars<-stdp<-vector(length=n2)
@@ -45,16 +47,16 @@ function(Curvedata, model=c("line","exp","lexp","dexp"),
         1L } else if (model[1L]=="lexp") {
         2L } else if (model[1L]=="dexp") {
         3L } # end if
-    origin1<-ifelse(origin==TRUE, 0L, 1L)
+    uw<-ifelse(weight==FALSE,0L,1L)
     fvec1<-vector(length=ndat)
-    fvalue<-0
+    fmin<-0
     message<-0
     ###
     res<-.Fortran("fitGrowth",as.double(dose),as.double(doseltx),as.double(sltx),
                   as.integer(ndat),as.integer(n2),pars=as.double(pars),
                   stdp=as.double(stdp),as.double(upb),as.integer(model1),
-                  as.integer(origin1),as.integer(nstart),fvec1=as.double(fvec1),
-                  fvalue=as.double(fvalue),message=as.integer(message),PACKAGE="numOSL")
+                  as.integer(uw),as.integer(nstart),fvec1=as.double(fvec1),
+                  fmin=as.double(fmin),message=as.integer(message),PACKAGE="numOSL")
     if (res$message!=0) {
         stop("Error: fail in growth curve fitting!")
     } # end if
@@ -68,7 +70,7 @@ function(Curvedata, model=c("line","exp","lexp","dexp"),
     rownames(fit.value)<-paste("Redose", seq(ndat), sep="")
     ###
     output<-list("LMpars"=LMpars,
-                 "value"=res$fvalue,
+                 "value"=res$fmin,
                  "fit.value"=fit.value)
     ###
     if (plot==TRUE) {

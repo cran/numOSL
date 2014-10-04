@@ -2,26 +2,31 @@
 calED<-
 function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
          origin=FALSE, nstart=100, upb=0.5, ErrorMethod=c("mc","sp"),
-         nsim=1000, plot=TRUE, outfile=NULL) {
+         nsim=1000, weight=TRUE, plot=TRUE, outfile=NULL) {
     UseMethod("calED")
 } ###
-### 2014.09.12.
+### 2014.10.02.
 calED.default<-
 function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
          origin=FALSE, nstart=100, upb=0.5, ErrorMethod=c("mc","sp"),
-         nsim=1000, plot=TRUE, outfile=NULL) {
+         nsim=1000, weight=TRUE, plot=TRUE, outfile=NULL) {
     ### Stop if not.
     stopifnot(ncol(Curvedata)==3L, 
               all(Curvedata[,1L,drop=TRUE]>=0),
               all(Curvedata[,3L,drop=TRUE]>0),
               (is.vector(Ltx) && length(Ltx)==2L)|| 
               (is.matrix(Ltx) && ncol(Ltx)==2L), all(Ltx>0), 
+              is.character(model), length(model)>=1L,
               all(model %in% c("line","exp","lexp","dexp")),
               length(origin)==1L, is.logical(origin),
-              is.numeric(nstart), nstart>=10L, nstart<=5000L,
-              length(upb)==1L, is.numeric(upb), upb>0, upb<=100,
+              is.numeric(nstart), length(nstart)==1L,
+              nstart>=10L, nstart<=5000L,
+              length(upb)==1L, is.numeric(upb), upb>0, upb<=10,
+              is.character(ErrorMethod), length(ErrorMethod)>=1L,
               all(ErrorMethod %in% c("mc","sp")),
-              is.numeric(nsim), nsim>=100L, nsim<=3000L,
+              is.numeric(nsim), length(nsim)==1L, 
+              nsim>=100L, nsim<=3000L,
+              length(weight)==1L, is.logical(weight),
               length(plot)==1L, is.logical(plot), 
               is.null(outfile) || is.character(outfile))
     ###
@@ -42,12 +47,9 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
     if (model[1L]!="line" && max(Ltx)>max(doseltx)) {
         stop("Error: Ltx is too large!")
     } # end if
-    ###npoints<-length(levels(factor(Curvedata[,1L,drop=TRUE])))
-    if ( (model[1L]=="line" && ndat<n2) ||
-         (model[1L]=="exp" && ndat<n2)  ||
-         (model[1L]=="lexp" && ndat<n2) ||
-         (model[1L]=="dexp" && ndat<n2) ) {
-        stop("Error: data points is not enough!")
+    ### Check if data points is enough for fitting.
+    if (ndat<n2) {
+        stop("Error: data points is not enough for the model!")
     } # end if
     ###
     if(is.vector(Ltx)) {
@@ -63,26 +65,26 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
         1L } else if (model[1L]=="lexp") {
         2L } else if (model[1L]=="dexp") {
         3L } # end if
-    origin1<-ifelse(origin==TRUE, 0L, 1L)
+    uw<-ifelse(weight==FALSE, 0L, 1L)
     method<-ifelse(ErrorMethod[1L]=="sp", 0L, 1L)
     fvec1<-vector(length=ndat)
-    fvalue<-0
+    fmin<-0
     message<-0
     ###
     res<-.Fortran("calED",as.double(dose),as.double(doseltx),as.double(sltx),
                   as.integer(ndat),as.integer(ninltx),as.integer(n2),
                   as.double(inltx),outDose=as.double(outDose),mcED=as.double(mcED),
                   pars=as.double(pars),stdp=as.double(stdp),as.double(upb),
-                  as.integer(model1),as.integer(origin1),as.integer(method),
+                  as.integer(model1),as.integer(uw),as.integer(method),
                   as.integer(nstart),as.integer(nsim),fvec1=as.double(fvec1),
-                  fvalue=as.double(fvalue),message=as.integer(message),PACKAGE="numOSL")
+                  fmin=as.double(fmin),message=as.integer(message),PACKAGE="numOSL")
     if (res$message!=0) {
         stop("Error: fail in equivalent dose calculation!")
     } # end if
     ###
     LMpars<-cbind(res$pars,res$stdp)
     colnames(LMpars)<-c("Pars","Std.Pars")
-    rownames(LMpars)<-(c("a","b","c","d","e"))[1L:n2]
+    rownames(LMpars)<-(c("a","b","c","d","e"))[seq(n2)]
     ###
     fit.value<-cbind(dose, doseltx, res$fvec1)
     colnames(fit.value)<-c("Redose", "Lx/Tx", "Fit.Lx/Tx")
@@ -100,7 +102,7 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
     } # end if
     ###
     output<-list("LMpars"=LMpars, 
-                 "value"=res$fvalue,
+                 "value"=res$fmin,
                  "fit.value"=fit.value, 
                  "ED"=ED)
     ###

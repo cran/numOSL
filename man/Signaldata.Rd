@@ -5,7 +5,7 @@
 Decay curves datasets
 }
 \description{
-CW-OSL and lLM-OSL decay curves.
+CW-OSL and LM-OSL decay curves.
 }
 \usage{data(Signaldata)}
 \format{

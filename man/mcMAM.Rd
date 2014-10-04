@@ -12,7 +12,7 @@ mcMAM(EDdata, ncomp = -1, addsigma = 0, iflog = TRUE,
       nsim = 50000, inis = list(), control.args = list())
 }
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): two columns, i.e., equivalent doses and associated errors}
+  \item{EDdata}{\link{matrix}(\bold{required}): two columns, e.g., a number of equivalent doses (un-logged) and associated errors}
 
   \item{ncomp}{\link{numeric}(with default): the number of components, \code{-1=MAM3}, \code{-2=MAM4}}
 
@@ -44,7 +44,7 @@ Neal RM, 2003. "Slice sampling" (with discussion). Annals of Statistics, 31: 705
 
 \examples{
   data(EDdata)
-  # Construct MCMC chains for a MAM3.
+  # Construct a MCMC chain for MAM3.
   obj<-mcMAM(EDdata$al3,ncomp=-1,addsigma=0.1,nsim=5000)
   reportSAM(obj,burn=1e3,thin=2)
   #

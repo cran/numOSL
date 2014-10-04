@@ -1,30 +1,41 @@
 #####
 fastED<-
 function(Sigdata, Redose, ncomp=2, constant=TRUE,
-         control.args=list(), typ="cw", nstart=100, upb=0.5,
-         ErrorMethod=c("mc","sp"), model=NULL, origin=NULL) {
+         control.args=list(), typ="cw", nstart=100, 
+         upb=0.5, ErrorMethod=c("mc","sp"), nsim=1000, 
+         model=NULL, origin=NULL, weight=c("g","d","b","n")) {
     UseMethod("fastED")
 } ###
-### 2014.09.14.
+### 2014.10.03.
 fastED.default<-
 function(Sigdata, Redose, ncomp=2, constant=TRUE,
-         control.args=list(), typ="cw", nstart=100, upb=0.5,
-         ErrorMethod=c("mc","sp"), model=NULL, origin=NULL) {
+         control.args=list(), typ="cw", nstart=100, 
+         upb=0.5, ErrorMethod=c("mc","sp"), nsim=1000,
+         model=NULL, origin=NULL, weight=c("g","d","b","n")) {
     ### Stop if not.
     stopifnot(is.data.frame(Sigdata), 
               ncol(Sigdata)>=5L, ncol(Sigdata)%%2L==1L,
+              all(Sigdata[,-1L,drop=TRUE]>0),
               is.vector(Redose), length(Redose)==(ncol(Sigdata)-3L)/2L,
-              length(ncomp)==1L, ncomp %in% (1L:4L),
+              is.numeric(Redose), all(Redose>=0),
+              length(ncomp)==1L, ncomp %in% seq(4L),
               length(constant)==1L, is.logical(constant),
               class(control.args)=="list",
               all(names(control.args) %in% 
               list("factor","f","cr","maxiter","tol")),
               length(typ)==1L, typ=="cw",
-              is.numeric(nstart), nstart>=10L, nstart<=5000L,
-              length(upb)==1L, is.numeric(upb), upb>0, upb<=100,
+              is.numeric(nstart), length(nstart)==1L,
+              nstart>=10L, nstart<=5000L,
+              length(upb)==1L, is.numeric(upb), upb>0, upb<=10,
+              is.character(ErrorMethod), length(ErrorMethod)>=1L,
               all(ErrorMethod %in% c("mc","sp")),
+              is.numeric(nsim), length(nsim)==1L, 
+              nsim>=100L, nsim<=3000L,
               all(model %in% c("line","exp","lexp","dexp")),
-              is.null(origin) || is.logical(origin))
+              is.null(origin) || is.logical(origin),
+              length(origin) %in% c(0L,1L),
+              is.character(weight), length(weight)>=1L,
+              all(weight %in% c("g","d","b","n")))
     ###
     ###
     Plot2<-function(tim,sig,pars,cvalue,samplename) {
@@ -69,6 +80,20 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
         ###
     } # end function Plot2.
     ###
+    ### What to be weighted.
+    if (weight[1L]=="g") {
+        weightg<-TRUE
+        weightd<-FALSE
+    } else if (weight[1L]=="d") {
+        weightg<-FALSE
+        weightd<-TRUE
+    } else if (weight[1L]=="b") {
+        weightg<-TRUE
+        weightd<-TRUE
+    } else if (weight[1L]=="n") {
+        weightg<-FALSE
+        weightd<-FALSE
+    } # end if
     ###
     ncs1<-ncol(Sigdata)-1L
     fLtx<-matrix(nrow=ncs1, ncol=2L)
@@ -81,15 +106,19 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
     cr<-args$cr
     maxiter<-args$maxiter
     tol<-args$tol
-    stopifnot(is.numeric(factor), factor>=3L, factor<=50L,
-              is.numeric(f), f>0.0, f<=1.2,
-              is.numeric(cr), cr>0.0, cr<=1.0,
-              is.numeric(maxiter), maxiter>=10L, maxiter<=5000L,
-              is.numeric(tol), tol>0.0)
+    stopifnot(is.numeric(factor), length(factor)==1L,
+              factor>=5L, factor<=50L,
+              is.numeric(f), length(f)==1L,
+              f>0.0, f<=1.2,
+              is.numeric(cr), length(cr)==1L,
+              cr>0.0, cr<=1.0,
+              is.numeric(maxiter), length(maxiter)==1L,
+              maxiter>=10L, maxiter<=5000L,
+              is.numeric(tol), length(tol)==1L, tol>0.0)
     ###
     res<-try(decomp(Sigdata[,c(1L,2L),drop=FALSE], 
              ncomp=ncomp, constant=constant, typ=typ, 
-             control.args=args, transf=TRUE, 
+             control.args=args, transf=TRUE, weight=weightd,
              plot=FALSE), silent=TRUE)
     if (class(res)=="try-error") {
         stop("Error: fail in decomposing the natural decay curve!")
@@ -107,7 +136,7 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
     for (i in 3L:ncol(Sigdata)) {
         res<-try(decomp(Sigdata[,c(1L,i),drop=FALSE], 
                  ncomp=ncomp, constant=constant, typ=typ, 
-                 control.args=args, transf=TRUE, 
+                 control.args=args, transf=TRUE, weight=weightd,
                  plot=FALSE), silent=TRUE)
         ###
         samplename<-ifelse(i==3L,"Test[Natural]",
@@ -188,20 +217,20 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
     ###
     Models<-if(is.null(model)) c("line","exp","lexp") else model
     Origins<-if(is.null(origin)) c(TRUE,FALSE) else origin
-    min.chi.square<-1e20
+    minf<-1e20
     ###
     for (i in Models) {
         for (j in Origins) {
             res<-try(calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=i,
                            origin=j, nstart=nstart, upb=upb, 
                            ErrorMethod=ErrorMethod, nsim=100L, 
-                           plot=FALSE), silent=TRUE)
+                           weight=weightg, plot=FALSE), silent=TRUE)
             ###
             if (class(res)!="try-error") {
-                if (res$value<min.chi.square) {
+                if (res$value<minf) {
                     model<-i
                     origin<-j
-                    min.chi.square<-res$value
+                    minf<-res$value
                     OK<-1L
                 } # end if
             } # end if
@@ -211,7 +240,7 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
     if (exists("OK")) {
         res<-calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=model, origin=origin, 
                    nstart=nstart, upb=upb, ErrorMethod=ErrorMethod, 
-                   nsim=1000L, plot=TRUE)
+                   nsim=nsim, weight=weightg, plot=TRUE)
     } else {
         par(bg="grey95", mgp=c(2,1,0), mar=c(3,3,2,1)+0.1)
         plot(Curvedata[,c(1L,2L)], main="Growth Curve", pch=21, cex=3, 

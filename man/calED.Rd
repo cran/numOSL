@@ -13,26 +13,28 @@ Calculating an equivalent dose value and assessing its standard error using meth
 \usage{
 calED(Curvedata, Ltx, model = c("line","exp","lexp","dexp"), 
       origin = FALSE, nstart = 100, upb = 0.5, ErrorMethod = c("mc","sp"),
-      nsim = 1000, plot = TRUE, outfile = NULL)
+      nsim = 1000, weight = TRUE, plot = TRUE, outfile = NULL)
 }
 
 \arguments{
-  \item{Curvedata}{\link{matrix}(\bold{required}): three columns, i.e., regenerative doses, standardised OSL signals, and standard errors of 
+  \item{Curvedata}{\link{matrix}(\bold{required}): three columns, e.g., regenerative doses, standardised OSL signals, and standard errors of 
 standardised OSL signals}
 
-  \item{Ltx}{\link{vector} or \link{matrix}(\bold{required}): natural standardised OSL signal(s) and standard error(s), see details}
+  \item{Ltx}{\link{vector} or \link{matrix}(\bold{required}): the natural standardised OSL signal(s) and standard error(s), see details}
 
   \item{model}{\link{character}(with default): a fitting model, default \code{model="line"}, see \link{fitGrowth} for available models}
 
   \item{origin}{\link{logical}(optional): force the fitting to pass the origin or not}
 
-  \item{nstart}{\link{numeric}(with default): the maximum number of attempts of initializing the non-linear growth curve fitting, see function \link{fitGrowth} for details}
+  \item{nstart}{\link{numeric}(with default): the maximum number of attempts for initializing the non-linear growth curve, see function \link{fitGrowth} for details}
 
-  \item{upb}{\link{numeric}(with default): the upper limit on \code{b} value (i.e., the reciprocal of the saturating dose), initial \code{b} value is generated uniformly from the space \code{(0,upb)}, see function \link{fitGrowth} for details}
+  \item{upb}{\link{numeric}(with default): the upper limit on \code{b} value (e.g., the reciprocal of the saturating dose), initial \code{b} value is generated uniformly from the space \code{(0,upb)}, see function \link{fitGrowth} for details}
 
-  \item{ErrorMethod}{\link{character}(with default): method used for assessing the standard error of an equivalent dose, default ErrorMethod="mc", see details}
+  \item{ErrorMethod}{\link{character}(with default): a method for assessing the standard error of an equivalent dose, default \code{ErrorMethod="mc"}, see details}
 
   \item{nsim}{\link{numeric}(with default): the allowed maximum number of simulations when applying a Monte Carlo method to assess the standard error of an equivalent dose}
+
+  \item{weight}{\link{logical}(with default): fit the growth curve using a weighted or an un-weighted procedure, see function \link{fitGrowth} for details}
 
   \item{plot}{\link{logical}(with default): draw a plot or not}
 
@@ -45,13 +47,13 @@ Standard error of an equivalent dose can be assessd using two method outlined by
 \bold{(a)} \code{"sp"}: a simple transformation of \code{s(Lx/Tx)} to \code{s(ED)}; \cr
 \bold{(b)} \code{"mc"}: a Monte Carlo method \cr\cr
 Interpolation is performed using a combination of golden section search and successive parabolic interpolation (available at \url{http://www.netlib.org/fmm/fmin.f}).\cr\cr
-See function \link{fitGrowth} for more details.
+See function \link{fitGrowth} for more details concerning growth curve fitting.
 }
 
 \value{
-Return an list that contains following elements:
+Return a list that contains following elements:
   \item{LMpars}{parameters and standard errors of the growth curve}
-  \item{value}{the minimized chi-square value of the fitted growth curve}
+  \item{value}{the minimized objective of the growth curve}
   \item{fit.value}{observations and fitted values}
   \item{ED}{equivalent dose(s) and standard error(s)}
 }

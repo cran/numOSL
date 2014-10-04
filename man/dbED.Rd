@@ -17,7 +17,7 @@ dbED(EDdata, plot = TRUE, typ = c("pdf","hist","scatter"),
 }
 
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): two columns, i.e., equivalent dose values and their standard errors}
+  \item{EDdata}{\link{matrix}(\bold{required}): two columns, e.g., a number of equivalent dose values (un-logged) and their standard errors}
  
   \item{plot}{\link{logical}(with default): draw a plot or not}
   

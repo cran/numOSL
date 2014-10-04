@@ -14,7 +14,7 @@ reportSAM(obj, burn = 10000, thin = 5,
 \arguments{
   \item{obj}{\bold{required}: an object of S3 class \code{"mcAgeModels"}, which is produced by function \link{mcFMM} or \link{mcMAM} }
 
-  \item{burn}{\link{numeric}(with default): the number of iterations to be discarded, i.e., the initial, non-stationary portion of the chain}
+  \item{burn}{\link{numeric}(with default): the number of iterations to be discarded, e.g., the initial, non-stationary portion of the MCMC output}
 
   \item{thin}{\link{numeric}(with default): only one sample from each portion that constains every thin values is retained}
 
@@ -33,7 +33,7 @@ This function summarizes the output of a Markov chain (the mean values, the stan
 Return a list that contains following elements:
 \item{pars}{parameters and their standard errors}
 \item{quantile}{quantiles of simulated quantities}
-\item{maxlik}{the logged maximum likelihood value}
+\item{maxlik}{the maximum logged likelihood value}
 }
 
 \references{

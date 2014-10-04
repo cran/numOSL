@@ -14,11 +14,11 @@ Calculating an equivalent dose value and estimating its standard error using dat
 analyst(Sigdata, Redose, sig.channel = NULL, back.channel = NULL, 
         mr = 0.01, disb = c("p","op"), typ = "cw", nstart = 100,
         upb = 0.5, ErrorMethod = c("mc","sp"), nsim = 1000,
-        plot = TRUE, model = NULL, origin = NULL)
+        weight = TRUE, plot = TRUE, model = NULL, origin = NULL)
 }
 
 \arguments{
-  \item{Sigdata}{\link{data.frame}(\bold{required}): a number of decay curves, the first column should be the time values}
+  \item{Sigdata}{\link{data.frame}(\bold{required}): a number of decay curves, the first column should be the stimulation time values}
 
   \item{Redose}{\link{vector}(\bold{required}): the regenerative dose values. 
 Example, \code{Redose=c(1,2,3,4,0,1)}}
@@ -35,16 +35,18 @@ default \code{back.channel} is set equal to the last 20 channels}
 
   \item{typ}{\link{character}(with default): the type of an OSL decay curve, only type of \code{"CW"} is available currently}
 
-  \item{nstart}{\link{numeric}(with default): the maximum number of attempts of initializing the non-linear growth curve fitting, 
+  \item{nstart}{\link{numeric}(with default): the maximum number of attempts for initializing the non-linear growth curve, 
 see function \link{fitGrowth} for details
 }
 
-  \item{upb}{\link{numeric}(with default): the upper limit on \code{b} value, see function \link{fitGrowth} for details
+  \item{upb}{\link{numeric}(with default): the upper limit on \code{b} value (e.g., the reciprocal of the saturating dose), see function \link{fitGrowth} for details
 }
 
-  \item{ErrorMethod}{\link{character}(with default): method used for assessing the standard error of an equivalent dose, default \code{ErrorMethod="mc"}, see function \link{calED} for details}
+  \item{ErrorMethod}{\link{character}(with default): a method for assessing the standard error of an equivalent dose, default \code{ErrorMethod="mc"}, see function \link{calED} for details}
 
   \item{nsim}{\link{numeric}(with default): the allowed maximum number of simulations when applying a Monte Carlo method to assess the standard error of an equivalent dose}
+
+ \item{weight}{\link{logical}(with default): fit the growth curve using a weighted or an un-weighted procedure, see function \link{fitGrowth} for details}
 
   \item{plot}{\link{logical}(with default): draw a plot or not}
 
@@ -54,7 +56,7 @@ see function \link{fitGrowth} for details
 }
 
 \details{
-Function \emph{analyst} is used for estimating an equivalent dose and assessing its standard error using a SAR dataset. It analyses an ED value in a manner similar to software \bold{\emph{Analyst}} by Duller (2007). See function \link{fitGrowth} for more details.
+Function \emph{analyst} is used for estimating an equivalent dose and assessing its standard error using a SAR dataset. It analyses an ED value in a manner similar to software \bold{\emph{Analyst}} by Duller (2007). See function \link{fitGrowth} for more details concerning growth curve fitting.
 }
 
 \value{
@@ -63,7 +65,7 @@ Return a list containing following elements:
   \item{Ltx}{the natural standardised OSL and its standard error}
   \item{model}{the fitting  model}
   \item{LMpars}{the parameters of the growth curve}
-  \item{value}{the minimized chi-square value of the fitted growth curve}
+  \item{value}{the minimized objective of the growth curve}
   \item{ED}{the equivalent dose and its standard error}
   \item{RecyclingRatio}{the recycling ratio}
   \item{Recuperation}{the recuperation}
@@ -82,6 +84,8 @@ Adamiec G, Heer AJ,  Bluszcz A, 2012. Statistics of count numbers from a photomu
 }
 
 \note{
+Argument \code{Sigdata} should be a data structure that seems like: \emph{stimulation_time}, \emph{natural_signal},
+\emph{test_natural_signal}, \emph{Redose[1]_signal}, \emph{test_Redose[1]_signal}, \emph{...}, ect.\cr\cr
 If the variation in background counts is assumed to follow a Poisson distribution, then \bold{Eqn.(3)} of Galbraith (2002) will be used to estimate the standard error of a standardised OSL. If the variation in background counts is assumed to be over-dispersed, then \bold{Eqn.(6)}  of Galbraith (2002) will be used.\cr\cr
 Note that the number of background channels \code{(m)} need be a multiple of the number of integration channels \code{(n)}, and that it will return an error if any standard errors of parameters of the growth curve cannot be estimated by numerical approximation.\cr\cr
 }

@@ -1,62 +1,65 @@
-subroutine targfunc(lamda,n1,tim,sig,ntim,typ,&
-                    addc,ithn,constant,fvalue,iflag)
-!---------------------------------------------------------------------------------
-! Subroutine targfunc() is used for calculating the number of trapped electrons
-! with given decay rates using a Linear Algebra method (Bluszcz A, 1996).
-!---------------------------------------------------------------------------------
-! lamda(n1):: input, real values, the given decay rates.
-!        n1:: input, integer, dimension of the problem.
-! tim(ntim):: input, real vlaues, time values.
-! sig(ntim):: input, real values, stimulated decay signal values.
-!      ntim:: input, integer, number of data points.
-!       typ:: input, integer, type of decay OSL, 1 means CW-OSL, 2 means LM-OSL.
-!      addc:: input, integer, do a background subtraction (1) or not (0).
-!  ithn(n1):: output, real vlaues, calculated number of trapped electrons.
-!  constant:: output, real vlaue, estimated constant, constant=0 if addc=0.
-!    fvalue:: output, real value, calculated sum of squared residuals.
-!     iflag:: output, integer, 0 means a successful work, 1 means
-!                     any(ithn<0) or constant<0 or singular model.
-!--------------------------------------------------------------------------------
-! Author:: Peng Jun, 2014.08.29.
-!--------------------------------------------------------------------------------
-! Dependence:: subroutine gjordan().---------------------------------------------
-!--------------------------------------------------------------------------------
-! Reference:: Bluszcz, A., 1996. Exponential function fitting to TL growth data 
-!             and similar applications. Geochronometria 13, 135–141.
-!--------------------------------------------------------------------------------
+subroutine targfunc(lamda,n1,tim,sig,wght,ntim,typ,&
+                    addc,ithn,constant,fmin,iflag)
+!----------------------------------------------------------------
+! Subroutine targfunc() is used for calculating the
+! number of trapped electrons with given decay rates
+! using a Linear Algebra method (Bluszcz A, 1996).
+!----------------------------------------------------------------
+!  lamda(n1):: input, real values, decay rates.
+!         n1:: input, integer, number of decay rates (>=1).
+!  tim(ntim):: input, real vlaues, time values.
+!  sig(ntim):: input, real values, decay signal values.
+! wght(ntim):: input, real values, weights of signal values.
+!       ntim:: input, integer, number of data points.
+!        typ:: input, integer, type of OSL, 1=CW-OSL, 2=LM-OSL.
+!       addc:: input, integer, 0=non-constant, 1=constant.
+!   ithn(n1):: output, real vlaues, number of trapped electrons.
+!   constant:: output, real vlaue, constant, constant=0 if addc=0.
+!       fmin:: output, real value, the objective value.
+!      iflag:: output, integer, 0=success, 1=fail.
+!----------------------------------------------------------------
+! Author:: Peng Jun, 2014.09.28.
+!----------------------------------------------------------------
+! Dependence:: subroutine gjordan().-----------------------------
+!----------------------------------------------------------------
+! Reference:: Bluszcz, A., 1996. Exponential function fitting to 
+!             TL growth data and similar applications.
+!             Geochronometria 13, 135–141.
+!----------------------------------------------------------------
     implicit none
     ! Arguments.
     integer(kind=4), intent(in):: n1, ntim, typ, addc
-    real   (kind=8), intent(in):: lamda(n1), tim(ntim), sig(ntim)
-    real   (kind=8), intent(out):: ithn(n1), constant, fvalue
+    real   (kind=8), intent(in):: lamda(n1), tim(ntim),& 
+                                  sig(ntim), wght(ntim)
+    real   (kind=8), intent(out):: ithn(n1), constant, fmin
     integer(kind=4), intent(out):: iflag
     ! Local variables.
-    real   (kind=8):: coefMat1(ntim,n1+1), sigMat(ntim,1), timmaxt(ntim),&
-                      bMat(n1,1), bMat1(n1+1,1), tim2maxt2(ntim),&
-                      aMat(n1,n1), aMat1(n1+1,n1+1), maxt
+    real   (kind=8):: coefMat1(ntim,n1+1), sigMat(ntim,1),& 
+                      timmaxt(ntim),tim2maxt2(ntim),&
+                      bMat(n1,1), bMat1(n1+1,1),& 
+                      aMat(n1,n1), aMat1(n1+1,n1+1)
     integer(kind=4):: i, singular
     !
     iflag = 0
-    fvalue = 1.0D+20
+    fmin = 1.0D+20
     !
     if (typ==1) then
         do i=1, n1
             coefMat1(:,i) = lamda(i)*&
-                            exp(-lamda(i)*tim)
+                            exp(-lamda(i)*tim)/wght
         end do
-        coefMat1(:,n1+1) = 1.0
+        if (addc==1) coefMat1(:,n1+1) = 1.0/wght
     else if (typ==2) then
-        maxt = maxval(tim)
-        timmaxt = tim/maxt
-        tim2maxt2 = tim**2/maxt/2.0
+        timmaxt = tim/tim(ntim)
+        tim2maxt2 = tim**2/tim(ntim)/2.0
         do i=1, n1
             coefMat1(:,i) = timmaxt*lamda(i)*&
-                            exp(-lamda(i)*tim2maxt2)
+                            exp(-lamda(i)*tim2maxt2)/wght
         end do
-        coefMat1(:,n1+1) = timmaxt
+        if (addc==1) coefMat1(:,n1+1) = timmaxt/wght
     end if
     !
-    sigMat(:,1) = sig
+    sigMat(:,1) = sig/wght
     !
     if (addc==1) then
          bMat1 = matmul(transpose(coefMat1), sigMat)
@@ -93,7 +96,7 @@ subroutine targfunc(lamda,n1,tim,sig,ntim,typ,&
         coefMat1(:,n1+1) = constant*timmaxt
     end if
     !
-    fvalue = sum((sig-sum(coefMat1,dim=2))**2)
+    fmin = sum(((sig-sum(coefMat1,dim=2))/wght)**2)
     !
     return
 end subroutine targfunc   

@@ -13,7 +13,7 @@ subroutine camED(ed,sed,ndat,addsigma,&
 !    maxlik:: output, real vlaue, maximum likelihood.
 !       bic:: output, real value, BIC value.
 !-------------------------------------------------------
-! Author:: Peng Jun, 2014.09.16.
+! Author:: Peng Jun, 2014.10.01.
 !-------------------------------------------------------
 ! Dependence:: NO.
 !-------------------------------------------------------
@@ -61,7 +61,7 @@ subroutine camED(ed,sed,ndat,addsigma,&
     maxlik = sum(log(1.0/sqrt(2.0*PI)*sqrt(wz)*&
                  exp(-(z-pars(2,1))**2*wz/2.0)))
     !
-    bic = -2.0*maxlik - 2.0*log(real(ndat))
+    bic = -2.0*maxlik + 2.0*log(real(ndat))
     !
     stdp(1,1) = 1.0/sqrt(2.0*pars(1,1)*sum(wz**2))
     pars(2,1) = exp(pars(2,1))

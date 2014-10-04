@@ -5,7 +5,7 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist","scatter"),
          pcolor="grey", psize=1.5) {
     UseMethod("dbED")
 } #
-### 2014.09.19.
+### 2014.10.01.
 dbED.default<-
 function(EDdata, plot=TRUE, typ=c("pdf","hist","scatter"),
          from=NULL, to=NULL, step=0.1, nbin=15,
@@ -14,6 +14,7 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist","scatter"),
     stopifnot(ncol(EDdata)==2L, nrow(EDdata)>=5L,
               all(EDdata[,2L,drop=TRUE]>0),
               length(plot)==1L, is.logical(plot),
+              is.character(typ),
               all(typ %in% c("pdf","hist","scatter")),
               is.null(from) || is.numeric(from),
               is.null(to) || is.numeric(to),

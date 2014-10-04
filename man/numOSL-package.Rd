@@ -17,8 +17,8 @@ Available functions in package \bold{\emph{numOSL}} include:\cr\cr
 \tabular{ll}{
 Package: \tab numOSL\cr
 Type: \tab Package\cr
-Version: \tab 1.6\cr
-Date: \tab 2014-09-25\cr
+Version: \tab 1.7\cr
+Date: \tab 2014-10-04\cr
 License: \tab GPL-3\cr
 }
 }

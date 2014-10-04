@@ -1,47 +1,50 @@
-subroutine decomp(tim,sig,ntim,pars,stdp,n2,addc,typ,factor,&
-                  f,cr,maxiter,tol,fvec1,fvalue,message)
-!----------------------------------------------------------------------------
+subroutine decomp(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
+                  factor,f,cr,maxiter,tol,fvec1,fmin,message)
+!------------------------------------------------------------------------
 ! Subroutine decomp() is used for OSL decay curve decomposition.
-!----------------------------------------------------------------------------
-!   tim(ntim):: input, real values, the time values.
-!   sig(ntim):: input, real values, the decay signal values.
+!------------------------------------------------------------------------
+!   tim(ntim):: input, real values, time values.
+!   sig(ntim):: input, real values, decay signal values.
 !        ntim:: input, integer, number of data points.
 !    pars(n2):: output, real values, estimated parameters.
 !    stdp(n2):: output, real values, estimated std of pars.
-!          n2:: input, integer, dimension of the problem.
-!        addc:: input, integer, add a constant (1) or not (0).
+!          n2:: input, integer, dimension of the problem (>=2).
+!          uw:: input, integer, 0=un-weighted, 1=weighted.
+!        addc:: input, integer, 0=non-constant, 1=constant.
 !         typ:: input, integer, type of OSL, 1=CW-OSL, 2=LM-OSL.
 !      factor:: input, integer, NP=factor*(n2-addc)/2.
 !           f:: input, real value, the differential weight.
 !          cr:: input, real value, the crossover probability.
 !     maxiter:: input, integer, the maximum number of iterations.
-!         tol:: input, real value, a tolerance for stopping the iteration.
+!         tol:: input, real value, tolerance for stopping iteration.
 ! fvec1(ntim):: output, real values, predicted decay signal values.
-!      fvalue:: output, real value, the minimumized sum of sqaured residuals.
-!     message:: output, integer, 0 means a successful work, else 1.
-!---------------------------------------------------------------------------
-! Author:: Peng Jun, 2014.09.03.
-!---------------------------------------------------------------------------
-! Dependence:: subroutine diffev; subroutine lmdcyve; subroutine comb_next.-
-!---------------------------------------------------------------------------
+!        fmin:: output, real value, minimumized objective.
+!     message:: output, integer, 0=success, 1=fail.
+!------------------------------------------------------------------------
+! Author:: Peng Jun, 2014.09.28.
+!------------------------------------------------------------------------
+! Dependence:: subroutine diffev; subroutine lmfit; subroutine comb_next.
+!------------------------------------------------------------------------
 ! Reference::   Bluszcz, A., Adamiec, G., 2006. Application of 
 !               differential evolution to fitting OSL decay curves. 
 !               Radiation Measurements 41, 886-891.
-!--------------------------------------------------------------------------
+!-----------------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ntim, n2, addc, typ,&
-                                  factor, maxiter
+    integer(kind=4), intent(in):: ntim, n2, uw, addc,&
+                                  typ, factor, maxiter
     real   (kind=8), intent(in):: tim(ntim), sig(ntim),&
                                   f, cr, tol
     real   (kind=8), intent(out):: pars(n2), stdp(n2),&
-                                   fvec1(ntim), fvalue
+                                   fvec1(ntim), fmin
     integer(kind=4), intent(out):: message
     ! Local variables.
-    integer(kind=4):: np, n1, iflag, i, ivec((n2-addc)/2), lmInfo
-    real   (kind=8):: constant, lamda((n2-addc)/2), ithn((n2-addc)/2),&
+    integer(kind=4):: np, n1, iflag, i,& 
+                      ivec((n2-addc)/2),& 
+                      lmInfo, model
+    real   (kind=8):: constant, lamda((n2-addc)/2),ithn((n2-addc)/2),&
                       agents(factor*(n2-addc)/2,(n2-addc)/2), cpars(n2),&
-                      cstdp(n2), cfvec1(ntim), cfvalue, cond, minCond
+                      cstdp(n2), cfvec1(ntim), cfmin, cond, minCond, wght1(ntim)
     integer(kind=4), parameter:: nperm(7)=(/7,21,35,35,21,7,1/)
     real   (kind=8), parameter:: initry(7)=(/32.0,2.5,0.62,0.15,&
                                              0.023,0.0022,0.0003/)
@@ -50,21 +53,32 @@ subroutine decomp(tim,sig,ntim,pars,stdp,n2,addc,typ,factor,&
     pars = -99.0
     stdp = -99.0
     fvec1 = -99.0
-    fvalue = -99.0
+    fmin = -99.0
     message = 1
     !
     n1 = (n2-addc)/2
     np = factor*n1  
     !
-    call diffev(tim,sig,ntim,np,f,cr,maxiter,tol,typ,addc,&
-                n1,lamda,ithn,constant,agents,fvec1,fvalue,iflag)
+    if (uw==0) then
+        wght1 = 1.0
+    else if (uw==1) then
+        wght1 = sqrt(sig)
+    end if
     !
+    if (typ==1) then
+        model = 4
+    else if (typ==2) then
+        model = 5
+    end if
+    !
+    call diffev(tim,sig,wght1,ntim,np,f,cr,maxiter,tol,typ,addc,&
+                n1,lamda,ithn,constant,agents,fvec1,fmin,iflag)
     if (iflag==0) then
         cpars(1:n1) = ithn
         cpars(n1+1:2*n1) = lamda
         if (addc==1) cpars(n2) = constant
-        call lmdcycve(tim,sig,ntim,cpars,cstdp,n2,&
-                      addc,typ,cfvec1,cfvalue,cond,lmInfo)
+        call lmfit(tim,sig,wght1,ntim,cpars,cstdp,n2,&
+                   model,cfvec1,cfmin,cond,lmInfo)
     end if
     !
     minCond = 1.0D+20
@@ -72,7 +86,7 @@ subroutine decomp(tim,sig,ntim,pars,stdp,n2,addc,typ,factor,&
         pars = cpars
         stdp = cstdp
         fvec1 = cfvec1
-        fvalue = cfvalue
+        fmin = cfmin
         minCond = cond
         message = 0
     end if
@@ -95,13 +109,13 @@ subroutine decomp(tim,sig,ntim,pars,stdp,n2,addc,typ,factor,&
                                               sum((tim(ntim-2:ntim))**2)
         end if
         !
-        call lmdcycve(tim,sig,ntim,cpars,cstdp,n2,&
-                      addc,typ,cfvec1,cfvalue,cond,lmInfo)
+        call lmfit(tim,sig,wght1,ntim,cpars,cstdp,n2,&
+                   model,cfvec1,cfmin,cond,lmInfo)
         if (lmInfo==0 .and. cond<minCond) then
             pars = cpars
             stdp = cstdp
             fvec1 = cfvec1
-            fvalue = cfvalue
+            fmin = cfmin
             minCond = cond
             message = 0
         end if

@@ -9,11 +9,12 @@ Estimating a fast-component equivalent dose using decay curves from a SAR sequen
 }
 \usage{
 fastED(Sigdata, Redose, ncomp = 2, constant = TRUE,  
-       control.args = list(), typ = "cw", nstart = 100, upb = 0.5, 
-       ErrorMethod = c("mc","sp"), model = NULL, origin = NULL)
+       control.args = list(), typ = "cw", nstart = 100, 
+       upb = 0.5, ErrorMethod = c("mc","sp"), nsim = 1000,
+       model = NULL, origin = NULL, weight = c("g","d","b","n"))
 }
 \arguments{
-  \item{Sigdata}{\link{data.frame}(\bold{required}): a number of decay curves, the first column should be the time values}
+  \item{Sigdata}{\link{data.frame}(\bold{required}): a number of decay curves, the first column should be the stimulation time values}
 
   \item{Redose}{\link{vector}(\bold{required}): the regenerative dose values. Example, \code{Redose=c(1,2,3,4,0,1)}}
 
@@ -25,19 +26,25 @@ fastED(Sigdata, Redose, ncomp = 2, constant = TRUE,
 
   \item{typ}{\link{character}(with default): the type of an OSL decay curve, only type of \code{"CW"} is available currently}
 
-  \item{nstart}{\link{numeric}(with default): the maximum number of attempts of initializing the non-linear growth curve fitting, see function \link{fitGrowth} for details}
+  \item{nstart}{\link{numeric}(with default): the maximum number of attempts for initializing the non-linear growth curve, see function \link{fitGrowth} for details}
 
-  \item{upb}{\link{numeric}(with default): the upper limit on \code{b} value, see function \link{fitGrowth} for details}
+  \item{upb}{\link{numeric}(with default): the upper limit on \code{b} value (e.g., the reciprocal of the saturating dose), see function \link{fitGrowth} for details}
 
-  \item{ErrorMethod}{\link{character}(with default): method used for assessing the standard error of an equivalent dose, default \code{ErrorMethod="mc"}, see function \link{calED} for details}
+  \item{ErrorMethod}{\link{character}(with default): a method for assessing the standard error of an equivalent dose, default \code{ErrorMethod="mc"}, see function \link{calED} for details}
+
+  \item{nsim}{\link{numeric}(with default): the allowed maximum number of simulations when applying a Monte Carlo method to assess the standard error of an equivalent dose}
 
   \item{model}{\link{character}(optional): a model used for fitting the growth curve, see function \link{fitGrowth} for available models. It will find a model automatically if \code{model=NULL}}
 
   \item{origin}{\link{logical}(optional): force the fitting to pass the origin or not. It will choose whether pass the origin or not automatically if \code{origin=NULL}}
+
+  \item{weight}{\link{character}(with default): type of curves to be fitted by a weighted procedure, \code{"g"} means applying a weighted procedure to fitting the growth curve, \code{"d"} means applying a weigthed procedure to fitting the decay curves, \code{"b"} means using a weighted procedure to fit both types of curves, and \code{"n"} means applying an un-weighted procedure to fitting both types of curves. Default \code{weight="g"}}
+
 }
 
 \details{
-Function \emph{fastED} is used to estimated a fast-component equivalent dose using a dataset from the SAR protocol (Murray and Wintle, 2000). The routine trys to decompose a series of decay curves to a specified number of components, then the numbers of trapped electrons from the fast-component are used to construct a growth curve to estimate a fast-component equivalent dose.
+Function \emph{fastED} is used to estimated a fast-component equivalent dose using a dataset from the SAR protocol (Murray and Wintle, 2000). The routine trys to decompose a series of decay curves to a specified number of components, then the numbers of trapped electrons from the fast-component are used to construct a growth curve to estimate a fast-component equivalent dose.\cr\cr
+See function \link{decomp} and \link{fitGrowth} for more details concerning decay curve and growth curve fitting.
 }
 
 \value{
@@ -48,7 +55,7 @@ Return a list containing following elements:
   \item{Ltx}{the natural fast-component standardised OSL and its standard error}
   \item{model}{the fitting  model}
   \item{LMpars}{the parameters of the growth curve}
-  \item{value}{the minimized chi-square value of the fitted growth curve}
+  \item{value}{the minimized objective of the growth curve}
   \item{ED}{the fast-component equivalent dose and its standard error}
   \item{RecyclingRatio}{the fast-component recycling ratio}
   \item{Recuperation}{the fast-component recuperation}
@@ -64,15 +71,17 @@ Murray AS, Wintle AG, 2000. Luminescence dating of quartz using improved single-
 }
 
 \note{
-The number of trapped electrons that corresponds to the largest decay rate will be regarded as the fast-component signal, which cannot always ensure that a pure fast-component signal can be extracted if an ultra-fast component appears. If \code{ErrorMethod="mc"}, then the standard error of an ED value will be assessed using \code{1000} Monte Carlo iterations (i.e., \code{nsim=1000}).\cr\cr
+Argument \code{Sigdata} should be a data structure that seems like: \emph{stimulation_time}, \emph{natural_signal},
+\emph{test_natural_signal}, \emph{Redose[1]_signal}, \emph{test_Redose[1]_signal}, \emph{...}, ect.\cr\cr
+The number of trapped electrons that corresponds to the largest decay rate will be regarded as the fast-component signal, which cannot always ensure that a pure fast-component signal can be extracted if an ultra-fast component appears.\cr\cr
 The author thank Sheng-Hua Li and Geoff Duller for their helpful discussions concerning the fast-component equivalent dose calculation.
 }
 \examples{
  data(Signaldata)
- ### Use only the first two regenerative dose data. 
- fastED(Signaldata$cw[,-(8:15)],Redose=c(80,160)*0.13,
-        control.args=list(factor=5),model="line",origin=TRUE)
- ### Use all regenerative dose data (except the zero-dose).
+ # Use only the first two regenerative dose values. 
+ fastED(Signaldata$cw[,-(8:15)],Redose=c(80,160)*0.13,model="line",
+        control.args=list(factor=5,maxiter=50),origin=TRUE)
+ # Use all regenerative dose values (except the zero-dose).
  # fastED(Signaldata$cw[,c(-12,-13)],Redose=c(80,160,240,320,80)*0.13,
  #        ncomp=3,constant=FALSE)
 }

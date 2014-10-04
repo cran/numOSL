@@ -12,7 +12,7 @@ mcFMM(EDdata, ncomp = 1, addsigma = 0, iflog = TRUE,
       nsim = 50000, inis = list(), control.args = list())
 }
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): two columns, i.e., equivalent doses and associated errors}
+  \item{EDdata}{\link{matrix}(\bold{required}): two columns, e.g., a number of equivalent doses (un-logged) and associated errors}
 
   \item{ncomp}{\link{numeric}(with default): the number of components (\code{1} means a central age model)}
 
@@ -22,8 +22,7 @@ mcFMM(EDdata, ncomp = 1, addsigma = 0, iflog = TRUE,
 
   \item{nsim}{\link{numeric}(with default): the deseried total number of iterations}
 
-  \item{inis}{\link{list}(with default): initials of the chain. 
-Example, \code{inis=list(p1=1,p2=1,mu1=5,mu2=10)} in FMM2}
+  \item{inis}{\link{list}(with default): initials of the chain. Example, \code{inis=list(p1=1,p2=1,mu1=5,mu2=10)} in FMM2, here the sum of \code{p1} and \code{p2} subject to normalisation}
 
   \item{control.args}{\link{list}(with default): arguments used in a slice sampling method, see details}
 }
@@ -57,7 +56,7 @@ Neal RM, 2003. "Slice sampling" (with discussion). Annals of Statistics, 31: 705
 
 \examples{
   data(EDdata)
-  # Construct MCMC chains for a 3-component FMM.
+  # Construct a MCMC chain for FMM3.
   obj<-mcFMM(EDdata$gl11,ncomp=3,nsim=5000)
   reportSAM(obj,thin=2,burn=1e3)
 }
