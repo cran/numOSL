@@ -6,31 +6,28 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
          weight=TRUE, plot=TRUE, model=NULL, origin=NULL) {
     UseMethod("analyst")
 } #
-### 2014.10.03.
+### 2014.10.03; revised in 2015.05.04.
 analyst.default<-
 function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL, 
          mr=0.01, disb=c("p","op"), typ="cw", nstart=100,  
          upb=0.5, ErrorMethod=c("mc","sp"), nsim=1000,
          weight=TRUE, plot=TRUE, model=NULL, origin=NULL) {
     ### Stop if not.
-    stopifnot(is.data.frame(Sigdata), nrow(Sigdata)>=25L,
-              ncol(Sigdata)>=5L, ncol(Sigdata)%%2L==1L,
-              is.vector(Redose), length(Redose)==(ncol(Sigdata)-3L)/2L,
+    stopifnot(nrow(Sigdata)>=25L, ncol(Sigdata)>=4L, ncol(Sigdata)%%2L==0L,
+              is.vector(Redose), length(Redose)==(ncol(Sigdata)-2L)/2L,
               is.numeric(Redose), all(Redose>=0),
               is.null(sig.channel) || is.vector(sig.channel),
               all(sig.channel %in% seq(nrow(Sigdata))),
               is.null(back.channel) || is.vector(back.channel),
               all(back.channel %in% seq(nrow(Sigdata))),
-              length(mr)==1L, is.numeric(mr),
+              length(mr)==1L, is.numeric(mr), mr>=0, mr<=0.1,
               is.character(disb), all(disb %in% c("p","op")),
-              length(typ)==1L, typ=="cw",
+              length(typ)==1L, is.character(typ), typ=="cw",
               is.numeric(nstart), length(nstart)==1L,
               nstart>=10L, nstart<=5000L,
               length(upb)==1L, is.numeric(upb), upb>0, upb<=10,
-              is.character(ErrorMethod), length(ErrorMethod)>=1L,
-              all(ErrorMethod %in% c("mc","sp")),
-              is.numeric(nsim), length(nsim)==1L,
-              nsim>=100L, nsim<=3000L,
+              is.character(ErrorMethod), all(ErrorMethod %in% c("mc","sp")),
+              is.numeric(nsim), length(nsim)==1L, nsim>=100L, nsim<=3000L,
               length(weight)==1L, is.logical(weight),
               length(plot)==1L, is.logical(plot), 
               all(model %in% c("line","exp","lexp","dexp")),
@@ -38,6 +35,8 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
               length(origin) %in% c(0L,1L))
     ###
     ndat<-nrow(Sigdata)
+    Sigdata <- cbind(seq(ndat), Sigdata)
+    ###
     if (is.null(sig.channel)) {
         sig.channel<-seq(4L)
     } # end if
@@ -49,7 +48,7 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
     m<-length(back.channel)
     k<-m/n
     if (!k %in% seq(10000L)) {
-        stop(paste("Error: n.back.channel/n.sig.channel=",round(k,3L),sep=""))
+        stop("Error: n.back.channel/n.sig.channel should be an integer!")
     } # end if
     ### 
     ### R function for calculating Lx/Tx.
@@ -101,8 +100,8 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
     nLxTx<-(ncol(Sigdata)-1L)/2L
     matLxTx<-matrix(nrow=nLxTx,ncol=2L)
     for (i in seq(nLxTx)) {
-        matLxTx[i,]<-calLxTx(Sigdata[,2*i,drop=TRUE],
-                             Sigdata[,2*i+1L,drop=TRUE])
+        matLxTx[i,]<-calLxTx(Sigdata[,2L*i,drop=TRUE],
+                             Sigdata[,2L*i+1L,drop=TRUE])
     } # end for
     ###
     if (any(!is.finite(matLxTx))) {
@@ -123,35 +122,35 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
         RepeatIndex<-unlist(RepeatIndex[sapply(RepeatIndex,length)==2L])
         RecycleRatio<-Curvedata[,2L,drop=TRUE][RepeatIndex[2L]]/
                       Curvedata[,2L,drop=TRUE][RepeatIndex[1L]]
-        if (RecycleRatio>1.3 || RecycleRatio<0.7) {
-            cat("Note: recycling ratio is large (small)!\n")
-        } # end if
+        #if (RecycleRatio>1.3 || RecycleRatio<0.7) {
+            #cat("Note: recycling ratio is large (small)!\n")
+        #} # end if
     } else {
-        cat("Note: recycling ratio is not available!\n")
-        RecycleRatio<-NULL
+        #cat("Note: recycling ratio is not available!\n")
+        RecycleRatio<-NA
     } # end if
     ###
     ### Calculate recuperation.
     exist0d<-which(abs(Redose)<=.Machine$double.eps^0.5)
     if (length(exist0d)>0L) {
         Recuperation<-Curvedata[exist0d[1L],2L,drop=TRUE]/NatureLxTx[1L]
-        if (Recuperation>0.3) {
-            cat("Note: recuperation is large!\n")
-        } # end if
+        #if (Recuperation>0.3) {
+            #cat("Note: recuperation is large!\n")
+        #} # end if
     } else {
-        cat("Note: recuperation is not available!\n")
-        Recuperation<-NULL
+        #cat("Note: recuperation is not available!\n")
+        Recuperation<-NA
     } # end if  
     ###
     ###
-    Models<-if(is.null(model)) c("line","exp","lexp") else model
+    Models<-if(is.null(model)) c("line","exp") else model
     Origins<-if(is.null(origin)) c(TRUE,FALSE) else origin
     minf<-1e20
     ###
     for (i in Models) {
         for (j in Origins) {
             res<-try(calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=i,
-                           origin=j, nstart=nstart, upb=upb, 
+                           origin=j, nstart=50L, upb=upb, 
                            ErrorMethod=ErrorMethod, nsim=100L, 
                            weight=weight, plot=FALSE), silent=TRUE)
             ###
@@ -167,10 +166,13 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
     } # end for
     ###
     if (exists("OK")) {
-        res<-calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=model, 
-                   origin=origin, nstart=nstart, upb=upb, 
-                   ErrorMethod=ErrorMethod, nsim=nsim,
-                   weight=weight, plot=plot)
+        repeat {
+            res<-try(calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=model, 
+                           origin=origin, nstart=nstart, upb=upb, 
+                           ErrorMethod=ErrorMethod, nsim=nsim,
+                           weight=weight, plot=plot), silent=TRUE)
+            if (class(res)!="try-error") break
+        } # end repeat.
     } else {
         stop("Error: fail in calculating ED!")
     } # end if   

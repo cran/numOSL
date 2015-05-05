@@ -2,10 +2,10 @@
 \alias{reportSAM}
 \alias{reportSAM.default}
 \title{
-Report the results of statistical age models
+Statistical age models' MCMC output reporting
 }
 \description{
-Return a list that summaries the density distributions of the quantities of interest. 
+Summarizing distributions of parameters simulated from a statistical age model. 
 }
 \usage{
 reportSAM(obj, burn = 10000, thin = 5, 
@@ -14,32 +14,32 @@ reportSAM(obj, burn = 10000, thin = 5,
 \arguments{
   \item{obj}{\bold{required}: an object of S3 class \code{"mcAgeModels"}, which is produced by function \link{mcFMM} or \link{mcMAM} }
 
-  \item{burn}{\link{numeric}(with default): the number of iterations to be discarded, e.g., the initial, non-stationary portion of the MCMC output}
+  \item{burn}{\link{integer}(with default): number of iterations (i.e., the initial, non-stationary portion of the chain) to be discarded}
 
-  \item{thin}{\link{numeric}(with default): only one sample from each portion that constains every thin values is retained}
+  \item{thin}{\link{integer}(with default): take every \code{thin-th} iteration}
 
-  \item{plot}{\link{logical}(with default): plot the results or not}
+  \item{plot}{\link{logical}(with default): plot the MCMC output or not}
 
-  \item{outfile}{\link{character}(optional): if specified, simulated chain will be written to a file named \code{"outfile"} in \code{".csv"} format and saved to the current work directory}
+  \item{outfile}{\link{character}(optional): if specified, simulated parameters will be written to a file named \code{"outfile"} in \code{".csv"} format and saved to the current work directory}
 
   \item{\dots}{do not use}
 }
 
 \details{
-This function summarizes the output of a Markov chain (the mean values, the standard deviations, and the 95 percent confidence intervals). The numbers of "burn-in" and "thining" are used to refine the simulated chain. The initial portion of the chains may not sufficiently close to stationarity and need to be discarded. The "thining" protocol is used to reduce the posterior correlation of parameters.
+Function \emph{reportSAM} summarizes the output of a Markov chain (the mean values, the standard deviations, and the 95 percent confidence intervals). The initial \emph{i} (\code{burn=i}) samples may have been affected by the inital state and has to be discarded ("burn-in"). Autocorrelation of simulated samples can be reduced by taking every \emph{j-th} (\code{thin=j}) iteration ("thining").
 }
 
 \value{
-Return a list that contains following elements:
-\item{pars}{parameters and their standard errors}
-\item{quantile}{quantiles of simulated quantities}
-\item{maxlik}{the maximum logged likelihood value}
+Return a list that contains the following elements:
+\item{pars}{parameters and relevant statistics}
+\item{quantile}{quantiles of simulated parameters}
+\item{maxlik}{calculated maximum logged likelihood value}
 }
 
 \references{
-Lunn D, Jackson C, Best N, Thomas A, Spiegelhalter D, 2013. The BUGS Book: A Practical Introduction to Bayesian Analysis. Boca Raton, Florida: CRC Press.
+Lunn D, Jackson C, Best N, Thomas A, Spiegelhalter D, 2013. The BUGS book: a practical introduction to bayesian analysis. Chapman & Hall/CRC Press.
 
-Robert CP, Casella G, 2010. Introducing Monte Carlo Methods with R. Springer.
+Gelman A, Carlin JB, Stern HS, Dunson DB, Vehtari A, Rubin DB, 2013. Bayesian data analysis. Chapman & Hall/CRC Press.
 }
 
 \seealso{

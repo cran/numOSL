@@ -5,7 +5,7 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
          nsim=1000, weight=TRUE, plot=TRUE, outfile=NULL) {
     UseMethod("calED")
 } ###
-### 2014.10.02.
+### 2014.10.02; revised in 2015.05.05.
 calED.default<-
 function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
          origin=FALSE, nstart=100, upb=0.5, ErrorMethod=c("mc","sp"),
@@ -16,16 +16,12 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
               all(Curvedata[,3L,drop=TRUE]>0),
               (is.vector(Ltx) && length(Ltx)==2L)|| 
               (is.matrix(Ltx) && ncol(Ltx)==2L), all(Ltx>0), 
-              is.character(model), length(model)>=1L,
-              all(model %in% c("line","exp","lexp","dexp")),
+              is.character(model), all(model %in% c("line","exp","lexp","dexp")),
               length(origin)==1L, is.logical(origin),
-              is.numeric(nstart), length(nstart)==1L,
-              nstart>=10L, nstart<=5000L,
+              is.numeric(nstart), length(nstart)==1L, nstart>=10L, nstart<=5000L,
               length(upb)==1L, is.numeric(upb), upb>0, upb<=10,
-              is.character(ErrorMethod), length(ErrorMethod)>=1L,
-              all(ErrorMethod %in% c("mc","sp")),
-              is.numeric(nsim), length(nsim)==1L, 
-              nsim>=100L, nsim<=3000L,
+              is.character(ErrorMethod), all(ErrorMethod %in% c("mc","sp")),
+              is.numeric(nsim), length(nsim)==1L, nsim>=100L, nsim<=3000L,
               length(weight)==1L, is.logical(weight),
               length(plot)==1L, is.logical(plot), 
               is.null(outfile) || is.character(outfile))
@@ -44,12 +40,12 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
         } else if (model[1L]=="dexp") {
             4L+!origin
         } # end if  
-    if (model[1L]!="line" && max(Ltx)>max(doseltx)) {
-        stop("Error: Ltx is too large!")
+    if (model[1L]!="line" && max(Ltx)>1.2*max(doseltx)) {
+        stop("Error: Ltx should not exceed maximum regenerative OSL!")
     } # end if
     ### Check if data points is enough for fitting.
     if (ndat<n2) {
-        stop("Error: data points is not enough for the model!")
+        stop("Error: data points is not enough for model optimization!")
     } # end if
     ###
     if(is.vector(Ltx)) {
@@ -170,7 +166,7 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
        ###
        points(x=xvalue[1L], y=yvalue[1L], pch=23, cex=3, bg="grey")
        ###
-       arrowsData<-Curvedata[Curvedata[,3L,drop=TRUE]>=1e-3,,drop=FALSE]
+       arrowsData<-Curvedata[Curvedata[,3L,drop=TRUE]>=1e-2,,drop=FALSE]
        options("warn"=-1)
        if (nrow(arrowsData)>=1L) {
            arrows(x0=arrowsData[,1L,drop=TRUE], 
@@ -180,7 +176,7 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
                   code=3, lwd=2.5, angle=90, length=0.05, col="black")
        } # end if
        ###
-       if (xvalue[2L]>=1e-3) {
+       if (xvalue[2L]>=1e-2) {
            arrows(x0=xvalue[1L]-xvalue[2L]/2L, y0=yvalue[1L],
                   x1=xvalue[1L]+xvalue[2L]/2L, y1=yvalue[1L],
                   code=3, lwd=2.5, angle=90, length=0.05, col="black")

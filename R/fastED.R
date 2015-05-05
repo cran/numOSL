@@ -6,15 +6,14 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
          model=NULL, origin=NULL, weight=c("g","d","b","n")) {
     UseMethod("fastED")
 } ###
-### 2014.10.03.
+### 2014.10.03; revised in 2015.05.05.
 fastED.default<-
 function(Sigdata, Redose, ncomp=2, constant=TRUE,
          control.args=list(), typ="cw", nstart=100, 
          upb=0.5, ErrorMethod=c("mc","sp"), nsim=1000,
          model=NULL, origin=NULL, weight=c("g","d","b","n")) {
     ### Stop if not.
-    stopifnot(is.data.frame(Sigdata), 
-              ncol(Sigdata)>=5L, ncol(Sigdata)%%2L==1L,
+    stopifnot(ncol(Sigdata)>=5L, ncol(Sigdata)%%2L==1L,
               all(Sigdata[,-1L,drop=TRUE]>0),
               is.vector(Redose), length(Redose)==(ncol(Sigdata)-3L)/2L,
               is.numeric(Redose), all(Redose>=0),
@@ -23,14 +22,12 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
               class(control.args)=="list",
               all(names(control.args) %in% 
               list("factor","f","cr","maxiter","tol")),
-              length(typ)==1L, typ=="cw",
-              is.numeric(nstart), length(nstart)==1L,
-              nstart>=10L, nstart<=5000L,
+              length(typ)==1L, is.character(typ), typ=="cw",
+              is.numeric(nstart), length(nstart)==1L, nstart>=10L, nstart<=5000L,
               length(upb)==1L, is.numeric(upb), upb>0, upb<=10,
               is.character(ErrorMethod), length(ErrorMethod)>=1L,
               all(ErrorMethod %in% c("mc","sp")),
-              is.numeric(nsim), length(nsim)==1L, 
-              nsim>=100L, nsim<=3000L,
+              is.numeric(nsim), length(nsim)==1L, nsim>=100L, nsim<=3000L,
               all(model %in% c("line","exp","lexp","dexp")),
               is.null(origin) || is.logical(origin),
               length(origin) %in% c(0L,1L),
@@ -194,35 +191,35 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
         RepeatIndex<-unlist(RepeatIndex[sapply(RepeatIndex,length)==2L])
         RecycleRatio<-Curvedata[,2L,drop=TRUE][RepeatIndex[2L]]/
                       Curvedata[,2L,drop=TRUE][RepeatIndex[1L]]
-        if (RecycleRatio>1.3 || RecycleRatio<0.7) {
-            cat("Note: recycling ratio is large (small)!\n")
-        } # end if
+        #if (RecycleRatio>1.3 || RecycleRatio<0.7) {
+            #cat("Note: recycling ratio is large (small)!\n")
+        #} # end if
     } else {
-        cat("Note: recycling ratio is not available!\n")
-        RecycleRatio<-NULL
+        #cat("Note: recycling ratio is not available!\n")
+        RecycleRatio<-NA
     } # end if
     ###
     ### Calculate recuperation.
     exist0d<-which(abs(Curvedata[,1L,drop=TRUE])<=.Machine$double.eps^0.5)
     if (length(exist0d)>0L) {
         Recuperation<-Curvedata[exist0d[1L],2L,drop=TRUE]/NatureLxTx[1L]
-        if (Recuperation>0.3) {
-            cat("Note: recuperation is large!\n")
-        } # end if
+        #if (Recuperation>0.3) {
+            #cat("Note: recuperation is large!\n")
+        #} # end if
     } else {
-        cat("Note: recuperation is not available!\n")
-        Recuperation<-NULL
+        #cat("Note: recuperation is not available!\n")
+        Recuperation<-NA
     } # end if
     ###
     ###
-    Models<-if(is.null(model)) c("line","exp","lexp") else model
+    Models<-if(is.null(model)) c("line","exp") else model
     Origins<-if(is.null(origin)) c(TRUE,FALSE) else origin
     minf<-1e20
     ###
     for (i in Models) {
         for (j in Origins) {
             res<-try(calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=i,
-                           origin=j, nstart=nstart, upb=upb, 
+                           origin=j, nstart=50L, upb=upb, 
                            ErrorMethod=ErrorMethod, nsim=100L, 
                            weight=weightg, plot=FALSE), silent=TRUE)
             ###
@@ -238,9 +235,12 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
     } # end for
     ###
     if (exists("OK")) {
-        res<-calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=model, origin=origin, 
-                   nstart=nstart, upb=upb, ErrorMethod=ErrorMethod, 
-                   nsim=nsim, weight=weightg, plot=TRUE)
+        repeat {
+            res<-try(calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=model, origin=origin, 
+                           nstart=nstart, upb=upb, ErrorMethod=ErrorMethod, 
+                           nsim=nsim, weight=weightg, plot=TRUE), silent=TRUE)
+            if (class(res)!="try-error") break
+        } # end repeat.
     } else {
         par(bg="grey95", mgp=c(2,1,0), mar=c(3,3,2,1)+0.1)
         plot(Curvedata[,c(1L,2L)], main="Growth Curve", pch=21, cex=3, 
@@ -251,7 +251,7 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
         grid(equilogs=FALSE)
         box(lwd=2L)
         par(bg="transparent", mgp=c(3,1,0), mar=c(5,4,4,2)+0.1)
-        stop("Error: fail in calculating the fast-component ED!")
+        stop("Error: fail in calculating a fast-component ED!")
     } # end if
     ###
     par(mfrow=c(1L,1L))

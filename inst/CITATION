@@ -1,12 +1,17 @@
-citHeader("To cite the R package 'numOSL' in publications use:")
+citHeader("To cite package numOSL in publications use:")
 
-	 citation(auto = meta)
-
-	 bibentry(bibtype = "Article",
-	          title   = "R package numOSL: numeric routines for optically stimulated luminescence dating",
-		  author  = "Jun Peng, ZhiBao Dong, FengQing Han, Hao Long, XiangJun Liu",
-		  year    = "2013",
-		  journal = "Ancient TL",
-		  volume = "31(2)",
-		  pages = "41-48")
-
+citEntry(entry="Article",
+         title = "R package numOSL: numeric routines for optically stimulated luminescence dating",
+         author = personList(as.person("Peng J"),
+         as.person("Dong ZB"),
+         as.person("Han FQ"),
+         as.person("Long H"),
+         as.person("Liu XJ")),
+	 journal = "Ancient TL",
+         year = 2013,
+         volume = 31,
+         number = 2,
+         pages = "41-48",
+         url = "http://CRAN.R-project.org/package=numOSL",
+         pdf = "www.aber.ac.uk/en/media/departmental/iges/ancienttl/pdf/vol31no2/peng_atl_31(2)_41.pdf",
+         textVersion = "Peng J, Dong ZB, Han FQ, Long H, Liu XJ, 2013. R package numOSL: numeric routines for optically stimulated luminescence dating. Ancient TL, 31(2): 41-48")

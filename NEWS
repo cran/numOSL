@@ -22,6 +22,8 @@ Version 1.6
         * Function "decompc" was bundled to function "decomp".
 Version 1.7
         * A compiler-dependent Fortran bug was fixed.
+Version 1.8
+        * Four new functions ("calDA", "psRadialPlot", "select", "viewer") were added.
         
         
         
