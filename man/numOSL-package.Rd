@@ -3,7 +3,7 @@
 \docType{package}
 \title{Package for tackling basic numeric problems in optically stimulated luminescence dating}
 \description{
-Package for routine numeric problems optimization and data visualization for optically stimulated luminescence dating.
+Package for routine numeric optimization and data visualization for optically stimulated luminescence dating.
 }
 \details{
 \tabular{ll}{

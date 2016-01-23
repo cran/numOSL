@@ -40,8 +40,8 @@ The fitting process is performed using the Levenberg-Marquardt algorithm (minpac
 
 \value{
 Return a list that contains the following elements:
-  \item{LMpars}{parameters of the growth curve}
-  \item{value}{minimized objective of the growth curve}
+  \item{LMpars}{parameters for the growth curve}
+  \item{value}{minimized objective for the growth curve}
   \item{fit.value}{observations and fitted values}
 }
 
@@ -51,7 +51,7 @@ Springer-Verlag: Berlin. 105-116.
 }
 
 \note{
-The model to be optimized should not be underdetermined, which means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, the procedure will return an error if any standard error of a parameter cannot be estimated by numerical difference-approximation.\cr\cr
+The model to be optimized should not be underdetermined. This means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, the procedure will return an error if any standard errors of parameters cannot be estimated by numerical difference-approximation.\cr\cr
 }
 
 \seealso{

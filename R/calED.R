@@ -5,7 +5,7 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
          nsim=1000, weight=TRUE, plot=TRUE, outfile=NULL) {
     UseMethod("calED")
 } ###
-### 2014.10.02; revised in 2015.05.05.
+### 2015.05.05; revised in 2016.01.21.
 calED.default<-
 function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
          origin=FALSE, nstart=100, upb=0.5, ErrorMethod=c("mc","sp"),
@@ -14,8 +14,7 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
     stopifnot(ncol(Curvedata)==3L, 
               all(Curvedata[,1L,drop=TRUE]>=0),
               all(Curvedata[,3L,drop=TRUE]>0),
-              (is.vector(Ltx) && length(Ltx)==2L)|| 
-              (is.matrix(Ltx) && ncol(Ltx)==2L), all(Ltx>0), 
+              (is.vector(Ltx) && length(Ltx)==2L)||(is.matrix(Ltx) && ncol(Ltx)==2L),
               is.character(model), all(model %in% c("line","exp","lexp","dexp")),
               length(origin)==1L, is.logical(origin),
               is.numeric(nstart), length(nstart)==1L, nstart>=10L, nstart<=5000L,
@@ -40,9 +39,9 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
         } else if (model[1L]=="dexp") {
             4L+!origin
         } # end if  
-    if (model[1L]!="line" && max(Ltx)>1.2*max(doseltx)) {
-        stop("Error: Ltx should not exceed maximum regenerative OSL!")
-    } # end if
+    #if (model[1L]!="line" && max(Ltx)>1.2*max(doseltx)) {
+        #stop("Error: Ltx should not exceed maximum regenerative OSL!")
+    #} # end if
     ### Check if data points is enough for fitting.
     if (ndat<n2) {
         stop("Error: data points is not enough for model optimization!")
@@ -115,9 +114,9 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
         lowerY<-min(min(doseltx,yvalue),0)*1.2
         upperY<-max(doseltx,yvalue)*1.2
         ###
-        par(bg="grey95", mgp=c(2,1,0), mar=c(3,3,2,1)+0.1)
+        par(mgp=c(2,1,0), mar=c(3,3,2,1)+0.1)
         plot(NA, NA, main=Mainname, xlab="Dose (Gy)", ylab="Standardised OSL",
-             las=0, cex.lab=1, cex.main=1.25, xlim=c(lowerX,upperX),
+             las=0, cex.lab=par("cex.lab"), cex.main=par("cex.main"), xlim=c(lowerX,upperX),
              ylim=c(lowerY,upperY), xaxs="i", yaxs="i", lab=c(7,7,9))
         if (!is.null(simED) && all(yvalue>0)) {
             dmcED<-density(simED)
@@ -129,42 +128,43 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
             rug(simED, quiet=TRUE)
         } # end if
         ###
-        points(dose, doseltx, pch=21, cex=3, bg="white")
+        points(dose, doseltx, pch=21, cex=1.5*par("cex"), bg="black")
         ###
         x<-NULL
         if(origin==TRUE)  {
             if(model[1L]=="line") {
-                curve(LMpars[1L,1L]*x, type="l", add=TRUE, 
-                      lw=2, from=lowerX, to=upperX)
+                curve(LMpars[1L,1L]*x, type="l", add=TRUE, lw=1.5*par("lwd"),
+                      from=lowerX, to=upperX, col="skyblue")
             } else if(model[1L]=="exp") {
-               curve(LMpars[1L,1L]*(1.0-exp(-LMpars[2L,1L]*x)),  
-                     type="l", add=TRUE, lw=2, from=lowerX, to=upperX)
+               curve(LMpars[1L,1L]*(1.0-exp(-LMpars[2L,1L]*x)), type="l", add=TRUE, 
+                     lw=1.5*par("lwd"), from=lowerX, to=upperX, col="skyblue")
             } else if(model[1L]=="lexp")  {
-               curve(LMpars[1L,1L]*(1.0-exp(-LMpars[2L,1L]*x))+LMpars[3L,1L]*x, 
-                     type="l", add=TRUE, lw=2, from=lowerX, to=upperX)
+               curve(LMpars[1L,1L]*(1.0-exp(-LMpars[2L,1L]*x))+LMpars[3L,1L]*x, type="l", 
+                     add=TRUE, lw=1.5*par("lwd"), from=lowerX, to=upperX, col="skyblue")
             } else if(model[1L]=="dexp") {
                curve(LMpars[1L,1L]*(1.0-exp(-LMpars[2L,1L]*x))+
                      LMpars[3L,1L]*(1.0-exp(-LMpars[4L,1L]*x)), 
-                     type="l", add=TRUE, lw=2, from=lowerX, to=upperX)
+                     type="l", add=TRUE, lw=1.5*par("lwd"), 
+                     from=lowerX, to=upperX, col="skyblue")
             } # end if
        } else {
            if(model[1L]=="line") {
-               curve(LMpars[1L,1L]*x+LMpars[2L,1L], type="l", 
-                     add=TRUE, lw=2, from=lowerX, to=upperX)
+               curve(LMpars[1L,1L]*x+LMpars[2L,1L], type="l", add=TRUE, 
+                     lw=1.5*par("lwd"), from=lowerX, to=upperX, col="skyblue")
            } else if(model[1L]=="exp") {
-               curve(LMpars[1L,1L]*(1.0-exp(-LMpars[2L,1L]*x))+LMpars[3L,1L], 
-                     type="l", add=TRUE, lw=2, from=lowerX, to=upperX)
+               curve(LMpars[1L,1L]*(1.0-exp(-LMpars[2L,1L]*x))+LMpars[3L,1L], type="l",
+                     add=TRUE, lw=1.5*par("lwd"), from=lowerX, to=upperX, col="skyblue")
            } else if(model[1L]=="lexp")  {
                curve(LMpars[1L,1L]*(1.0-exp(-LMpars[2L,1L]*x))+LMpars[3L,1L]*x+LMpars[4L,1L], 
-                     type="l", add=TRUE, lw=2, from=lowerX, to=upperX)
+                     type="l", add=TRUE, lw=1.5*par("lwd"), from=lowerX, to=upperX, col="skyblue")
            } else if(model[1L]=="dexp") {
                curve(LMpars[1L,1L]*(1.0-exp(-LMpars[2L,1L]*x))+
                      LMpars[3L,1L]*(1.0-exp(-LMpars[4L,1L]*x))+LMpars[5L,1L], 
-                     type="l", add=TRUE, lw=2, from=lowerX, to=upperX)
+                     type="l", add=TRUE, lw=1.5*par("lwd"), from=lowerX, to=upperX, col="skyblue")
            } # end if
        } # end if
        ###
-       points(x=xvalue[1L], y=yvalue[1L], pch=23, cex=3, bg="grey")
+       points(x=xvalue[1L], y=yvalue[1L], pch=23, cex=1.5*par("cex"), bg="grey")
        ###
        arrowsData<-Curvedata[Curvedata[,3L,drop=TRUE]>=1e-2,,drop=FALSE]
        options("warn"=-1)
@@ -173,24 +173,24 @@ function(Curvedata, Ltx, model=c("line","exp","lexp","dexp"),
                   y0=arrowsData[,2L,drop=TRUE]-arrowsData[,3L,drop=TRUE]/2L,
                   x1=arrowsData[,1L,drop=TRUE],
                   y1=arrowsData[,2L,drop=TRUE]+arrowsData[,3L,drop=TRUE]/2L,
-                  code=3, lwd=2.5, angle=90, length=0.05, col="black")
+                  code=3, lwd=par("lwd"), angle=90, length=0.05, col="black")
        } # end if
        ###
        if (xvalue[2L]>=1e-2) {
            arrows(x0=xvalue[1L]-xvalue[2L]/2L, y0=yvalue[1L],
                   x1=xvalue[1L]+xvalue[2L]/2L, y1=yvalue[1L],
-                  code=3, lwd=2.5, angle=90, length=0.05, col="black")
+                  code=3, lwd=par("lwd"), angle=90, length=0.05, col="black")
        } # ned if
        options("warn"=0)
        ###
        lines(x=c(0,xvalue[1L],xvalue[1L]),
              y=c(yvalue[1L],yvalue[1L],0),
-             lty="dashed", lwd=2)    
+             lty="dashed", lwd=par("lwd"))    
        legend("topleft", legend=paste("ED=",round(xvalue[1L],2L), "+-",
               round(xvalue[2L],2L), " (Gy)", sep=""), yjust=2, ncol=1L,
-              cex=par("cex"), bty="n")
+              cex=1.5*par("cex"), bty="n")
         grid()
-        box(lwd=2)
+        box(lwd=par("lwd"))
         par(bg="transparent", mgp=c(3,1,0), mar=c(5,4,4,2)+0.1)
         ###
     } # end function Plot1

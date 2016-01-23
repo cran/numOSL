@@ -26,7 +26,7 @@ subroutine calED(dose,ltx,sltx,ndat,ninltx,n2,inltx,&
 !              fmin:: output, real value, minimized objective.
 !           message:: output, integer, 0=success, 1=fail.
 !--------------------------------------------------------------------
-! Author:: Peng Jun, 2014.10.01.
+! Author:: Peng Jun, 2014.10.01; revised in 2016.01.21.
 !--------------------------------------------------------------------
 ! Dependence:: subroutine linefit; subroutine inipars;---------------
 !              subroutine lmfit; subroutine interpolate;-------------
@@ -48,7 +48,9 @@ subroutine calED(dose,ltx,sltx,ndat,ninltx,n2,inltx,&
                       cfvec1(ndat), cfmin, cond, grad,&
                       maxDose, ifmin, avg, low(ninltx), up(ninltx),&
                       low1(ninltx), up1(ninltx), sumdose, sumdose2,& 
-                      simltx(ndat), mcOSL(1), mcDose
+                      simltx(ndat), mcOSL(1), mcDose,&
+                      Xm, Ym, aaa, bbb, ccc, upDose,&
+                      DDD, DDD1
     !
     outDose = -99.0
     mcED = -99.0
@@ -114,7 +116,7 @@ subroutine calED(dose,ltx,sltx,ndat,ninltx,n2,inltx,&
                 grad = locp(1)*locp(2)*exp(-locp(2)*maxDose)+&
                        locp(3)
             end if
-            if (grad<1.0D-13) cycle loopA
+            if (grad<1.0D-07) cycle loopA
             !
             if (cond<minCond) then
                 pars = cpars
@@ -136,15 +138,55 @@ subroutine calED(dose,ltx,sltx,ndat,ninltx,n2,inltx,&
         locp(1:n2) = pars
         outDose(:,1) = (inltx(:,1)-locp(2))/locp(1)
     else if (model==1 .or. model==2 .or. model==3) then 
+        !
+        if (model==1 .or. model==3) then
+            locp = 0.0
+            locp(1:n2) = pars
+            !
+            if (model==1) then
+                aaa = locp(1)
+                bbb = locp(2)
+                ccc = locp(3)
+            else if (model==3) then
+                if (locp(2)>locp(4)) then
+                    aaa = locp(3)
+                    bbb = locp(4)
+                    ccc = locp(5)
+                else 
+                    aaa = locp(1)
+                    bbb = locp(2)
+                    ccc = locp(5)
+                end if
+            end if
+            !
+            DDD = 1.0D+00/bbb
+            !
+            Xm = -log(1.0D-03/aaa/bbb)/bbb
+            Ym = aaa*(1.0D+00-exp(-bbb*Xm)) + ccc
+            !
+            if (maxval(inltx(:,1))>Ym) then
+                message = 1
+                return
+            end if
+            !
+        end if
+        ! 
+        if (model==1 .or. model==3) then
+            upDose = Xm
+        else 
+            upDose = 5.0*maxDose
+        end if
+        !
         do i=1, ninltx
-            call interpolate(-10.0D+00,1.3*maxDose,inltx(i,1),&
+            call interpolate(-10.0D+00,upDose,inltx(i,1),&
                              pars,n2,model,outDose(i,1),ifmin)
             ! Check the quality of interpolation.
-            if (ifmin>1.0D-7) then
+            if (ifmin>1.0D-06) then
                 message = 1
                 return
             end if
         end do
+        !
     end if
     !
     !
@@ -163,14 +205,21 @@ subroutine calED(dose,ltx,sltx,ndat,ninltx,n2,inltx,&
             up1 = (up-locp(2))/locp(1)
         else if (model==1 .or. model==2 .or. model==3) then
             do i=1, ninltx
-                call interpolate(-10.0D+00,1.3*maxDose,low(i),&
+                !
+                call interpolate(-10.0D+00,upDose,low(i),&
                                  pars,n2,model,low1(i),ifmin)
-                call interpolate(-10.0D+00,1.3*maxDose,up(i),&
-                                 pars,n2,model,up1(i),ifmin)
-                if (ifmin>1.0D-7) then
+                if (ifmin>1.0D-06) then
                     message = 1
                     return
                 end if
+                !
+                call interpolate(-10.0D+00,upDose,up(i),&
+                                 pars,n2,model,up1(i),ifmin)
+                if (ifmin>1.0D-06) then
+                    message = 1
+                    return
+                end if
+                !
             end do
         end if
         !
@@ -186,7 +235,7 @@ subroutine calED(dose,ltx,sltx,ndat,ninltx,n2,inltx,&
             Innerloop: do
                 ! Record the number of iterations.
                 niter = niter + 1
-                if (niter>100*nsim) then
+                if (niter>200*nsim) then
                     message = 1
                     return
                 end if
@@ -231,12 +280,18 @@ subroutine calED(dose,ltx,sltx,ndat,ninltx,n2,inltx,&
                     if (model==1 .or. model==3) then
                         grad = locp(1)*locp(2)*exp(-locp(2)*maxDose)+&
                                locp(3)*locp(4)*exp(-locp(4)*maxDose)
+                        if (model==1) then
+                            DDD1 = 1.0D+00/locp(2)
+                        else if (model==3) then
+                            DDD1 = 1.0D+00/min(locp(2),locp(4))
+                        end if
+                        if (DDD1<0.5*DDD) cycle Innerloop
                     end if
                     if (model==2) then
                         grad = locp(1)*locp(2)*exp(-locp(2)*maxDose)+&
                                locp(3)
                     end if
-                    if (grad<1.0D-13) cycle Innerloop
+                    if (grad<1.0D-07) cycle Innerloop
                 end if
                 !
                 ! Simulate natural standardised OSL.
@@ -247,15 +302,15 @@ subroutine calED(dose,ltx,sltx,ndat,ninltx,n2,inltx,&
                     locp(1:n2) = cpars
                     mcDose = (mcOSL(1)-locp(2))/locp(1)
                 else if (model==1 .or. model==2 .or. model==3) then 
-                    call interpolate(-10.0D+00,1.3*maxDose,mcOSL(1),&
+                    call interpolate(-10.0D+00,upDose,mcOSL(1),&
                                      cpars,n2,model,mcDose,ifmin)
                     ! Check the quality of interpolation.
-                    if (ifmin>1.0D-7) cycle Innerloop
+                    if (ifmin>1.0D-06) cycle Innerloop
                 end if
                 ! Record the values.
                 mcCount = mcCount + 1
-                sumdose = sumdose +mcDose
-                sumdose2 = sumdose2 +mcDose**2
+                sumdose = sumdose + mcDose
+                sumdose2 = sumdose2 + mcDose**2
                 mcED(mcCount,i) = mcDose
                 if (mcCount==nsim) exit Innerloop
             end do Innerloop

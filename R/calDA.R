@@ -204,14 +204,34 @@ function(dose, minGrainSize, maxGrainSize,
         dDoseRates <- density(DoseRates)
         plot(dDoseRates$x,dDoseRates$y, xlab="Total dose rate (Gy/ka)",
              ylab="Density", main="Simulated dose rate", type="n")
-             polygon(dDoseRates$x,dDoseRates$y, col="grey")
+        xTicks<-axTicks(side=1L)
+        maxYx<-dDoseRates$x[which.max(dDoseRates$y)]
+        ###
+        polygon(dDoseRates$x,dDoseRates$y, col="grey")
         rug(DoseRates, quiet=TRUE)
+        ###
+        legend(ifelse(maxYx>median(xTicks),"topleft","topright"), 
+               legend=c(paste("Simuluation=", nsim, sep=""),
+                        paste("DoseRate=",round(DoseRate,2L)," (Gy/ka)", sep=""),
+                        paste("s(DoseRate)=",round(sd(DoseRates),2L)," (Gy/ka)",sep="")), 
+                        cex=par("cex"), bty="n")
+        ###
         ###
         dAges <- density(Ages)
         plot(dAges$x, dAges$y, xlab="Age (ka)", ylab="Density",
              main="Simulated age", type="n")
-             polygon(dAges$x, dAges$y,  col="grey")
+        xTicks<-axTicks(side=1L)
+        maxYx<-dAges$x[which.max(dAges$y)]
+        ###
+        polygon(dAges$x, dAges$y,  col="grey")
         rug(Ages, quiet=TRUE)
+        ###
+        legend(ifelse(maxYx>median(xTicks),"topleft","topright"), 
+               legend=c(paste("Simuluation=", nsim, sep=""),
+                        paste("Age=",round(Age,2L)," (ka)", sep=""),
+                        paste("s(Age)=",round(sd(Ages),2L)," (ka)",sep="")), 
+                        cex=par("cex"), bty="n")
+        ###
         par(mfrow=c(1L,1L))
     } # end if.
     ###

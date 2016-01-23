@@ -5,7 +5,7 @@
 BIN file records selection
 }
 \description{
-Extracting data records with certain criteria.
+Extracting data records according to certain criteria.
 }
 \usage{
 select(obj, position = NULL, runNumber = NULL, nPoints = NULL, 

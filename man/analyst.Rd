@@ -7,14 +7,13 @@ Equivalent dose determination
 }
 
 \description{
-Calculating an equivalent dose using a data set from a SAR sequence. 
+Calculating an equivalent dose using dataset obtained from a SAR sequence. 
 }
 
 \usage{
 analyst(Sigdata, Redose, sig.channel = NULL, back.channel = NULL, 
-        mr = 0.01, disb = c("p","op"), typ = "cw", nstart = 100,
-        upb = 0.5, ErrorMethod = c("mc","sp"), nsim = 1000,
-        weight = TRUE, plot = TRUE, model = NULL, origin = NULL)
+        mr = 0.01, typ = "cw", nstart = 100, upb = 0.5, ErrorMethod = c("mc","sp"), 
+        nsim = 1000, weight = TRUE, plot = TRUE, model = NULL, origin = NULL)
 }
 
 \arguments{
@@ -27,8 +26,6 @@ analyst(Sigdata, Redose, sig.channel = NULL, back.channel = NULL,
   \item{back.channel}{\link{vector}(with default): channels used for background counts subtraction, default \code{back.channel} is set equal to the last 20 channels}
 
   \item{mr}{\link{double}(with default): measurement errror}
-
-  \item{disb}{\link{character}(with default): assumed distribution of background counts, \code{"p"} denotes Possion, and \code{"op"} indicates over-Possion}
 
   \item{typ}{\link{character}(with default): type of an OSL decay curve, only CW-OSL decay curve can be analyzed currently}
 
@@ -44,22 +41,22 @@ analyst(Sigdata, Redose, sig.channel = NULL, back.channel = NULL,
 
   \item{plot}{\link{logical}(with default): draw a plot or not}
 
-  \item{model}{\link{character} (optional): model used for fitting the growth curve, see function \link{fitGrowth} for available models. The procedure will find an optimal model between \code{"line"} and \code{"exp"} automatically if \code{model=NULL}}
+  \item{model}{\link{character} (optional): model used for fitting the growth curve, see function \link{fitGrowth} for available models. The procedure will try to find an optimal model between \code{"line"} and \code{"exp"} automatically if \code{model=NULL}}
 
-  \item{origin}{\link{logical}(optional): force the growth curve to pass the origin or not. The procedure will choose whether pass the origin or not automatically if \code{origin=NULL}}
+  \item{origin}{\link{logical}(optional): force the growth curve to pass the origin or not. The procedure will choose whether to pass the origin or not automatically if \code{origin=NULL}}
 }
 
 \details{
-Function \emph{analyst} is used for estimating an equivalent dose using a SAR data set. It works in a manner similar to software \bold{\emph{Analyst}} written by Duller (2007). See function \link{fitGrowth} and \link{calED} for more details concerning growth curve fitting and equivalent dose calculation.
+Function \emph{analyst} is used for estimating an equivalent dose using dataset obtained from the SAR sequence. It works in a manner similar to software \bold{\emph{Analyst}} written by Duller (2007). See function \link{fitGrowth} and \link{calED} for more details concerning growth curve fitting and equivalent dose calculation.
 }
 
 \value{
 Return a list containing the following elements:
   \item{Curvedata}{data used for constructing the growth curve}
   \item{Ltx}{sensitivity-corrected natural OSL and its standard error}
-  \item{model}{fitting  model of the growth curve}
-  \item{LMpars}{optimized parameters of the growth curve}
-  \item{value}{minimized objective of the growth curve}
+  \item{model}{fitting model for the growth curve}
+  \item{LMpars}{optimized parameters for the growth curve}
+  \item{value}{minimized objective for the growth curve}
   \item{ED}{equivalent dose and its standard error}
   \item{RecyclingRatio}{recycling ratio}
   \item{Recuperation}{recuperation}
@@ -80,8 +77,8 @@ Adamiec G, Heer AJ,  Bluszcz A, 2012. Statistics of count numbers from a photomu
 \note{
 Argument \code{Sigdata} is a column matrix filled with a number of decay curves (i.e., \emph{natural_signal},\cr 
 \emph{test_natural_signal}, \emph{Redose[1]_signal}, \emph{test_Redose[1]_signal},....etc) column by column.\cr\cr
-If variation in background counts is assumed to follow a Poisson distribution, then \bold{Eqn.(3)} of Galbraith (2002) will be used to estimate the standard error of a standardised OSL. If variation in background counts is assumed to be over-dispersed, then \bold{Eqn.(6)}  of Galbraith (2002) will be used instead.\cr\cr
-Note that the number of background channels \code{(m)} should be a multiple of the number of integration channels \code{(n)} (i.e., \code{k=m/n} is an integer), and that the curve fitting procedure will return an error if any standard error of a parameter cannot be estimated by numerical difference-approximation.\cr\cr
+Variation in background counts is assumed to follow a Poisson distribution, \bold{Eqn.(3)} of Galbraith (2002) is used to estimate the standard error of a standardised OSL.\cr\cr
+Note that the curve fitting procedure will return an error if any standard errors of parameters for the growth curve cannot be estimated by numerical difference-approximation.\cr\cr
 }
 
 \seealso{

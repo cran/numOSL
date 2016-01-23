@@ -11,9 +11,9 @@ Calculating statistical parameters (skewness, kurtosis, quantiles) for a number 
 }
 
 \usage{
-dbED(EDdata, plot = TRUE, typ = c("pdf","hist","scatter"), 
-     from = NULL, to = NULL, step = 0.1, nbin = 15, 
-     pcolor = "grey", psize = 1.5)
+dbED(EDdata, plot = TRUE, typ = c("pdf","hist"), 
+     from = NULL, to = NULL, step = NULL, nbin = 15, 
+     pcolor = "grey", psize = 1.5, outfile = NULL)
 }
 
 \arguments{
@@ -21,19 +21,23 @@ dbED(EDdata, plot = TRUE, typ = c("pdf","hist","scatter"),
  
   \item{plot}{\link{logical}(with default): draw a plot or not}
   
-  \item{typ}{\link{character}(with default): type of plot, \code{"pdf"} means a probability density plot, \code{"hist"} means a histogram, and \code{"scatter"} means a scatterplot, default \code{typ="pdf"}}
+  \item{typ}{\link{character}(with default): type of plot, \code{"pdf"} means a probability density plot and \code{"hist"} means a histogram plot, default \code{typ="pdf"}}
 
   \item{from}{\link{double}(optional): desired lower limit on x-axis}
 
   \item{to}{\link{double}(optional): desired upper limit on x-axis}
 
-  \item{step}{\link{double}(with default): a step-size used for constructing the probability density plot. Smaller step value gives smoother density curve}
+  \item{step}{\link{double}(optional): a step-size used for constructing the probability density plot (if \code{typ="pdf"}). Smaller step value gives smoother density curve}
 
-  \item{nbin}{\link{integer}(with default): desired number of intervals of a histogram}
+  \item{nbin}{\link{integer}(with default): desired number of intervals for the histogram (if \code{typ="hist"})}
 
   \item{pcolor}{\link{character}(with default): color of a data point, input \link{colors}() to see available colors}
 
   \item{psize}{\link{double}(with default): size of a data point}
+  
+  \item{outfile}{\link{character}(optional): if specified, calculated probability densities (if \code{typ="pdf"}) will be written to a file
+named \code{"outfile"} in \code{CSV} format and saved to the current work directory}
+
 }
 
 \value{

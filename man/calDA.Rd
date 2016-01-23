@@ -5,7 +5,7 @@
 Annual dose rate (age) calculation
 }
 \description{
-Calculating an annual dose rate and an age.
+Calculating the annual dose rate and burial age.
 }
 \usage{
 calDA(dose, minGrainSize, maxGrainSize, Ucontent, Thcontent, Kcontent, 
@@ -42,20 +42,20 @@ calDA(dose, minGrainSize, maxGrainSize, Ucontent, Thcontent, Kcontent,
 
   \item{nsim}{\link{integer}(with default): number of Monte Carlo iterations}
 
-  \item{rdcf}{\link{double}(with default): magnitude of constant relative standard error for dose-rate conversion factors (unit, 1 percent)}
+  \item{rdcf}{\link{double}(with default): constant relative standard error for dose-rate conversion factors (unit, 1 percent)}
 
-  \item{rba}{\link{double}(with default): magnitude of constant relative standard error for beta dose absorption fraction (unit, 1 percent)}
+  \item{rba}{\link{double}(with default): constant relative standard error for beta dose absorption fraction (unit, 1 percent)}
 
-  \item{plot}{\link{logical}(with default): draw a plot using simulated values or not}
+  \item{plot}{\link{logical}(with default): draw a plot or not}
 }
 
 \details{
-Function \emph{calDA} is used for calculating an annual dose rate and an age using concentrations of radioactive nuclides (uranium, thorium, potassium) obtained from Neutron Activation Analysis (NAA), grain size, water content, average sample density, geographical parameters (depth, altitude, latitude, longitude), and an equivalent dose value. The elemental concentrations are converted into annual dose rate according to dose-rate conversion factors (Adamiec and Aitken, 1998). Beta dose absorded fractions are calculated through linear interpolation using published data (Fain et al., 1999). The cosmic ray dose rate is estimated as a function of depth, altitude and geomagnetic latitude (Prescott and Hutton, 1994).\cr\cr
-The standard error of an annual dose rate is estimated by a "parametric bootstrap" method. To perform the simulation, dose-rate conversion factors and beta dose absorption factor are assumed to have constant relative standard errors. Arguments such as \code{dose}, \code{Ucontent}, \code{Thcontent}, \code{Kcontent}, \code{wct} should be two-element vectors with the form \code{c(value,sd)}, as their measurement uncertainties are major error sources. Arguments such as \code{depth}, \code{altitude}, \code{latitude}, \code{longitude}, \code{bulkDensity}, \code{alphaValue} can be either a scalar of a two-element vector, which means that uncertainties from these quantities can be either ignored or taken into account during the simulation.
+Function \emph{calDA} is used for calculating the annual dose rate and burial age using concentrations of radioactive nuclides (uranium, thorium, potassium) obtained from Neutron Activation Analysis (NAA), grain size, water content, average sample density, geographical parameters (depth, altitude, latitude, longitude), and an equivalent dose value. The elemental concentrations are converted into annual dose rate according to dose-rate conversion factors (Adamiec and Aitken, 1998). Beta dose absorded fractions are calculated through linear interpolation using published data (Fain et al., 1999). The cosmic ray dose rate is estimated as a function of depth, altitude and geomagnetic latitude (Prescott and Hutton, 1994).\cr\cr
+The standard error of an annual dose rate is estimated by a "parametric bootstrap" method. To perform the simulation, dose-rate conversion factors and beta dose absorption factor are assumed to have constant relative standard errors. Arguments such as \code{dose}, \code{Ucontent}, \code{Thcontent}, \code{Kcontent}, \code{wct} should be two-element vectors with the form \code{c(value,sd)}, as their measurement uncertainties are major error sources. Arguments such as \code{depth}, \code{altitude}, \code{latitude}, \code{longitude}, \code{bulkDensity}, \code{alphaValue} can be either a scalar of a two-element vector. This means that uncertainties from these quantities can be either ignored or taken into account during the simulation.
 }
 
 \value{
-Return a matrix that contains determined annual dose rate and age
+Return a matrix that contains calculated annual dose rate and age
 }
 
 \references{

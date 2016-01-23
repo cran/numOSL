@@ -5,7 +5,7 @@
 Minimum age model optimization (with a Markov chain Monte Carlo sampling method)
 }
 \description{
-Sampling from the joint-likelihood function of a minimum age model using a Markov chain Monte Carlo sampling method (MCMC).
+Sampling from the joint-likelihood function of the minimum age model using a Markov chain Monte Carlo sampling method (MCMC).
 }
 \usage{
 mcMAM(EDdata, ncomp = -1, addsigma = 0, iflog = TRUE, 

@@ -16,10 +16,9 @@ fastED(Sigdata, Redose, ncomp = 2, constant = TRUE,
 \arguments{
   \item{Sigdata}{\link{matrix}(\bold{required}): a series of decay curves stored column by column, the structure is different from that in function \link{analyst}, here the first column represents stimulation time values}
 
-  \item{Redose}{\link{vector}(\bold{required}): regenerative dose values. 
-Example, \code{Redose=c(1,2,3,4,0,1)}}
+  \item{Redose}{\link{vector}(\bold{required}): regenerative dose values used for constructing the growth curve}
 
-  \item{ncomp}{\link{integer}(with default): number of components to be decomposed}
+  \item{ncomp}{\link{integer}(with default): number of decomposed components}
 
   \item{constant}{\link{logical}(with default): subtract a constant component or not}
 
@@ -35,16 +34,16 @@ Example, \code{Redose=c(1,2,3,4,0,1)}}
 
   \item{nsim}{\link{integer}(with default): maximum number of simulations if a Monte Carlo method is applied to assessing the standard error of an equivalent dose}
 
-  \item{model}{\link{character}(optional): model used for fitting the growth curve, see function \link{fitGrowth} for available models. The procedure will find an optimal model between \code{"line"} and \code{"exp"} automatically if \code{model=NULL}}
+  \item{model}{\link{character}(optional): model used for fitting the growth curve, see function \link{fitGrowth} for available models. The procedure will try to find an optimal model between \code{"line"} and \code{"exp"} automatically if \code{model=NULL}}
 
-  \item{origin}{\link{logical}(optional): force the fast-component growth curve to pass the origin or not. The procedure will choose whether pass the origin or not automatically if \code{origin=NULL}}
+  \item{origin}{\link{logical}(optional): force the fast-component growth curve to pass the origin or not. The procedure will choose whether to pass the origin or not automatically if \code{origin=NULL}}
 
   \item{weight}{\link{character}(with default): type of curves to be fitted by a weighted procedure, \code{"g"} means applying a weighted procedure to fitting the growth curve, \code{"d"} means applying a weigthed procedure to fitting the decay curves, \code{"b"} means using a weighted procedure to fit both types of curves, and \code{"n"} means applying an un-weighted procedure to fitting both types of curves. Default \code{weight="g"}}
 
 }
 
 \details{
-Function \emph{fastED} is used to estimate a fast-component equivalent dose using a data set obtained from a SAR protocol (Murray and Wintle, 2000). The routine trys to decompose a series of decay curves to a specified number of components, then the numbers of trapped electrons from the fast-component are used to construct a growth curve to estimate a fast-component equivalent dose. See function \link{decomp}, \link{fitGrowth}, and \link{calED} for more details concerning decay curve decomposition, growth curve fitting, and equivalent dose calculation.
+Function \emph{fastED} is used to estimate a fast-component equivalent dose using dataset obtained from the SAR protocol (Murray and Wintle, 2000). The routine trys to decompose a series of decay curves to a specified number of components, then the numbers of trapped electrons from the fast-component are used to construct a growth curve to estimate a fast-component equivalent dose. See function \link{decomp}, \link{fitGrowth}, and \link{calED} for more details concerning decay curve decomposition, growth curve fitting, and equivalent dose calculation.
 }
 
 \value{
@@ -53,9 +52,9 @@ Return a list containing the following elements:
   \item{decayRateMat}{decay rates for each decay curve stored in a matrix}
   \item{Curvedata}{data used for constructing the fast-component growth curve}
   \item{Ltx}{sensitivity-corrected natural OSL for the fast-component and associated standard error}
-  \item{model}{fitting model of the growth curve}
-  \item{LMpars}{optimizaed parameters of the growth curve}
-  \item{value}{minimized objective of the growth curve}
+  \item{model}{fitting model for the growth curve}
+  \item{LMpars}{optimizaed parameters for the growth curve}
+  \item{value}{minimized objective for the growth curve}
   \item{ED}{fast-component equivalent dose and its standard error}
   \item{RecyclingRatio}{fast-component recycling ratio}
   \item{Recuperation}{fast-component recuperation}

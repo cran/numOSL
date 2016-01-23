@@ -1,17 +1,15 @@
 #####
 analyst<-
 function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL, 
-         mr=0.01, disb=c("p","op"), typ="cw", nstart=100,  
-         upb=0.5, ErrorMethod=c("mc","sp"), nsim=1000,
-         weight=TRUE, plot=TRUE, model=NULL, origin=NULL) {
+         mr=0.01, typ="cw", nstart=100, upb=0.5, ErrorMethod=c("mc","sp"), 
+         nsim=1000, weight=TRUE, plot=TRUE, model=NULL, origin=NULL) {
     UseMethod("analyst")
 } #
-### 2014.10.03; revised in 2015.05.04.
+### 2015.05.04, revised in 2016.01.20.
 analyst.default<-
 function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL, 
-         mr=0.01, disb=c("p","op"), typ="cw", nstart=100,  
-         upb=0.5, ErrorMethod=c("mc","sp"), nsim=1000,
-         weight=TRUE, plot=TRUE, model=NULL, origin=NULL) {
+         mr=0.01, typ="cw", nstart=100, upb=0.5, ErrorMethod=c("mc","sp"), 
+         nsim=1000, weight=TRUE, plot=TRUE, model=NULL, origin=NULL) {
     ### Stop if not.
     stopifnot(nrow(Sigdata)>=25L, ncol(Sigdata)>=4L, ncol(Sigdata)%%2L==0L,
               is.vector(Redose), length(Redose)==(ncol(Sigdata)-2L)/2L,
@@ -21,7 +19,6 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
               is.null(back.channel) || is.vector(back.channel),
               all(back.channel %in% seq(nrow(Sigdata))),
               length(mr)==1L, is.numeric(mr), mr>=0, mr<=0.1,
-              is.character(disb), all(disb %in% c("p","op")),
               length(typ)==1L, is.character(typ), typ=="cw",
               is.numeric(nstart), length(nstart)==1L,
               nstart>=10L, nstart<=5000L,
@@ -47,9 +44,6 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
     n<-length(sig.channel)
     m<-length(back.channel)
     k<-m/n
-    if (!k %in% seq(10000L)) {
-        stop("Error: n.back.channel/n.sig.channel should be an integer!")
-    } # end if
     ### 
     ### R function for calculating Lx/Tx.
     calLxTx<-function(sig1,sig2) {
@@ -59,39 +53,26 @@ function(Sigdata, Redose, sig.channel=NULL, back.channel=NULL,
         Tx<-sum(sig2[sig.channel])
         ###
         ### Background signal.
-        Yl<-Yt<-vector(length=k)
-        backMat<-matrix(back.channel,nrow=k,byrow=TRUE)
-        for (i in seq(k)) {
-            Yl[i]<-sum(sig1[backMat[i,,drop=TRUE]])
-            Yt[i]<-sum(sig2[backMat[i,,drop=TRUE]])
-        } # end if
-        bLx<-mean(Yl)
-        bTx<-mean(Yt)
+        bLx<-n*mean(sig1[back.channel])
+        bTx<-n*mean(sig2[back.channel])
         ###
         ### Net signal.
         netLx<-Lx-bLx      
         netTx<-Tx-bTx
-        ###
-        sigmal<-abs(var(Yl)-mean(Yl))
-        sigmat<-abs(var(Yt)-mean(Yt))
         ### 
-        if (disb[1L]=="p") {
-            ### Eqn.3 of Galbraith (2002).
-            rsnetLx<-sqrt(Lx+bLx/k)/(Lx-bLx)
-            rsnetTx<-sqrt(Tx+bTx/k)/(Tx-bTx)
-        } else if (disb[1L]=="op") {
-            ### Eqn.6 of Galbraith (2002).
-            rsnetLx<-sqrt(Lx+bLx/k+sigmal*(1.0+1.0/k))/
-                     (Lx-bLx)
-            rsnetTx<-sqrt(Tx+bTx/k+sigmat*(1.0+1.0/k))/
-                     (Tx-bTx)
-        } # 
+        if (abs(netLx)<=.Machine$double.eps)  netLx <- runif(n=1L, min=1e-8, max=1e-7)
+        if (abs(netTx)<=.Machine$double.eps)  netTx <- runif(n=1L, min=1e-8, max=1e-7)
+        ###
+        ### Eqn.3 of Galbraith (2002).
+        rsnetLx<-sqrt(Lx+bLx/k)/netLx
+        rsnetTx<-sqrt(Tx+bTx/k)/netTx
         ###
         rsnetLx<-sqrt(rsnetLx^2L+mr^2L)
         rsnetTx<-sqrt(rsnetTx^2L+mr^2L)
         ###
         LxTx<-netLx/netTx
         sLxTx<-abs(LxTx)*sqrt(rsnetLx^2L+rsnetTx^2L)
+        ###sLxTx<-abs(LxTx)*sqrt((Lx+bLx)/(Lx-bLx)^2L+(Tx+bTx)/(Tx-bTx)^2L)
         ###
         return(c(LxTx,sLxTx))
     } # end function calLxTx.

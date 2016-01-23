@@ -15,3 +15,10 @@ S3method(RadialPlotter, default)
 S3method(reportSAM, default)
 S3method(select, default)
 S3method(viewer, default)
+
+importFrom(graphics, abline, arrows, axTicks, axis, box,
+     curve, grid, hist, layout, legend, lines, mtext,
+     par, plot, points, polygon, rug, segments, text)
+importFrom(stats, acf, approx, complete.cases, density, dnorm, runif,
+     kmeans, median, nlminb, optim, pnorm, quantile, rnorm, sd, var)
+importFrom(utils, write.csv)

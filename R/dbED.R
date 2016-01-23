@@ -1,27 +1,37 @@
 #####
 dbED<-
-function(EDdata, plot=TRUE, typ=c("pdf","hist","scatter"),
-         from=NULL, to=NULL, step=0.1, nbin=15,
-         pcolor="grey", psize=1.5) {
+function(EDdata, plot=TRUE, typ=c("pdf","hist"),
+         from=NULL, to=NULL, step=NULL, nbin=15,
+         pcolor="grey", psize=1.5, outfile=NULL) {
     UseMethod("dbED")
 } #
-### 2014.10.01.
+### 2014.10.01; revised in 2016.01.20.
 dbED.default<-
-function(EDdata, plot=TRUE, typ=c("pdf","hist","scatter"),
-         from=NULL, to=NULL, step=0.1, nbin=15,
-         pcolor="grey", psize=1.5) {
+function(EDdata, plot=TRUE, typ=c("pdf","hist"),
+         from=NULL, to=NULL, step=NULL, nbin=15,
+         pcolor="grey", psize=1.5, outfile=NULL) {
     ### Stop if not.
     stopifnot(ncol(EDdata)==2L, nrow(EDdata)>=5L,
               all(EDdata[,2L,drop=TRUE]>0),
               length(plot)==1L, is.logical(plot),
               is.character(typ),
-              all(typ %in% c("pdf","hist","scatter")),
+              all(typ %in% c("pdf","hist")),
               is.null(from) || is.numeric(from),
               is.null(to) || is.numeric(to),
-              length(step)==1L, is.numeric(step), step>=1e-3,
+              is.null(step) || is.numeric(step), 
               length(nbin)==1L, is.numeric(nbin),
               length(pcolor)==1L, is.character(pcolor),
-              length(psize)==1L, is.numeric(psize))
+              length(psize)==1L, is.numeric(psize),
+              is.null(outfile) || is.character(outfile))
+    ###
+    if (!is.null(step)) {
+        if (length(step)!=1L) stop("Error: step should be an one-element vector!")
+        if (step<=0)  stop("Error: step should exceed zero!")
+    } # end if.
+    ### 
+    if (!is.null(outfile)) {
+        if (length(outfile)!=1L)  stop("Error: outfile should be an one-element vector!")
+    } # end if.
     ###
     nED<-nrow(EDdata)
     EDdata<-EDdata[order(EDdata[,1L,drop=TRUE],
@@ -63,13 +73,18 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist","scatter"),
     quantileED<-quantile(ed1, probs=c(0.05,0.1,0.15,
                          0.5,0.85,0.9,0.95))
     ###
-    output<-list("weight.ED"=weightED,
+    output<-list("weight.ED"=round(weightED, 3L),
                  "skewness"=round(c(skewness, Std.skewness),3L),
                  "kurtosis"=round(c(kurtosis, Std.kurtosis),3L),
                  "quantile.ED"=round(quantileED,3L))
     ###
     if (plot==TRUE) {
         if (typ[1L]=="pdf") {
+            if (is.null(step)) { 
+                step<-max(diff(sort(ed1)))/10.0
+                cat(paste("Default step size:", round(step,3L), "\n\n"))
+            } # end if.
+            ###
             spreadED<-seq(from=from, to=to, by=step)
             pdfMat<-matrix(nrow=length(spreadED), ncol=nED)
             ###
@@ -79,6 +94,11 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist","scatter"),
             } # end if
             pdfED<-rowSums(pdfMat)/sum(rowSums(pdfMat))
             ###
+            if (!is.null(outfile))  {
+                write.csv(cbind(spreadED, pdfED), 
+                  file=paste(outfile,".csv",sep=""))
+            } # end if.        
+            ### 
             plot(spreadED, pdfED, 
                  main="Equivalent Dose Distribution", 
                  xlab="Equivalent Dose (Gy)", ylab="Density",
@@ -95,40 +115,28 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist","scatter"),
             xTicks<-axTicks(side=1L)
             maxYx<-HIST$mids[which.max(HIST$counts)]
             box(lwd=1)
-        } else if (typ[1L]=="scatter") {
-            plot(ed1, abs(sed1/ed1), 
-                 main="Equivalent Dose Distribution", 
-                 xlab="Equivalent Dose (Gy)", 
-                 ylab="Relative Standard Error (Gy)",
-                 xlim=c(from,to), type="p", pch=23, 
-                 cex=psize, bg=pcolor)
-            xTicks<-axTicks(side=1L)
-            maxYx<-ed1[which.max(abs(sed1/ed1))]
-            box(lwd=1)
         } # end if
         ###
-        if (typ[1L]!="scatter") {
-            par("new"=TRUE)
-            plot(ed1, seq(nED), xlab="", ylab="", 
-                 xlim=c(from,to), type="p", 
-                 pch=23, cex=psize, bg=pcolor, 
-                 xaxt="n", yaxt="n")
-            par("new"=FALSE)
-            ###
-            options("warn"=-1)
-            arrows(ed1-sed1/2L, seq(nED),
-                   ed1+sed1/2L, seq(nED),
-                   code=3, lwd=1.5, angle=90, 
-                   length=0.05, col="black")
-            options("warn"=0)
-            ###
-        } # end if
+        ###
+        par("new"=TRUE)
+        plot(ed1, seq(nED), xlab="", ylab="", 
+             xlim=c(from,to), type="p", 
+             pch=23, cex=psize, bg=pcolor, 
+             xaxt="n", yaxt="n")
+        par("new"=FALSE)
+        ###
+        options("warn"=-1)
+        arrows(ed1-sed1/2L, seq(nED),
+               ed1+sed1/2L, seq(nED),
+               code=3, lwd=1.5, angle=90, 
+               length=0.05, col="black")
+        options("warn"=0)
+        ###
         legend(ifelse(maxYx>median(xTicks),"left","right"), 
                legend=c(paste("N=",nED,sep=""),
                         paste("mean=",round(meanED,2L)," (Gy)",sep=""),
                         paste("median=",round(medianED,2L)," (Gy)",sep=""),
-                        paste("sd=",round(sdED,2L),sep="")),
-               cex=1, bty="n")
+                        paste("sd=",round(sdED,2L),sep="")), cex=1, bty="n")
         ###
     } # end if
     ###

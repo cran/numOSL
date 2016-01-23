@@ -18,7 +18,7 @@ decomp(Sigdata, ncomp = 2, constant = TRUE,
 \arguments{
   \item{Sigdata}{\link{matrix}(\bold{required}): a two-column matrix, stimulation time values and photon counts are stored in the first and second column, respectively}
 
-  \item{ncomp}{\link{integer}(with default): number of components to be decomposed}
+  \item{ncomp}{\link{integer}(with default): number of decomposed components}
 
   \item{constant}{\link{logical}(with default): subtract a constant component or not}
 
@@ -36,11 +36,11 @@ decomp(Sigdata, ncomp = 2, constant = TRUE,
 
   \item{plot}{\link{logical}(with default): draw a plot or not}
 
-  \item{xylog}{\link{logical}(with default): apply a logarithmic scale to both axis (x and y) or only x-axis in a plot}
+  \item{xylog}{\link{logical}(with default): use a logarithmic scale for both x-axis and y-axis or only for x-axis}
 
   \item{lwd}{\link{double}(with default): width of a line}
 
-  \item{outfile}{\link{character}(optional): if specified, decomposed signal values will be written to a file named \code{"outfile"} in \code{".csv"} format and saved to the current work directory}
+  \item{outfile}{\link{character}(optional): if specified, decomposed signal values will be written to a file named \code{"outfile"} in \code{CSV} format and saved to the current work directory}
 }
 
 \details{
@@ -65,7 +65,7 @@ all relative standard deviations of parameters are smaller than \code{tol}, defa
 Return a list containing the following elements:
   \item{pars}{optimized decay rates and numbers of trapped electrons}
   \item{constant}{estimated constant component (return \code{0} if \code{constant=FALSE)}}
-  \item{value}{minimized objective of the decay curve}
+  \item{value}{minimized objective for the decay curve}
 }
 
 \seealso{
@@ -100,7 +100,7 @@ Peng J, Dong ZB, Han FQ, Han YH, Dai XL, 2014. Estimating the number of componen
 
 \note{
 Arugments "LEDpower" and "LEDwavelength" are used for determining the absolute photoionisation cross section (\code{pcs}) (see appendix 1 of Choi et al., 2006 for details). However, \code{pcs} estimated in this way may be unreliable, as both the stimulation power and the wavelength vary with the age of the instrument.\cr\cr
-The model to be optimized should not be underdetermined, which means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, this routine will return an error if any standard error of a parameters cannot be estimated by numerical difference-approximation. Function \emph{decompc} in previous versions was bundled to function \link{decomp}.\cr\cr
+The model to be optimized should not be underdetermined. This means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, this routine will return an error if any standard errors of parameters cannot be estimated by numerical difference-approximation. Function \emph{decompc} in previous versions was bundled to function \link{decomp}.\cr\cr
 I would like to thank Professor Andrzej Bluszcz who helps me a lot during the programming of this function. Dr Jeong-Heon Choi and Dr Bo Li are thanked for providing published data sets to test this routine.
 }
 

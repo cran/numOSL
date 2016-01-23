@@ -32,14 +32,14 @@ psRadialPlot(EDdata, addsigma = 0, dose = NULL, zmin = NULL,
 
   \item{psize}{\link{double}(with default): size of a data point}
   
-  \item{rg}{\link{integer}(with default): range of a dose population to be drawn, \code{0=dose},\cr 
+  \item{rg}{\link{integer}(with default): range of a dose population, \code{0=dose},\cr 
 \code{1=dose+/-sigma}, \code{2=dose+/-2sigma}}
 
   \item{zlabel}{\link{character}(with default): title for the z-axis}
 }
 
 \details{
-Function \emph{psRadialPlot} is used for drawing a simplified radial plot in which the z-axis is a straight line. The pseudo radial plot is easier to construct compared to the regular radial plot. This function can be adopted to display estimates that have different error estimates in any field of the analytical sciences. Note that the function handles a data set in log-scale, hence any minus observation is not allowed.
+Function \emph{psRadialPlot} is used for drawing a simplified radial plot in which the z-axis is a straight line. The pseudo radial plot is easier to construct compared to the regular radial plot. This function can be adopted to display estimates that have different error estimates in any field of the analytical sciences. Note that the function handles datasets in log-scale, so any minus observation is not allowed.
 }
 
 \value{

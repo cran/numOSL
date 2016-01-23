@@ -7,7 +7,7 @@ Equivalent dose calculation and error assessment
 }
 
 \description{
-Calculating an equivalent dose value and assessing its standard error using methods described in Duller (2007).
+Calculating equivalent doses and assessing their standard errors using methods described in Duller (2007).
 }
 
 \usage{
@@ -21,7 +21,7 @@ calED(Curvedata, Ltx, model = c("line","exp","lexp","dexp"),
 
   \item{Ltx}{\link{vector} or \link{matrix}(\bold{required}): sensitivity-corrected natural OSL(s) and associated standard error(s)}
 
-  \item{model}{\link{character}(with default): fitting model for a growth curve, default \code{model="line"}, see \link{fitGrowth} for available models}
+  \item{model}{\link{character}(with default): fitting model for the growth curve, default \code{model="line"}, see \link{fitGrowth} for available models}
 
   \item{origin}{\link{logical}(optional): force the growth curve to pass the origin or not}
 
@@ -31,27 +31,27 @@ calED(Curvedata, Ltx, model = c("line","exp","lexp","dexp"),
 
   \item{ErrorMethod}{\link{character}(with default): method used for assessing the standard error of an equivalent dose, default \code{ErrorMethod="mc"}, see details}
 
-  \item{nsim}{\link{integer}(with default): maximum number of simulations if a Monte Carlo method is applied to assessing the standard error of an equivalent dose}
+  \item{nsim}{\link{integer}(with default): maximum number of simulations if a Monte Carlo method is applied to assessing the standard errors of equivalent doses}
 
   \item{weight}{\link{logical}(with default): fit the growth curve using a weighted or an un-weighted procedure, see function \link{fitGrowth} for details}
 
   \item{plot}{\link{logical}(with default): draw a plot or not}
 
-  \item{outfile}{\link{character}(with default): if specified, simulated equivalent dose values will be written to a file named \code{"outfile"} in \code{".csv"} format and saved to the current work directory}
+  \item{outfile}{\link{character}(with default): if specified, simulated equivalent dose values will be written to a file named \code{"outfile"} in \code{CSV} format and saved to the current work directory}
 }
 
 \details{
-Function \emph{calED} can be used for calculating a single equivalent dose value (Duller, 2007) (if \code{Ltx} is a two-element \link{vector}) or a series of equivalent dose values using the "Standardised Growth Curve" method (i.e. "SGC" used by Roberts and Duller, 2004; or "gSGC" proposed by Li et al., 2015) (if \code{Ltx} is a row \link{matrix}).\cr\cr
-Standard error of an equivalent dose can be assessd using two methods outlined by Duller (2007): \cr
+Function \emph{calED} can be used for calculating an equivalent dose value (Duller, 2007) (if \code{Ltx} is a two-element \link{vector}) or a series of equivalent dose values using the "Standardised Growth Curve" method (i.e. "SGC" used by Roberts and Duller, 2004; or "gSGC" proposed by Li et al., 2015) (if \code{Ltx} is a row \link{matrix}).\cr\cr
+Standard errors of equivalent doses can be assessd using two methods outlined by Duller (2007): \cr
 \bold{(1)} \code{"sp"}: a simple transformation from error of a sensitivity-corrected OSL (i.e., \code{s(Lx/Tx)}) to error of an equivalent dose (i.e., \code{s(ED)}); \cr
 \bold{(2)} \code{"mc"}: a Monte Carlo method (a "parametric bootstrap" protocol).\cr\cr
-Interpolation is performed using a combination of golden section search and successive parabolic interpolation (using freely available subroutine at \url{http://www.netlib.org/fmm/fmin.f}). See function \link{fitGrowth} for more details on growth curve fitting.
+Interpolation is performed using a combination of golden section search and successive parabolic interpolation (freely available Fortran code at \url{http://www.netlib.org/fmm/fmin.f}). See function \link{fitGrowth} for more details on growth curve fitting.
 }
 
 \value{
 Return a list that contains the following elements:
-  \item{LMpars}{parameters of the growth curve}
-  \item{value}{minimized objective of the growth curve}
+  \item{LMpars}{parameters for the growth curve}
+  \item{value}{minimized objective for the growth curve}
   \item{fit.value}{observations and fitted values}
   \item{ED}{equivalent dose(s) and standard error(s)}
 }
@@ -70,8 +70,7 @@ Roberts HM, Duller GAT, 2004. Standardised growth curves for optical dating of s
 
 
 \note{
-Interpolation is performed within the range of regenerative dose values, which means that the sensitivity-corrected natural OSL (i.e., \code{Ltx}) used for calculating an equivalent dose should not excced the maximum sensitivity-corrected regenerative OSL used for constructing the growth curve if a non-linear model is applied.\cr\cr
-For a given model, the curve fitting procedure will return an error if any standard error of a parameter cannot be estimated by numerical difference-approximation. Function \emph{sgcED} in previous versions was bundled to function \link{calED}.
+For a given model, the curve fitting procedure will return an error if any standard errors of parameters cannot be estimated by numerical difference-approximation. Function \emph{sgcED} in previous versions was bundled to function \link{calED}.
 }
 
 \examples{

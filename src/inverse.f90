@@ -52,7 +52,7 @@ subroutine gjordan(mat1,mat2,n,m,singular)
     real   (kind=8), intent(inout):: mat1(n,n), mat2(n,m)
     integer(kind=4), intent(out):: singular
     ! Local variables.
-    real    (kind=8), parameter:: sgTol=1.0D-10
+    real    (kind=8), parameter:: sgTol=2.220446e-16
     real    (kind=8):: qq, Dd(n)
     integer(kind=4):: i, j, k, is, js(n)
     !

@@ -2,10 +2,10 @@
 \alias{reportSAM}
 \alias{reportSAM.default}
 \title{
-Statistical age models' MCMC output reporting
+Reporting MCMC outputs for statistical age models
 }
 \description{
-Summarizing distributions of parameters simulated from a statistical age model. 
+Summarizing distributions of parameters simulated from statistical age models. 
 }
 \usage{
 reportSAM(obj, burn = 10000, thin = 5, 
@@ -20,7 +20,7 @@ reportSAM(obj, burn = 10000, thin = 5,
 
   \item{plot}{\link{logical}(with default): plot the MCMC output or not}
 
-  \item{outfile}{\link{character}(optional): if specified, simulated parameters will be written to a file named \code{"outfile"} in \code{".csv"} format and saved to the current work directory}
+  \item{outfile}{\link{character}(optional): if specified, simulated parameters will be written to a file named \code{"outfile"} in \code{CSV} format and saved to the current work directory}
 
   \item{\dots}{do not use}
 }
