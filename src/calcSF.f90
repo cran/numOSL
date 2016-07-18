@@ -1,16 +1,19 @@
-subroutine interpolate(ax,bx,ltx,pars,&
-                       n2,model,dose,fmin)
+subroutine calcSF(ax,bx,dose,ltx,pars,&
+                  nd,n2,model,SF,fmin)
 !-----------------------------------------------------
-! Subroutine interpolate is used for 
-! interpolating an equivalent dose.
+! Subroutine calcSF() is used for 
+! calculating the scaling factor.
 !-----------------------------------------------------
 !       ax:: input, real value, lower limit.
 !       bx:: input, real value, upper limit.
-!      ltx:: input, real value, OSL value.
+! dose(nd):: input, real values, regenerative doses.
+!  ltx(nd):: input, real value, OSL signal values.
 ! pars(n2):: input, real vlaues, parameters.
-!       n2:: input, integer, number ([2,5]) of pars.
-!    model:: input, integer, 1="exp",2="lexp",3="dexp".
-!     dose:: output, real value, resulting value.
+!       nd:: input, integer, number of data points.
+!       n2:: input, integer, number ([2,4]) of pars.
+!    model:: input, integer, 0=line, 1=exp, 2=line+exp,
+!                            3=dexp, 7=gok
+!       SF:: output, real value, calculated SF.
 !     fmin:: output, real value, minimized objective.
 !-----------------------------------------------------
 ! Author:: Peng Jun, 2016.07.06.
@@ -23,10 +26,10 @@ subroutine interpolate(ax,bx,ltx,pars,&
 !-----------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: n2, model
-    real   (kind=8), intent(in):: ax, bx, ltx,&
-                                  pars(n2)
-    real   (kind=8), intent(out):: dose, fmin
+    integer(kind=4), intent(in):: nd, n2, model
+    real   (kind=8), intent(in):: ax, bx, dose(nd),&
+                                  ltx(nd), pars(n2)
+    real   (kind=8), intent(out):: SF, fmin
     ! Local variables.
     real   (kind=8):: a, b, c, d, e, p, q, r, u, v, w, x
     real   (kind=8):: t2, fu, fv, fw, fx, xm, eps, tol1, tol3
@@ -134,11 +137,11 @@ subroutine interpolate(ax,bx,ltx,pars,&
 
     end do
     
-    dose = x
+    SF = x
     fmin = fcn(x)
     
-    return   
-    !
+    return 
+
     contains
     ! Inner function fcn.
     function fcn(x)
@@ -148,23 +151,21 @@ subroutine interpolate(ax,bx,ltx,pars,&
         xx = 0.0D+00 
         xx(1:n2) = pars
         !
-        if (model==1) then
-            ! Exp model (n2 = 2 or 3)
-            fcn = (xx(1)*(1.0-dexp(-xx(2)*x))+&
-                   xx(3)-ltx)**2
+        if (model==0) then 
+            fcn = sum((xx(1)*dose+xx(2)-x*ltx)**2)
+        else if (model==1) then
+            fcn = sum((xx(1)*(1.0-exp(-xx(2)*dose))+&
+                       xx(3)-x*ltx)**2)
         else if (model==2) then
-            ! Linear plus exp model (n2 = 3 or 4).
-            fcn = (xx(1)*(1.0-dexp(-xx(2)*x))+&
-                   xx(3)*x+xx(4)-ltx)**2
+            fcn = sum((xx(1)*(1.0-exp(-xx(2)*dose))+&
+                       xx(3)*dose+xx(4)-x*ltx)**2)
         else if (model==3) then
-            ! Double exp model (n2 = 4 or 5).
-            fcn = (xx(1)*(1.0-dexp(-xx(2)*x))+&
-                   xx(3)*(1.0-dexp(-xx(4)*x))+&
-                   xx(5)-ltx)**2
-        else if (model==7) then
-           ! General kinetic model (n2 = 3 or 4).
-           fcn = (xx(1)*(1.0-(1.0+xx(2)*xx(3)*x)**&
-                 (-1.0/xx(3)))+xx(4)-ltx)**2
+            fcn = sum((xx(1)*(1.0-exp(-xx(2)*dose))+&
+                       xx(3)*(1.0-exp(-xx(4)*dose))+&
+                       xx(5)-x*ltx)**2)
+        else if (model==7) then                     
+            fcn = sum((xx(1)*(1.0-(1.0+xx(2)*xx(3)*dose)**&
+                      (-1.0/xx(3)))+xx(4)-x*ltx)**2)
         end if
         !
         ! Test for Inf or NaN.
@@ -172,4 +173,4 @@ subroutine interpolate(ax,bx,ltx,pars,&
         !
         return
     end function fcn
-end subroutine interpolate
+end subroutine calcSF

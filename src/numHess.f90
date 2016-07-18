@@ -1,7 +1,7 @@
 subroutine numHess(xd,yd,syd,nd,model,&
                    pars,np,hess,iflag)
 !--------------------------------------------------------
-! Subroutine numHess() is used for approximating the 
+! Subroutine numHess is used for approximating the 
 ! Hessian matrix of a function at given parameters using 
 ! a numerical differention method called "Richardson".
 !--------------------------------------------------------
@@ -9,19 +9,14 @@ subroutine numHess(xd,yd,syd,nd,model,&
 !      yd(nd):: input, real values, observations y.
 !     syd(nd):: input, real values, observations sy.
 !          nd:: input, integer, number of data points.
-!       model:: input, integer, 0=growth-linear;
-!                               1=growth-exp;
-!                               2=growth-lexp;
-!                               3=growth-dexp;
-!                               4=decay-cw;
-!                               5=decay-lm;
-!                               6=MAM.                             
+!       model:: input, integer, 0=linear model;
+!                               6=MAM model.                             
 !    pars(np):: input, real values, parameters.
-!          np:: input, integer, number ([1,15]) of pars.
+!          np:: input, integer, number of pars.
 ! hess(np,np):: output, real values, the Hessian matrix.
 !       iflag:: output, integer, 0=success; 1=fail.
 !--------------------------------------------------------
-! Author:: Peng Jun, 2014.10.01.
+! Author:: Peng Jun, 2016.07.06.
 !--------------------------------------------------------
 ! Dependence:: inner function func; 
 !              subroutine pnorm; 
@@ -56,7 +51,7 @@ subroutine numHess(xd,yd,syd,nd,model,&
     integer(kind=4):: i, j, k, m, u
     real   (kind=8), parameter:: pi=&
     3.141592653589793238462643383279502884197D+00
-    real   (kind=8):: xx(15), xd1(nd), xd2(nd)
+    real   (kind=8):: xx(15)
     !
     iflag = 0
     hess = 0.0D+00
@@ -147,7 +142,8 @@ subroutine numHess(xd,yd,syd,nd,model,&
         hess(i,i) = hess(i,i) / 2.0D+00
     end do
     if(any(hess .ne. hess) .or.&
-       any(hess+1.0D+00==hess))  iflag=1
+       any(hess .gt. huge(0.0D+00)) .or.&
+       any(hess .lt. -huge(0.0D+00)))  iflag=1
     !
     return
     !
@@ -170,74 +166,7 @@ subroutine numHess(xd,yd,syd,nd,model,&
                 return
             end if
             !
-            ! Exponential model.
-            if (model==1) then
-                vec = (xx(1)*(1.0D+00-dexp(-xx(2)*xd))+&
-                       xx(3)-yd)/syd
-                func = sum(vec**2)
-                return
-            end if
-            !
-            ! Exponential plus linear model.
-            if (model==2) then
-                vec = (xx(1)*(1.0D+00-dexp(-xx(2)*xd))+&
-                       xx(3)*xd+xx(4)-yd)/syd
-                func = sum(vec**2)
-                return
-            end if
-            !
-            ! Double exponential model.
-            if (model==3) then
-                vec = (xx(1)*(1.0D+00-dexp(-xx(2)*xd))+&
-                       xx(3)*(1.0D+00-dexp(-xx(4)*xd))+&
-                       xx(5)-yd)/syd
-                func = sum(vec**2)
-                return
-            end if
-            !
-            ! CW-OSL decay curve.
-            if (model==4) then
-                if (mod(np,2)==0) then
-                    vec = 0.0
-                    do i=1, np/2
-                        vec = vec + xx(i)*xx(i+np/2)*&
-                              dexp(-xx(i+np/2)*xd)
-                    end do 
-                else if (mod(np,2)==1) then
-                    vec = xx(np)
-                    do i=1, (np-1)/2
-                        vec = vec + xx(i)*xx(i+(np-1)/2)*&
-                              dexp(-xx(i+(np-1)/2)*xd)
-                    end do
-                end if
-                vec = (vec -yd)/syd
-                func = sum(vec**2)
-                return
-            end if
-            ! 
-            ! LM-OSL decay curve.
-            if (model==5) then
-                xd1 = xd/xd(nd)
-                xd2 = xd**2/xd(nd)/2.0D+00
-                if (mod(np,2)==0) then
-                    vec =0.0
-                    do i=1, np/2
-                        vec = vec + xx(i)*xd1*xx(i+np/2)*&
-                              dexp(-xx(i+np/2)*xd2)
-                    end do   
-                else if (mod(np,2)==1) then
-                    vec = xx(np)*xd1
-                    do i=1, (np-1)/2
-                        vec = vec + xx(i)*xd1*xx(i+(np-1)/2)*&
-                              dexp(-xx(i+(np-1)/2)*xd2) 
-                    end do  
-                end if
-                vec = (vec -yd)/syd
-                func = sum(vec**2)
-                return
-            end if
-            !
-            ! Minimum age model (likelihood).
+            ! Minimum age model.
             if (model==6) then
                 if (np==3) then
                     vec = (xx(2)-(xx(2)/(xx(3))**2+yd/xd**2)/&

@@ -14,7 +14,7 @@ psRadialPlot(EDdata, addsigma = 0, dose = NULL, zmin = NULL,
 }
 
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix, equivalent dose values and associated errors are stored in the first and second column, respectively}
+  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and associated standard errors)}
 
   \item{addsigma}{\link{double}(with default): additional uncertainty}
 
@@ -39,7 +39,7 @@ psRadialPlot(EDdata, addsigma = 0, dose = NULL, zmin = NULL,
 }
 
 \details{
-Function \emph{psRadialPlot} is used for drawing a simplified radial plot in which the z-axis is a straight line. The pseudo radial plot is easier to construct compared to the regular radial plot. This function can be adopted to display estimates that have different error estimates in any field of the analytical sciences. Note that the function handles datasets in log-scale, so any minus observation is not allowed.
+Function \link{psRadialPlot} is used for drawing a simplified radial plot in which the z-axis is a straight line. The pseudo radial plot is easier to construct compared to the regular radial plot. This function can be adopted to display estimates that have different error estimates in any field of the analytical sciences. Note that the function handles datasets in log-scale, so any minus observation is not allowed.
 }
 
 \value{

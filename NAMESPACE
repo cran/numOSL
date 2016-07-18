@@ -15,6 +15,13 @@ S3method(RadialPlotter, default)
 S3method(reportSAM, default)
 S3method(select, default)
 S3method(viewer, default)
+S3method(calSARED, default)
+S3method(calSGCED, default)
+S3method(lsNORM, default)
+S3method(pickSARdata, default)
+S3method(pickSARED, default)
+S3method(summary, calSARED)
+S3method(summary.calSARED, default)
 
 importFrom(graphics, abline, arrows, axTicks, axis, box,
      curve, grid, hist, layout, legend, lines, mtext,
@@ -22,3 +29,4 @@ importFrom(graphics, abline, arrows, axTicks, axis, box,
 importFrom(stats, acf, approx, complete.cases, density, dnorm, runif,
      kmeans, median, nlminb, optim, pnorm, quantile, rnorm, sd, var)
 importFrom(utils, write.csv)
+importFrom(grDevices, pdf, dev.off)

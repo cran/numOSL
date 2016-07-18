@@ -1,7 +1,7 @@
 subroutine apmamstd(ed,sed,ndat,pars,&
                     stdp,np,iflag)
 !--------------------------------------------------
-! Subroutine apmamstd() is used for estimating
+! Subroutine apmamstd is used for estimating
 ! the standard errors of a minimum age model 
 ! using finite difference approximation.
 !--------------------------------------------------
@@ -13,10 +13,10 @@ subroutine apmamstd(ed,sed,ndat,pars,&
 !       np:: input, integer, number ([3,4]) of pars.
 !    iflag:: output, integer, 0=success, 1=fail.
 !--------------------------------------------------
-! Author:: Peng Jun ,2014.09.30.
+! Author:: Peng Jun ,2016.06.26.
 !--------------------------------------------------
-! Dependence:: subroutine numHess;-----------------
-!              subroutine inverse.-----------------
+! Dependence:: subroutine numHess;
+!              subroutine inverse_sym.
 !--------------------------------------------------
     implicit none
     ! Arguments.
@@ -26,7 +26,7 @@ subroutine apmamstd(ed,sed,ndat,pars,&
     real   (kind=8), intent(out):: stdp(np)
     integer(kind=4), intent(out):: iflag
     ! Local variables.
-    integer(kind=4):: i, errorflag, singular
+    integer(kind=4):: i, errorflag, ifault
     real   (kind=8):: hess(np,np), diag(np), syd(ndat)
     integer(kind=4), parameter:: model=6
     !
@@ -41,8 +41,8 @@ subroutine apmamstd(ed,sed,ndat,pars,&
         return
     end if
     !
-    call inverse(hess,np,singular)
-    if (singular/=0) then
+    call inverse_sym(hess,np,ifault)
+    if (ifault/=0) then
         iflag = 1
         return
     end if

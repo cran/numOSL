@@ -1,7 +1,7 @@
 subroutine linefit(xd,yd,syd,nd,pars,stdp,&
                    n2,fvec1,fmin,message)
 !-----------------------------------------------------
-! Subroutine linefit() is used for fitting
+! Subroutine linefit is used for fitting
 ! a line of the formula y=a*x or y=a*x+b.
 !-----------------------------------------------------
 !    xd(nd):: input, real values, observations X.
@@ -15,9 +15,10 @@ subroutine linefit(xd,yd,syd,nd,pars,stdp,&
 !      fmin:: output, real value, minimized objective.
 !   message:: output, integer, 0=success, 1=fail.
 !-----------------------------------------------------
-! Author:: Peng Jun, 2014.10.02.
+! Author:: Peng Jun, 2016.07.06.
 !-----------------------------------------------------
-! Dependence:: subroutine numHess, subroutine inverse.
+! Dependence:: subroutine numHess; 
+!              subroutine inverse_sym.
 !-----------------------------------------------------
     ! Arguments.
     integer(kind=4), intent(in):: nd, n2
@@ -29,7 +30,7 @@ subroutine linefit(xd,yd,syd,nd,pars,stdp,&
     ! Local variables.
     real   (kind=8):: wght(nd), xx(2),&
                       hess(n2,n2), diag(n2), avgdv
-    integer(kind=4):: i, errorflag, singular
+    integer(kind=4):: i, errorflag, ifault
     integer(kind=4), parameter:: model=0
     !
     pars = -99.0
@@ -84,8 +85,8 @@ subroutine linefit(xd,yd,syd,nd,pars,stdp,&
         return
     end if
     !
-    call inverse(hess,n2,singular)
-    if (singular/=0) then
+    call inverse_sym(hess,n2,ifault)
+    if (ifault/=0) then
         message = 1
         return
     end if
@@ -93,7 +94,7 @@ subroutine linefit(xd,yd,syd,nd,pars,stdp,&
     do i=1, n2
         diag(i) = hess(i,i) * avgdv
     end do
-    if (any(diag<0.0)) then
+    if (any(diag<=0.0)) then
         message = 1
         return
     end if

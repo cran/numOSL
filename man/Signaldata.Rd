@@ -25,4 +25,4 @@ data(Signaldata)
 names(Signaldata)
 }
 \keyword{OSL dating}
-\keyword{OSL decay curve}
+\keyword{decay curve}

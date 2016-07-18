@@ -1,7 +1,7 @@
 subroutine decomp(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
                   factor,f,cr,maxiter,tol,fvec1,fmin,message)
 !------------------------------------------------------------------------
-! Subroutine decomp() is used for OSL decay curve decomposition.
+! Subroutine decomp is used for OSL decay curve decomposition.
 !------------------------------------------------------------------------
 !   tim(ntim):: input, real values, time values.
 !   sig(ntim):: input, real values, decay signal values.
@@ -21,9 +21,11 @@ subroutine decomp(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
 !        fmin:: output, real value, minimumized objective.
 !     message:: output, integer, 0=success, 1=fail.
 !------------------------------------------------------------------------
-! Author:: Peng Jun, 2014.09.28.
+! Author:: Peng Jun, 2016.06.26.
 !------------------------------------------------------------------------
-! Dependence:: subroutine diffev; subroutine lmfit; subroutine comb_next.
+! Dependence:: subroutine diffev; 
+!              subroutine lmfit; 
+!              subroutine comb_next.
 !------------------------------------------------------------------------
 ! Reference::   Bluszcz, A., Adamiec, G., 2006. Application of 
 !               differential evolution to fitting OSL decay curves. 
@@ -44,7 +46,7 @@ subroutine decomp(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
                       lmInfo, model
     real   (kind=8):: constant, lamda((n2-addc)/2),ithn((n2-addc)/2),&
                       agents(factor*(n2-addc)/2,(n2-addc)/2), cpars(n2),&
-                      cstdp(n2), cfvec1(ntim), cfmin, cond, minCond, wght1(ntim)
+                      cstdp(n2), cfvec1(ntim), cfmin, minValue, wght1(ntim)
     integer(kind=4), parameter:: nperm(7)=(/7,21,35,35,21,7,1/)
     real   (kind=8), parameter:: initry(7)=(/32.0,2.5,0.62,0.15,&
                                              0.023,0.0022,0.0003/)
@@ -78,16 +80,16 @@ subroutine decomp(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
         cpars(n1+1:2*n1) = lamda
         if (addc==1) cpars(n2) = constant
         call lmfit(tim,sig,wght1,ntim,cpars,cstdp,n2,&
-                   model,cfvec1,cfmin,cond,lmInfo)
+                   model,cfvec1,cfmin,lmInfo)
     end if
     !
-    minCond = 1.0D+20
+    minValue = 1.0D+20
     if (iflag==0 .and. lmInfo==0) then
         pars = cpars
         stdp = cstdp
         fvec1 = cfvec1
         fmin = cfmin
-        minCond = cond
+        minValue = cfmin
         message = 0
     end if
     !
@@ -105,18 +107,17 @@ subroutine decomp(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
         if (addc==1) then
             if (typ==1) cpars(n2) = sum(sig(ntim-2:ntim))/3.0 
             if (typ==2) cpars(n2) = tim(ntim)*sum(sig(ntim-2:ntim)*&
-                                                  tim(ntim-2:ntim))/&
-                                              sum((tim(ntim-2:ntim))**2)
+                                    tim(ntim-2:ntim))/sum((tim(ntim-2:ntim))**2)
         end if
         !
         call lmfit(tim,sig,wght1,ntim,cpars,cstdp,n2,&
-                   model,cfvec1,cfmin,cond,lmInfo)
-        if (lmInfo==0 .and. cond<minCond) then
+                   model,cfvec1,cfmin,lmInfo)
+        if (lmInfo==0 .and. cfmin<minValue) then
             pars = cpars
             stdp = cstdp
             fvec1 = cfvec1
             fmin = cfmin
-            minCond = cond
+            minValue = cfmin
             message = 0
         end if
     end do loopA

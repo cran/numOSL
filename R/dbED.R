@@ -1,21 +1,20 @@
 #####
-dbED<-
-function(EDdata, plot=TRUE, typ=c("pdf","hist"),
+dbED <-
+function(EDdata, plot=TRUE, typ="pdf",
          from=NULL, to=NULL, step=NULL, nbin=15,
          pcolor="grey", psize=1.5, outfile=NULL) {
     UseMethod("dbED")
 } #
-### 2014.10.01; revised in 2016.01.20.
-dbED.default<-
-function(EDdata, plot=TRUE, typ=c("pdf","hist"),
+### 2016.06.27.
+dbED.default <-
+function(EDdata, plot=TRUE, typ="pdf",
          from=NULL, to=NULL, step=NULL, nbin=15,
          pcolor="grey", psize=1.5, outfile=NULL) {
     ### Stop if not.
     stopifnot(ncol(EDdata)==2L, nrow(EDdata)>=5L,
               all(EDdata[,2L,drop=TRUE]>0),
               length(plot)==1L, is.logical(plot),
-              is.character(typ),
-              all(typ %in% c("pdf","hist")),
+              length(typ)==1L, is.character(typ), typ %in% c("pdf","hist"),
               is.null(from) || is.numeric(from),
               is.null(to) || is.numeric(to),
               is.null(step) || is.numeric(step), 
@@ -43,12 +42,12 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist"),
         from<-ifelse(min(ed1)>=0,
                      min(ed1)*0.7,
                      min(ed1)*1.3)
-    } # end if
+    } # end if.
     if (is.null(to)) {
         to<-ifelse(max(ed1)>=0,
                    max(ed1)*1.3,
                    max(ed1)*0.7)
-    } # end if
+    } # end if.
     if (from>=to) {
         stop("Error: from must not exceed to!")
     } # end if
@@ -79,7 +78,7 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist"),
                  "quantile.ED"=round(quantileED,3L))
     ###
     if (plot==TRUE) {
-        if (typ[1L]=="pdf") {
+        if (typ=="pdf") {
             if (is.null(step)) { 
                 step<-max(diff(sort(ed1)))/10.0
                 cat(paste("Default step size:", round(step,3L), "\n\n"))
@@ -91,7 +90,7 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist"),
             for(i in seq(nED)) {
                 pdfMat[,i]<-dnorm(x=spreadED, mean=ed1[i], 
                                   sd=sed1[i], log=FALSE)
-            } # end if
+            } # end if.
             pdfED<-rowSums(pdfMat)/sum(rowSums(pdfMat))
             ###
             if (!is.null(outfile))  {
@@ -106,7 +105,7 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist"),
             xTicks<-axTicks(side=1L)
             maxYx<-spreadED[which.max(pdfED)]
             box(lwd=1)
-        } else if (typ[1L]=="hist") {
+        } else if (typ=="hist") {
             breaks<-pretty(ed1, n=nbin)
             HIST<-hist(ed1, breaks=breaks, 
                        main="Equivalent Dose Distribution", 
@@ -115,7 +114,7 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist"),
             xTicks<-axTicks(side=1L)
             maxYx<-HIST$mids[which.max(HIST$counts)]
             box(lwd=1)
-        } # end if
+        } # end if.
         ###
         ###
         par("new"=TRUE)
@@ -125,12 +124,13 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist"),
              xaxt="n", yaxt="n")
         par("new"=FALSE)
         ###
-        options("warn"=-1)
-        arrows(ed1-sed1/2L, seq(nED),
-               ed1+sed1/2L, seq(nED),
-               code=3, lwd=1.5, angle=90, 
-               length=0.05, col="black")
-        options("warn"=0)
+        ###
+        arrowIndex <- which(sed1>0.05 & sed1/ed1>0.01)
+        if (length(arrowIndex)>=1L) {
+            arrows(x0=ed1[arrowIndex]-sed1[arrowIndex]/2.0, y0=(seq(nED))[arrowIndex],
+                   x1=ed1[arrowIndex]+sed1[arrowIndex]/2.0, y1=(seq(nED))[arrowIndex],
+                   code=3, lwd=1.5, angle=90, length=0.05, col="black")
+        } # end if.
         ###
         legend(ifelse(maxYx>median(xTicks),"left","right"), 
                legend=c(paste("N=",nED,sep=""),
@@ -138,8 +138,8 @@ function(EDdata, plot=TRUE, typ=c("pdf","hist"),
                         paste("median=",round(medianED,2L)," (Gy)",sep=""),
                         paste("sd=",round(sdED,2L),sep="")), cex=1, bty="n")
         ###
-    } # end if
+    } # end if.
     ###
     return(output)
-} # end function dbED.
-###           
+} # end function dbED.default.
+#####           

@@ -16,7 +16,7 @@ viewer(filename)
 }
 
 \details{
-Function \emph{viewer} is used for importing data records stored in a BIN file produced by a Risoe reader into the R platform. It visualizes datasets in a manner similar to software \bold{\emph{Viewer}}. Two kinds of binary data file are supported: (1) file in ".bin" format with data structure described in Appendix 1 in user mannual (version 3.22b) of the \bold{\emph{Analyst}} software; (2) file in ".binx" format with data structure outlined in user manual (February 2013) of the \bold{\emph{Viewer}} software. \cr\cr
+Function \link{viewer} is used for importing data records stored in a BIN file produced by a Risoe reader into the R platform. It visualizes datasets in a manner similar to software \bold{\emph{Viewer}}. Two kinds of binary data file are supported: (1) file in ".bin" format with data structure described in Appendix 1 in user mannual (version 3.22b) of the \bold{\emph{Analyst}} software; (2) file in ".binx" format with data structure outlined in user manual (February 2013) of the \bold{\emph{Viewer}} software. \cr\cr
 Each data record stored in a BIN file is associated with a number of items (attributes). Only items that facilate record identification and equivalent dose calculation are reserved. Items of this kind may include:\cr
 \bold{(1)} \emph{position}: carousel position of an aliquot; \cr
 \bold{(2)} \emph{runNumber}: run number of measurement; \cr
@@ -46,7 +46,7 @@ Both documents (user manuals of \bold{\emph{Analyst}} and \bold{\emph{Viewer}}) 
 }
 
 \note{
-I would like to appreciate Dr Lei Gao who prompts me to write this function and provides measured data sets to test this procedure.
+We would like to appreciate Dr Lei Gao who prompts me to write this function and provides measured data sets to test this procedure.
 }
 \seealso{
   \link{select}

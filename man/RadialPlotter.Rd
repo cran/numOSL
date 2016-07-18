@@ -14,7 +14,7 @@ RadialPlotter(EDdata, ncomp = 0, addsigma = 0,
               kratio = 0.3, zscale = NULL)
 }
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix, equivalent dose values and associated errors are stored in the first and second column, respectively}
+  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and associated standard errors)}
 
   \item{ncomp}{\link{integer}(with default): number of components, \code{-1=MAM3}, \code{-2=MAM4}, \code{0} means fitting FMM automatically, \code{1=CAM}, and \code{>=1} means fitting FMM with a given number of components}
 
@@ -85,8 +85,8 @@ Software is freely available at \url{http://www.ucl.ac.uk/~ucfbpve/radialplotter
 }
 
 \note{
-Function \emph{RadialPlotter} was given the same name as the \bold{\emph{Java}} package \bold{\emph{RadialPlotter}} written by Pieter Vermeesch (Vermeesch, 2009). Note that this function fits a model in log-scale, hence any minus equivalent dose value is not allowed, and that the procedure will return an error if any standard error of a parameter cannot be estimated by numerical difference-approximation.\cr\cr
-The original \bold{\emph{S}} code for drawing a radial plot was written by Rex Galbraith and was transformed to \bold{\emph{R}} by Sebastian Kreutzer. The code for drawing radial plot in this function was modified from package \bold{\emph{Luminescence}} written by Kreutzer et al. (2012). I thank Dr Rex Galbraith for his permission to modify and bundle the code to this function. I also thank Dr Silke Schmidt and Dr Helena Rodnight for providing published OSL data sets to test this routine.
+Function \link{RadialPlotter} was given the same name as the \bold{\emph{Java}} package \bold{\emph{RadialPlotter}} written by Pieter Vermeesch (Vermeesch, 2009). Note that this function fits a model in log-scale, hence any minus equivalent dose value is not allowed, and that the procedure will return an error if any standard error of a parameter cannot be estimated by numerical difference-approximation.\cr\cr
+The original \bold{\emph{S}} code for drawing a radial plot was written by Rex Galbraith and was transformed to \bold{\emph{R}} by Sebastian Kreutzer. The code for drawing radial plot in this function was modified from package \bold{\emph{Luminescence}} written by Kreutzer et al. (2012). We thank Dr Rex Galbraith for his permission to modify and bundle the code to this function. We also thank Dr Silke Schmidt, Dr Helena Rodnight, Dr Xian-Jiao Ou, and Dr Amanda Keen-Zebert for providing published OSL data sets to test this routine.
 }
 
 \seealso{

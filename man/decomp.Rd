@@ -5,32 +5,27 @@
 OSL decay curve decomposition
 }
 \description{
-Decomposing an CW-OSL or LM-OSL decay curve to a given number of first-order exponential components using a combination of differential evolution and Levenberg-Marquardt algorithm.
+Decomposing a CW-OSL or LM-OSL decay curve to a given number of first-order exponential components using a combination of differential evolution and Levenberg-Marquardt algorithm.
 }
 
 \usage{
-decomp(Sigdata, ncomp = 2, constant = TRUE, 
-       typ = c("cw","lm"), control.args = list(), 
-       transf = TRUE, LEDpower = 60, LEDwavelength = 470, 
-       weight = FALSE, plot = TRUE, xylog = FALSE, lwd = 3, outfile = NULL)
+decomp(Sigdata, ncomp = 2, constant = TRUE, typ = "cw", 
+       control.args = list(), transf = TRUE, weight = FALSE, 
+       plot = TRUE, xylog = FALSE, lwd = 3, outfile = NULL)
 }
 
 \arguments{
-  \item{Sigdata}{\link{matrix}(\bold{required}): a two-column matrix, stimulation time values and photon counts are stored in the first and second column, respectively}
+  \item{Sigdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., stimulation time values and photon counts)}
 
   \item{ncomp}{\link{integer}(with default): number of decomposed components}
 
   \item{constant}{\link{logical}(with default): subtract a constant component or not}
 
-  \item{typ}{\link{character}(with default): type (\code{"cw"} or \code{"lm"}) of a decay curve, default \code{typ="cw"}}
+  \item{typ}{\link{character}(with default): type (\code{"cw"} or \code{"lm"}) of a decay curve}
 
   \item{control.args}{\link{list}(with default): arguments used by the differential evolution algorithm, see details}
 
   \item{transf}{\link{logical}(with default): do not use (for backward compatibility purpose)}
-
-  \item{LEDpower}{\link{double}(with default): LED power (mW/cm^2) of the instrument}
-
-  \item{LEDwavelength}{\link{double}(with default): LED wavelength (nm) of the instrument}
 
   \item{weight}{\link{logical}(with default): perform the optimization using a weighted or an un-weighted procedure, see details}
 
@@ -38,13 +33,13 @@ decomp(Sigdata, ncomp = 2, constant = TRUE,
 
   \item{xylog}{\link{logical}(with default): use a logarithmic scale for both x-axis and y-axis or only for x-axis}
 
-  \item{lwd}{\link{double}(with default): width of a line}
+  \item{lwd}{\link{double}(with default): line width}
 
-  \item{outfile}{\link{character}(optional): if specified, decomposed signal values will be written to a file named \code{"outfile"} in \code{CSV} format and saved to the current work directory}
+  \item{outfile}{\link{character}(optional): if specified, decomposed signal values will be written to a CSV file named \code{"outfile"} and saved to the current work directory}
 }
 
 \details{
-Function \emph{decomp} decomposes an OSL decay curve to a specified number of components using a combination of differential evolution and Levenberg-Marquardt algorithm. Both CW-OSL and LM-OSL decay curves can be decomposed.\cr\cr
+Function \link{decomp} decomposes an OSL decay curve to a specified number of components using a combination of differential evolution and Levenberg-Marquardt algorithm. Both CW-OSL and LM-OSL decay curves can be decomposed.\cr\cr
 For a CW-OSL decay curve, the fitting model (Bluszcz and Adamiec, 2006) is:\cr
 \code{I(t)=a1*b1*exp(-b1*t)+...+ak*bk*exp(-bk*t)},\cr
 where \code{k=1, 2, ..., 7}, \code{I(t)} is the luminescence intensity as a function of time, \code{a} is the number of trapped electrons, and \code{b} is the detrapping rate. The constant component is \code{c} if \code{constant=TRUE}.\cr\cr
@@ -63,9 +58,9 @@ all relative standard deviations of parameters are smaller than \code{tol}, defa
 
 \value{
 Return a list containing the following elements:
-  \item{pars}{optimized decay rates and numbers of trapped electrons}
+  \item{LMpars}{optimized parameters for the fitted decay curve}
   \item{constant}{estimated constant component (return \code{0} if \code{constant=FALSE)}}
-  \item{value}{minimized objective for the decay curve}
+  \item{value}{minimized objective for the fitted decay curve}
 }
 
 \seealso{
@@ -99,9 +94,8 @@ Peng J, Dong ZB, Han FQ, Han YH, Dai XL, 2014. Estimating the number of componen
 
 
 \note{
-Arugments "LEDpower" and "LEDwavelength" are used for determining the absolute photoionisation cross section (\code{pcs}) (see appendix 1 of Choi et al., 2006 for details). However, \code{pcs} estimated in this way may be unreliable, as both the stimulation power and the wavelength vary with the age of the instrument.\cr\cr
-The model to be optimized should not be underdetermined. This means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, this routine will return an error if any standard errors of parameters cannot be estimated by numerical difference-approximation. Function \emph{decompc} in previous versions was bundled to function \link{decomp}.\cr\cr
-I would like to thank Professor Andrzej Bluszcz who helps me a lot during the programming of this function. Dr Jeong-Heon Choi and Dr Bo Li are thanked for providing published data sets to test this routine.
+The model to be optimized should not be underdetermined. This means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, this routine will return an error if any standard errors of parameters cannot be estimated by numerical difference-approximation. Function \code{decompc} in previous versions was bundled to function \link{decomp}.\cr\cr
+We would like to thank Professor Andrzej Bluszcz who helps us a lot during the programming of this function. Dr Jeong-Heon Choi is thanked for providing published data sets to test this routine.
 }
 
 \examples{
@@ -109,4 +103,4 @@ I would like to thank Professor Andrzej Bluszcz who helps me a lot during the pr
  decomp(Signaldata$lm,ncomp=3,typ="lm",
         control.args=list(maxiter=10))
 }
-\keyword{OSL decay curve}
+\keyword{decay curve}

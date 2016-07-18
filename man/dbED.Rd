@@ -11,17 +11,17 @@ Calculating statistical parameters (skewness, kurtosis, quantiles) for a number 
 }
 
 \usage{
-dbED(EDdata, plot = TRUE, typ = c("pdf","hist"), 
+dbED(EDdata, plot = TRUE, typ = "pdf", 
      from = NULL, to = NULL, step = NULL, nbin = 15, 
      pcolor = "grey", psize = 1.5, outfile = NULL)
 }
 
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix, equivalent dose values and associated errors are stored in the first and second column, respectively}
+  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and associated standard errors)}
  
   \item{plot}{\link{logical}(with default): draw a plot or not}
   
-  \item{typ}{\link{character}(with default): type of plot, \code{"pdf"} means a probability density plot and \code{"hist"} means a histogram plot, default \code{typ="pdf"}}
+  \item{typ}{\link{character}(with default): type of plot, \code{typ="pdf"} means a probability density plot and \code{typ="hist"} means a histogram plot}
 
   \item{from}{\link{double}(optional): desired lower limit on x-axis}
 
@@ -31,12 +31,11 @@ dbED(EDdata, plot = TRUE, typ = c("pdf","hist"),
 
   \item{nbin}{\link{integer}(with default): desired number of intervals for the histogram (if \code{typ="hist"})}
 
-  \item{pcolor}{\link{character}(with default): color of a data point, input \link{colors}() to see available colors}
+  \item{pcolor}{\link{character}(with default): color of data points, input \link{colors}() to see available colors}
 
-  \item{psize}{\link{double}(with default): size of a data point}
+  \item{psize}{\link{double}(with default): size of data points}
   
-  \item{outfile}{\link{character}(optional): if specified, calculated probability densities (if \code{typ="pdf"}) will be written to a file
-named \code{"outfile"} in \code{CSV} format and saved to the current work directory}
+  \item{outfile}{\link{character}(optional): if specified, calculated probability densities (if \code{typ="pdf"}) will be written to a CSV file named \code{"outfile"} and saved to the current work directory}
 
 }
 

@@ -14,7 +14,7 @@ select(obj, position = NULL, runNumber = NULL, nPoints = NULL,
 }
 
 \arguments{
-  \item{obj}{\bold{required}: an object of S3 class \code{"binfile"}, which is produced by function \link{viewer}}
+  \item{obj}{\link{list}(\bold{required}): an object of S3 class \code{"binfile"}, which is produced by function \link{viewer}}
 
   \item{position}{\link{vector}(optional): carousel position(s)}
 
@@ -36,7 +36,7 @@ select(obj, position = NULL, runNumber = NULL, nPoints = NULL,
 }
 
 \details{
-Function \emph{select} is used for extracting records that satisfy a number of specified criteria (attributes) from an object of S3 class \code{"binfile"}. Extracted equal-length records are stored in a matrix column by column and can be used in further analysis.
+Function \link{select} is used for extracting records that satisfy a number of specified criteria (attributes) from an object of S3 class \code{"binfile"}. Extracted equal-length records are stored in a matrix column by column and can be used in further analysis.
 }
 
 \value{
@@ -46,10 +46,11 @@ Return a list containing the following elements:
 }
 
 \seealso{
-  \link{viewer}
+  \link{pickSARdata}; \link{pickSARED}; \link{viewer}
 }
 
 \examples{
+   # Do not run.
    # obj <- viewer("foo.bin")
    # select(obj, position=2, lumType="osl")
 }

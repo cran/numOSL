@@ -5,59 +5,53 @@
 Fast-component equivalent dose calculation
 }
 \description{
-Estimating a fast-component equivalent dose using decay curves obtained from a SAR sequence.
+Estimating a fast-component equivalent dose using decay curves obtained from the single aliquot regenerative-dose (SAR) sequence.
 }
 \usage{
 fastED(Sigdata, Redose, ncomp = 2, constant = TRUE,  
-       control.args = list(), typ = "cw", nstart = 100, 
-       upb = 0.5, ErrorMethod = c("mc","sp"), nsim = 1000,
-       model = NULL, origin = NULL, weight = c("g","d","b","n"))
+       control.args = list(), typ = "cw", model = "exp", 
+       origin = FALSE, ErrorMethod = "mc", 
+       nsim = 1000, weight = TRUE)
 }
 \arguments{
-  \item{Sigdata}{\link{matrix}(\bold{required}): a series of decay curves stored column by column, the structure is different from that in function \link{analyst}, here the first column represents stimulation time values}
+  \item{Sigdata}{\link{matrix}(\bold{required}): a series of decay curves stored in a matrix column by column, the first column denotes stimulation time values}
 
-  \item{Redose}{\link{vector}(\bold{required}): regenerative dose values used for constructing the growth curve}
+  \item{Redose}{\link{vector}(\bold{required}): regenerative dose values. Example, \code{Redose=c(1,2,3,4,0,1)}}
 
   \item{ncomp}{\link{integer}(with default): number of decomposed components}
 
-  \item{constant}{\link{logical}(with default): subtract a constant component or not}
+  \item{constant}{\link{logical}(with default): subtract a constant background or not}
 
-  \item{control.args}{\link{list}(with default): arguments used by the differential evolution algorithm, see function \link{decomp} for details}
+  \item{control.args}{\link{list}(with default): arguments used in the differential evolution algorithm, see function \link{decomp} for details}
 
   \item{typ}{\link{character}(with default): type of an OSL decay curve, only CW-OSL decay curve can be analyzed currently}
 
-  \item{nstart}{\link{integer}(with default): maximum number of trials used for initializing the non-linear growth curve, see function \link{fitGrowth} for details}
+  \item{model}{\link{character}(with default): model used for growth curve fitting, see function \link{fitGrowth} for available models}
 
-  \item{upb}{\link{double}(with default): upper limit on \code{b} value (i.e., the reciprocal of the saturating dose), see function \link{fitGrowth} for details}
+  \item{origin}{\link{logical}(with default): force the fitted growth curve to pass the origin or not}
 
-  \item{ErrorMethod}{\link{character}(with default): a method used for assessing the standard error of an equivalent dose, default \code{ErrorMethod="mc"}, see function \link{calED} for details}
+  \item{ErrorMethod}{\link{character}(with default): method used for assessing the standard error of an equivalent dose, see function \link{calED} for details}
 
-  \item{nsim}{\link{integer}(with default): maximum number of simulations if a Monte Carlo method is applied to assessing the standard error of an equivalent dose}
+  \item{nsim}{\link{integer}(with default): number of Monte Carlo simulations used for equivalent dose error estimation if \code{ErrorMethod="mc"}}
 
-  \item{model}{\link{character}(optional): model used for fitting the growth curve, see function \link{fitGrowth} for available models. The procedure will try to find an optimal model between \code{"line"} and \code{"exp"} automatically if \code{model=NULL}}
-
-  \item{origin}{\link{logical}(optional): force the fast-component growth curve to pass the origin or not. The procedure will choose whether to pass the origin or not automatically if \code{origin=NULL}}
-
-  \item{weight}{\link{character}(with default): type of curves to be fitted by a weighted procedure, \code{"g"} means applying a weighted procedure to fitting the growth curve, \code{"d"} means applying a weigthed procedure to fitting the decay curves, \code{"b"} means using a weighted procedure to fit both types of curves, and \code{"n"} means applying an un-weighted procedure to fitting both types of curves. Default \code{weight="g"}}
+  \item{weight}{\link{character}(with default): perform growth curve fitting using a weighted or an un-weighted procedure, see function \link{fitGrowth} for details}
 
 }
 
 \details{
-Function \emph{fastED} is used to estimate a fast-component equivalent dose using dataset obtained from the SAR protocol (Murray and Wintle, 2000). The routine trys to decompose a series of decay curves to a specified number of components, then the numbers of trapped electrons from the fast-component are used to construct a growth curve to estimate a fast-component equivalent dose. See function \link{decomp}, \link{fitGrowth}, and \link{calED} for more details concerning decay curve decomposition, growth curve fitting, and equivalent dose calculation.
+Function \link{fastED} is used to estimate a fast-component equivalent dose using data sets obtained from the SAR protocol (Murray and Wintle, 2000). The routine trys to decompose a series of decay curves to a specified number of components, then the numbers of trapped electrons from the fast-component will be used to construct the growth curve to estimate a fast-component equivalent dose. See function \link{decomp}, \link{fitGrowth}, and \link{calED} for more details concerning decay curve decomposition, growth curve fitting, and equivalent dose calculation.
 }
 
 \value{
 Return a list containing the following elements:
-  \item{pars}{estimated decay rates and trapped electrons for each decay curve}
-  \item{decayRateMat}{decay rates for each decay curve stored in a matrix}
+  \item{decayPars}{estimated parameters of fitted decay curves}
   \item{Curvedata}{data used for constructing the fast-component growth curve}
-  \item{Ltx}{sensitivity-corrected natural OSL for the fast-component and associated standard error}
-  \item{model}{fitting model for the growth curve}
-  \item{LMpars}{optimizaed parameters for the growth curve}
-  \item{value}{minimized objective for the growth curve}
-  \item{ED}{fast-component equivalent dose and its standard error}
-  \item{RecyclingRatio}{fast-component recycling ratio}
-  \item{Recuperation}{fast-component recuperation}
+  \item{Ltx}{standardised natural dose signal of the fast-component and its standard error}
+  \item{LMpars}{optimizaed parameters for the fitted growth curve}
+  \item{value}{minimized objective for the fitted growth curve}
+  \item{fastED}{fast-component equivalent dose and its standard error}
+  \item{RecyclingRatio}{fast-component recycling ratio and its standard error}
+  \item{Recuperation}{fast-component recuperation and its standard error (in percent)}
 }
 \references{
 Li SH, Li B, 2006. Dose measurement using the fast component of LM-OSL signals from quartz. Radiation Measurements, 41(5): 534-541.
@@ -70,11 +64,11 @@ Murray AS, Wintle AG, 2000. Luminescence dating of quartz using improved single-
 }
 
 \note{
-Argument \code{Sigdata} is a column matrix filled with stimulation time values in the first column and a \cr
+Argument \code{Sigdata} is a matrix made up with stimulation time values in the first column and a \cr
 number of decay curves (i.e., \emph{natural_signal}, \emph{test_natural_signal}, \emph{Redose[1]_signal}, \cr
-\emph{test_Redose[1]_signal},....etc) stored in the rest columns.\cr\cr 
+\emph{test_Redose[1]_signal},....etc) in the rest columns.\cr\cr 
 The number of trapped electrons that corresponds to the largest decay rate will be regarded as the fast-component signal, which cannot always ensure that a pure fast-component signal be extracted if an ultra-fast decaying component appears.\cr\cr
-The author thank Professor Sheng-Hua Li and Professor Geoff Duller for their helpful discussions concerning fast-component equivalent dose calculation.
+The authors thank Professor Sheng-Hua Li and Professor Geoff Duller for their helpful discussions concerning fast-component equivalent dose calculation.
 }
 \examples{
  data(Signaldata)
@@ -85,6 +79,6 @@ The author thank Professor Sheng-Hua Li and Professor Geoff Duller for their hel
  # fastED(Signaldata$cw[,c(-12,-13)],Redose=c(80,160,240,320,80)*0.13,
  #        ncomp=3,constant=FALSE)
 }
-\keyword{OSL decay curve}
+\keyword{decay curve}
 \keyword{fast-component equivalent dose}
 \keyword{growth curve}

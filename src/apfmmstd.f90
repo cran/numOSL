@@ -1,7 +1,7 @@
 subroutine apfmmstd(pars,ncomp,ed,sed,ndat,&
                     addsigma,stdp,info)
 !----------------------------------------------------------------
-! Subroutine apfmmstd() is used for estimating the
+! Subroutine apfmmstd is used for estimating the
 ! standard errors of parameters in a finite mixture
 ! using covariance matrix approximation.
 !----------------------------------------------------------------
@@ -14,9 +14,9 @@ subroutine apfmmstd(pars,ncomp,ed,sed,ndat,&
 ! stdp(2,ncomp):: real vlaues, the estimated standard errors.
 !          info:: output, integer, 0=success, 1=fail.
 !----------------------------------------------------------------
-! Author:: Peng Jun, 2014.09.15.
+! Author:: Peng Jun, 2016.06.26.
 !----------------------------------------------------------------
-! Dependence:: subroutine inverse.-------------------------------
+! Dependence:: subroutine inverse_ger.
 !----------------------------------------------------------------
 ! Reference:: Galbraith RF, 1988. Graphical Display of  
 !             Estimates Having Differing Standard Errors. 
@@ -100,7 +100,7 @@ subroutine apfmmstd(pars,ncomp,ed,sed,ndat,&
     covar(ncomp:,1:ncomp-1) = transpose(bMat)
     covar(ncomp:,ncomp:) = cMat
     !
-    call inverse(covar,2*ncomp-1,singular)
+    call inverse_ger(covar,2*ncomp-1,singular)
     if (singular/=0) then
         info = 1
         return

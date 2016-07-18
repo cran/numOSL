@@ -1,7 +1,6 @@
 Dr Rex Gablraith is appreciated for giving a permission to revise and use the R code for drawing radial plot in this package.
-Dr Silke Schmidt is appreciated for providing published OSL data for checking and testing routines of statistical age models.
-The author appreciates Professor Andrzej Bluszcz for providing assistance in finite-difference algorithm programming.
+The authors appreciate Professor Andrzej Bluszcz for providing assistance in finite-difference algorithm programming.
 Professor Sheng-Hua Li and Professor Geoff Duller are thanked for helpful discussions concerning fast-component equivalent dose calculation. 
-The author thanks Dr Bo Li and Jeong-Heon Chio for providing published data to test function "decomp()".
-The author appreciates Dr Helena Rodnight for providing published OSL data for checking and testing routines for fitting statistical age models.
-I appreciates Dr Lei Gao for prompting me to write function "viewer()" and providing measured data sets to test it.
+The authors thank Jeong-Heon Chio for providing published data to test function "decomp()".
+The authors appreciate Dr Silke Schmidt, Dr Helena Rodnight, Dr Xian-Jiao Ou, and Dr Amanda Keen-Zebert for providing published OSL data to check and test routines for statistical age model optimization.
+The authors appreciate Dr Lei Gao for prompting the package maintainer to write function "viewer()" and providing measured data sets to test the function.

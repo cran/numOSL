@@ -12,7 +12,7 @@ reportSAM(obj, burn = 10000, thin = 5,
           plot = TRUE, outfile = NULL, ...)
 }
 \arguments{
-  \item{obj}{\bold{required}: an object of S3 class \code{"mcAgeModels"}, which is produced by function \link{mcFMM} or \link{mcMAM} }
+  \item{obj}{\link{list}(\bold{required}): an object of S3 class \code{"mcAgeModels"}, which is produced by function \link{mcFMM} or \link{mcMAM} }
 
   \item{burn}{\link{integer}(with default): number of iterations (i.e., the initial, non-stationary portion of the chain) to be discarded}
 
@@ -20,13 +20,13 @@ reportSAM(obj, burn = 10000, thin = 5,
 
   \item{plot}{\link{logical}(with default): plot the MCMC output or not}
 
-  \item{outfile}{\link{character}(optional): if specified, simulated parameters will be written to a file named \code{"outfile"} in \code{CSV} format and saved to the current work directory}
+  \item{outfile}{\link{character}(optional): if specified, simulated parameters will be written to a CSV file named \code{"outfile"} and saved to the current work directory}
 
   \item{\dots}{do not use}
 }
 
 \details{
-Function \emph{reportSAM} summarizes the output of a Markov chain (the mean values, the standard deviations, and the 95 percent confidence intervals). The initial \emph{i} (\code{burn=i}) samples may have been affected by the inital state and has to be discarded ("burn-in"). Autocorrelation of simulated samples can be reduced by taking every \emph{j-th} (\code{thin=j}) iteration ("thining").
+Function \link{reportSAM} summarizes the output of a Markov chain (the mean values, the standard deviations, and the 95 percent confidence intervals). The initial \emph{i} (\code{burn=i}) samples may have been affected by the inital state and has to be discarded ("burn-in"). Autocorrelation of simulated samples can be reduced by taking every \emph{j-th} (\code{thin=j}) iteration ("thining").
 }
 
 \value{
@@ -48,3 +48,4 @@ Gelman A, Carlin JB, Stern HS, Dunson DB, Vehtari A, Rubin DB, 2013. Bayesian da
 
 \keyword{statistical age models}
 \keyword{equivalent dose}
+\keyword{Markov chain Monte Carlo}

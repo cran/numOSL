@@ -2,17 +2,17 @@
 \alias{mcMAM}
 \alias{mcMAM.default}
 \title{
-Minimum age model optimization (with a Markov chain Monte Carlo sampling method)
+Minimum age model optimization (using a Markov chain Monte Carlo method)
 }
 \description{
-Sampling from the joint-likelihood function of the minimum age model using a Markov chain Monte Carlo sampling method (MCMC).
+Sampling from the joint-likelihood function of the minimum age model using a Markov chain Monte Carlo (MCMC) method .
 }
 \usage{
 mcMAM(EDdata, ncomp = -1, addsigma = 0, iflog = TRUE, 
       nsim = 50000, inis = list(), control.args = list())
 }
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix, equivalent dose values and associated errors are stored in the first and second column, respectively}
+  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and associated standard errors)}
 
   \item{ncomp}{\link{integer}(with default): number of components, \code{-1=MAM3}, \code{-2=MAM4}}
 
@@ -43,10 +43,11 @@ Neal RM, 2003. "Slice sampling" (with discussion). Annals of Statistics, 31(3): 
 }
 
 \examples{
-  data(EDdata)
+  # Do not run.
+  # data(EDdata)
   # Construct a MCMC chain for MAM3.
-  obj<-mcMAM(EDdata$al3,ncomp=-1,addsigma=0.1,nsim=5000)
-  reportSAM(obj,burn=1e3,thin=2)
+  # obj<-mcMAM(EDdata$al3,ncomp=-1,addsigma=0.1,nsim=5000)
+  # reportSAM(obj,burn=1e3,thin=2)
   #
   # The convergence of the simulations may be diagnosed with 
   # the Gelman and Rubin's convergence diagnostic.
@@ -64,3 +65,4 @@ Neal RM, 2003. "Slice sampling" (with discussion). Annals of Statistics, 31(3): 
 \keyword{statistical age models}
 \keyword{Minimum Age Model}
 \keyword{equivalent dose}
+\keyword{Markov chain Monte Carlo}
