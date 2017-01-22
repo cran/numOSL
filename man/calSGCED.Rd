@@ -3,36 +3,44 @@
 \alias{calSGCED.default}
 
 \title{
-Equivalent dose calculation using the standardised growth curve (SGC) method
+Equivalent dose calculation using SGC or gSGC method
 }
 \description{
-Calculating equivalent doses according to the standardised growth curve (SGC) method using known parameters.
+Calculating equivalent doses according to the "standardised growth curve" (SGC) method suggested by Roberts and Duller (2004) or 
+the "global standardised growth curve" (gSGC) method suggested by Li et al. (2015).
 }
 
 \usage{
-calSGCED(Data1, pars, model, origin, 
-         ErrorMethod = "sp", outpdf = NULL)
+calSGCED(SGCdata, pars, model, origin, 
+         method="gSGC", nsim=1000, outpdf = NULL)
 }
 
 \arguments{
-  \item{Data1}{\link{data.frame}(\bold{required}): standardised natural dose signal and additional regenerative dose signal data used for SGC equivalent dose calculation, it should contain five columns (i.e., Grain.NO, SAR.Cycle, Dose, Signal, and Signal.Err), see \link{SARdata} for details}
+  \item{SGCdata}{\link{data.frame}(\bold{required}): standardised natural-dose signal and regenerative-dose signal data used for SGC equivalent dose calculation, it should contain five columns (i.e., \code{NO}, \code{SAR.Cycle}, \code{Dose}, \code{Signal}, and \code{Signal.Err}), see \link{SARdata} for details. If \code{method="SGC"}, only SAR cycle of "N" need be provided, if \code{method="gSGC"}, both
+SAR cycle of "N" and "R" need be supplied}
 
-  \item{pars}{\link{vector}(\bold{required}): optimized parameters of the SGC obtained using function \link{lsNORM}}
+  \item{pars}{\link{vector}(\bold{required}): optimized parameters of the SGC obtained using function \link{fitGrowth} or \link{lsNORM}}
 
   \item{model}{\link{character}(\bold{required}): fitting model used for obtaining \code{pars}}
 
-  \item{origin}{\link{logical}(\bold{required}): if established SGC passes the origin or not}
+  \item{origin}{\link{logical}(\bold{required}): logical value indicating if established SGC passes the origin}
 
-  \item{ErrorMethod}{\link{character}(with default): method used for assessing the standard error of an equivalent dose, only \code{ErrorMethod="sp"} is available}
+  \item{method}{\link{character}(with default): method used for equivalent dose calculation, i.e.,\cr 
+\code{method="SGC"} or \code{method="gSGC"}}
+
+  \item{nsim}{\link{numeric}(with default): number of Monte Carlo iterations used for equivalent dose error assessment}
 
   \item{outpdf}{\link{character}(optional): if specified, results of SGC equivalent dose calculation will be written to a PDF file named \code{"outpdf"} and saved to the current work directory}
 }
 
 \value{
-  Return a list that contains the following elements:
-  \item{scaleLtx}{scaled standardised natural dose signals and associated standard errors} 
+  Return an invisible \link{list} that contains the following elements:
+  \item{saturate.NO}{aliquot (grain) number saturated in standardised natural-dose signal}
+  \item{failED.NO}{aliquot (grain) number failed in equivalent dose calculation}
+  \item{failEDError.NO}{aliquot (grain) number failed in equivalent dose error assessment}
+  \item{scale.Ltx}{scaled standardised natural-dose signals and associated standard errors. Note that standardised natural-dose signals will remain un-scaled if \code{method="SGC"}} 
   \item{sgcED}{calculated SGC equivalent doses}
-  \item{saturate.NO}{Saturated Grain.NO from which SGC equivalent doses cannot be calculated}
+  \item{ConfInt}{68 percent (one sigma) and 95 percent (two sigma) confidence intervals of SGC equivalent doses obtained using Monte Carlo simulation}
 }
 
 \references{
@@ -44,16 +52,28 @@ Roberts HM, Duller GAT, 2004. Standardised growth curves for optical dating of s
 }
 
 \seealso{
-  \link{lsNORM}; \link{fitGrowth}; \link{calED}; \link{calSARED}
+  \link{fitGrowth}; \link{lsNORM}; \link{SARdata};\cr 
+  \link{scaleSGCN}; \link{calED}; \link{calSARED}
 }
 
 \examples{
  data(SARdata)
- Data1 <- SARdata[is.element(SARdata[,2], c("N","R3")),]
- pars <- c(137.440874251, 0.007997863, 2.462035263, -0.321536177)
- calSGCED(Data1, pars, model="gok", origin=FALSE)
+ ### (1) gSGC ED calculation:
+ gSGCdata <- SARdata[is.element(SARdata[,2], c("N","R3")),]
+ ### gSGCpars were obtained using function "lsNORM".
+ gSGCpars <- c(137.440874251, 0.007997863, 2.462035263, -0.321536177)
+ res <- calSGCED(gSGCdata, gSGCpars, method="gSGC", model="gok", origin=FALSE)
+ print(res$sgcED)
+
+ ### (2) SGC ED calculation (not run): 
+ # SGCdata <- SARdata[is.element(SARdata[,2], "N"),]
+ ### SGCpars were obtained using function "fitGrowth".
+ # SGCpars <- c(183.474322547,  0.007038048,  4.254287622, -0.337734151)
+ # calSGCED(SGCdata, SGCpars, method="SGC", model="gok", 
+ #          origin=FALSE, outpdf="SGCED")
+
 }
 
 \keyword{growth curve}
-\keyword{LS-normalisation procedure}
+\keyword{LS-normalisation}
 \keyword{equivalent dose}

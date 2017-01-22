@@ -6,52 +6,90 @@
 SAR data set selection
 }
 \description{
-Extracting SAR data sets according to certain criteria (recycling ratio, recuperation, figure-of-merit and reduced-chi-square values of fitted growth curves).
+Selecting SAR data sets (growth curves) according to specified rejection criteria.
 }
 \usage{
-pickSARdata(Data, model = "gok", origin = FALSE, weight = TRUE, 
-            rcy.interval = NULL, rcp1.limit = NULL, rcp2.limit = NULL, 
-            fom.limit = NULL, rcs.limit = NULL, outfile = NULL)
+pickSARdata(obj_analyseBIN, model = "gok", origin = FALSE, 
+            weight = TRUE, trial = TRUE, Tn.above.3BG = TRUE, 
+            TnBG.ratio.low = NULL, rseTn.up = NULL, FR.low = NULL, 
+            rcy1.range = NULL, rcy2.range = NULL, rcy3.range = NULL, 
+            rcp1.up = NULL, rcp2.up = NULL, fom.up = NULL, rcs.up = NULL,  
+            use.se = TRUE, norm.dose = NULL, outpdf = NULL, outfile = NULL)
 }
 
 \arguments{
-  \item{Data}{\link{data.frame}(\bold{required}): data used for constructing growth curves, it should contain five columns (i.e., Grain.NO, SAR.Cycle, Dose, Signal, and Signal.Err), see \link{SARdata} for details}
+  \item{obj_analyseBIN}{\link{list}(\bold{required}): an object of S3 class "analyseBIN" produced by\cr 
+function \link{analyseBINdata}}
 
   \item{model}{\link{character}(with default): model used for growth curve fitting, see \link{fitGrowth} for available models}
 
-  \item{origin}{\link{logical}(with default): force the fitted growth curve to pass the origin or not}
+  \item{origin}{\link{logical}(with default): logical value indicating if the growth curve should be forced to pass the origin}
 
-  \item{weight}{\link{logical}(with default): perform growth curve fitting using a weighted or an un-weighted procedure, see function \link{fitGrowth} for details}
+  \item{weight}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using a weighted procedure, 
+see function \link{fitGrowth} for details}
 
-  \item{rcy.interval}{\link{vector}(optional): a two-element vector indicating the lower and upper limits on recycling ratio, for example, \code{rcy.interval=c(0.9,1.1)}}
+  \item{trial}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using other models if the given model fails, see function \link{fitGrowth} for details}
 
-  \item{rcp1.limit}{\link{double}(optional): upper limit on recuperation1 (i.e., the ratio of standardised zero regenerative dose signal to standardised natural dose signal) in percent}
+  \item{Tn.above.3BG}{\link{logical}(with default): logical value indicating if aliquot (grain) with Tn below 3 sigma BG should be rejected}
 
-  \item{rcp2.limit}{\link{double}(optional): upper limit on recuperation2 (i.e., the ratio of standardised zero regenerative dose signal to maximum standardised regenerative dose signal) in percent}
+  \item{TnBG.ratio.low}{\link{numeric}(optional): lower limit on ratio of initial Tn signal to BG}
 
-  \item{fom.limit}{\link{double}(optional): upper limit on figure-of-merit (FOM) values of fitted growth curves in percent}
+  \item{rseTn.up}{\link{numeric}(optional): upper limit on relative standard error of Tn in percent}
 
-  \item{rcs.limit}{\link{double}(optional): upper limit on reduced-chi-square (RCS) values of fitted growth curves}
+   \item{FR.low}{\link{numeric}(optional): lower limit on fast ratio of Tn}
 
-  \item{outfile}{\link{character}(optional): if specified, quantities related to selected Grain.NO will be written to a CSV file named \code{"outfile"} and saved to the current work directory}
+  \item{rcy1.range}{\link{vector}(optional): a two-element vector indicating the lower and upper limits on recycling ratio 1, 
+Example: \code{rcy1.range=c(0.9,1.1)}}
+
+  \item{rcy2.range}{\link{vector}(optional): a two-element vector indicating the lower and upper limits on recycling ratio 2}
+
+  \item{rcy3.range}{\link{vector}(optional): a two-element vector indicating the lower and upper limits on recycling ratio 3}
+
+  \item{rcp1.up}{\link{numeric}(optional): upper limit on recuperation 1 (i.e., ratio of the\cr
+sensitivity-corrected zero-dose signal to natural-dose signal) in percent}
+
+  \item{rcp2.up}{\link{numeric}(optional): upper limit on recuperation 2 (i.e., ratio of the\cr
+sensitivity-corrected zero-dose signal to maximum regenerative-dose signal)\cr
+in percent}
+
+  \item{fom.up}{\link{numeric}(optional): upper limit on figure of merit (FOM) values of growth curves in percent}
+
+  \item{rcs.up}{\link{numeric}(optional): upper limit on reduced chi-square (RCS) values of growth curves}
+
+  \item{use.se}{\link{logical}(with default): logical value indicating if standard errors of values should be used during application of rejection criteria}
+
+  \item{norm.dose}{\link{numeric}(optional): dose value used for SAR data set re-normalisation, 
+for example, if \code{norm.dose=100}, then sensitivity-corrected signal for \code{Redose=100} obtained 
+through growth curve fitting will be used to re-normalise a SAR data set}
+
+  \item{outpdf}{\link{character}(optional): if specified, results of growth curve fitting will be written to 
+a PDF file named \code{"outpdf"} and saved to the current work directory}
+
+  \item{outfile}{\link{character}(optional): if specified, SAR data related quantities will be written
+to a CSV file named \code{"outfile"} and saved to the current work directory}
 }
 
 \value{
-  Return a list that contains the following elements:
-  \item{Data}{Selected SAR data sets}
-  \item{tab}{quantities related to seleted Grain.NO, such as recycling ratio, recuperation, FOM, RCS, etc}
-  \item{failFit.NO}{Grain.NO failed in growth curve fitting}
-  \item{reject.NO}{rejected Grain.NO}
+  Return an invisible \link{list} that contains the following elements:
+  \item{LMpars}{a \link{list} containing optimized parameters of successfully fitted growth curves}
+  \item{SARdata}{a \link{data.frame} containing selected SAR data sets}
+  \item{norm.SARdata}{a \link{data.frame} containing re-normalised SAR data sets,\cr
+it returns \code{NULL} if \code{norm.dose=NULL}}
+  \item{agID}{aliquot or grain ID (i.e., \code{c("NO","Position","Grain")}) of selected SAR data}
 }
 
 \seealso{
-   \link{fitGrowth}; \link{lsNORM}; \link{pickSARED}; \link{select}
+   \link{analyseBINdata}; \link{fitGrowth};\cr
+   \link{lsNORM}; \link{calSARED}
 }
 
 \examples{
- # Do not run.
- # data(SARdata)
- # pickSARdata(SARdata, rcy.interval=c(0.9,1.1), fom.limit=10)
+ # Not run.
+ # data(BIN)
+ # obj_pickBIN <- pickBINdata(BIN, Position=1:48, Grain=0, 
+ #                            LType="OSL", view=FALSE)
+ # obj_analyseBIN <- analyseBINdata(obj_pickBIN, nfchn=3, nlchn=20) 
+ # pickSARdata(obj_analyseBIN, model="gok", fom.up=3, outpdf="SARdata")
 }
 
 \keyword{growth curve}

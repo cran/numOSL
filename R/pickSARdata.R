@@ -1,206 +1,700 @@
 #####
 pickSARdata<-
-function(Data, model="gok", origin=FALSE, weight=TRUE, 
-         rcy.interval=NULL, rcp1.limit=NULL, rcp2.limit=NULL, 
-         fom.limit=NULL, rcs.limit=NULL, outfile=NULL) {
+function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, 
+         trial=TRUE, Tn.above.3BG=TRUE, TnBG.ratio.low=NULL, rseTn.up=NULL,
+         FR.low=NULL, rcy1.range=NULL, rcy2.range=NULL, rcy3.range=NULL, 
+         rcp1.up=NULL, rcp2.up=NULL, fom.up=NULL, rcs.up=NULL, 
+         use.se=TRUE, norm.dose=NULL, outpdf=NULL, outfile=NULL) {
     UseMethod("pickSARdata")
 } #
-### 2016.07.14.
+### 2017.01.22.
 pickSARdata.default<-
-function(Data, model="gok", origin=FALSE, weight=TRUE, 
-         rcy.interval=NULL, rcp1.limit=NULL, rcp2.limit=NULL, 
-         fom.limit=NULL, rcs.limit=NULL, outfile=NULL) {
+function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, 
+         trial=TRUE, Tn.above.3BG=TRUE, TnBG.ratio.low=NULL, rseTn.up=NULL,
+         FR.low=NULL, rcy1.range=NULL, rcy2.range=NULL, rcy3.range=NULL, 
+         rcp1.up=NULL, rcp2.up=NULL, fom.up=NULL, rcs.up=NULL, 
+         use.se=TRUE, norm.dose=NULL, outpdf=NULL, outfile=NULL) {
     ### Stop if not.
-    stopifnot(ncol(Data)==5L, nrow(Data)>=5L,
-              is.numeric(Data[,1L,drop=TRUE]), all(abs(Data[,1L]-round(Data[,1L]))<.Machine$double.eps^0.5),
-              is.numeric(Data[,3L,drop=TRUE]), is.numeric(Data[,4L,drop=TRUE]), is.numeric(Data[,5L,drop=TRUE]),
-              all(Data[,3L,drop=TRUE]>=0), all(Data[,5L,drop=TRUE]>0),
-              length(model)==1L, is.character(model), model %in% c("line","exp","lexp","dexp","gok"),
+    stopifnot(class(obj_analyseBIN)=="analyseBIN", 
+              names(obj_analyseBIN)==c("SARdata","criteria","Tn","TxTn","agID"),
+              length(model)==1L, model %in% c("line","exp","lexp","dexp","gok"),
               length(origin)==1L, is.logical(origin),
               length(weight)==1L, is.logical(weight),
-              is.null(rcy.interval) || (is.numeric(rcy.interval) && length(rcy.interval)==2L),
-              is.null(rcp1.limit) || (is.numeric(rcp1.limit) && length(rcp1.limit)==1L),
-              is.null(rcp2.limit) || (is.numeric(rcp2.limit) && length(rcp2.limit)==1L),
-              is.null(fom.limit) || (is.numeric(fom.limit) && length(fom.limit)==1L),
-              is.null(rcs.limit) || (is.numeric(rcs.limit) && length(rcs.limit)==1L),
-              is.null(outfile) || (is.character(outfile) && length(outfile)==1L))
+              length(trial)==1L, is.logical(trial),
+              length(Tn.above.3BG)==1L, is.logical(Tn.above.3BG),
+              is.null(TnBG.ratio.low) || (length(TnBG.ratio.low)==1L && is.numeric(TnBG.ratio.low)),
+              is.null(rseTn.up) || (length(rseTn.up)==1L && is.numeric(rseTn.up)),
+              is.null(FR.low) || (length(FR.low)==1L && is.numeric(FR.low)), 
+              is.null(rcy1.range) || (length(rcy1.range)==2L && is.numeric(rcy1.range)),
+              is.null(rcy2.range) || (length(rcy2.range)==2L && is.numeric(rcy2.range)),
+              is.null(rcy3.range) || (length(rcy3.range)==2L && is.numeric(rcy3.range)),
+              is.null(rcp1.up) || (length(rcp1.up)==1L && is.numeric(rcp1.up)),
+              is.null(rcp2.up) || (length(rcp2.up)==1L && is.numeric(rcp2.up)),
+              is.null(fom.up) || (length(fom.up)==1L && is.numeric(fom.up)),
+              is.null(rcs.up) || (length(rcs.up)==1L && is.numeric(rcs.up)), 
+              length(use.se)==1L, is.logical(use.se),
+              is.null(norm.dose) || (length(norm.dose)==1L && is.numeric(norm.dose)),  
+              is.null(outpdf) || (length(outpdf)==1L && is.character(outpdf)),
+              is.null(outfile) || (length(outfile)==1L && is.character(outfile)))
     ###
-    colnames(Data) <- c("Grain.NO","SAR.Cycle","Dose","Signal","Signal.Err")
+    SARdata <- obj_analyseBIN$SARdata
+    criteria <- obj_analyseBIN$criteria
+    agID <- obj_analyseBIN$agID
     ###
-    GrainNumber <- as.numeric(levels(factor(Data[,"Grain.NO",drop=TRUE])))
-    n <- length(GrainNumber)
-    originGrainNumber <- GrainNumber
+    if (nrow(SARdata)<5L) stop("Error: need more data points!")
     ###
-    ### Check Grain.NO and SAR.Cycle for Data.
+    colnames(SARdata) <- c("NO","SAR.Cycle","Dose","Signal","Signal.Err")
+    ###
+    ### Check NO and SAR.Cycle for SARdata.
+    NO <- agID[,"NO",drop=TRUE]
+    Position <- agID[,"Position",drop=TRUE]
+    Grain <- agID[,"Grain",drop=TRUE]
+    n <- length(NO)
+    ###
+    nag <- n
+    ###
     for (i in seq(n)) {
-        GrainIndex <- which(Data[,"Grain.NO",drop=TRUE]==GrainNumber[i])
-        SarCyclei <- substr(Data[GrainIndex,"SAR.Cycle",drop=TRUE], start=1L, stop=1L)   
+        iIndex <- which(SARdata[,"NO",drop=TRUE]==NO[i])
+        iSAR.Cycle <- substr(SARdata[iIndex,"SAR.Cycle",drop=TRUE], start=1L, stop=1L)   
         ###
-        if (!all(diff(GrainIndex)==1L)) {
-            stop(paste("Error: Grain.NO", GrainNumber[i], 
-                " of Data appears in discontinuous locations!", sep=""))
+        if (!all(diff(iIndex)==1L)) {
+            stop(paste("[NO=", NO[i], ",Position=",Position[i], ",Grain=",Grain[i],
+                       "]: 'NO' appears in discontinuous locations!", sep=""))
         } ### end if. 
         ###  
-        if (!all(SarCyclei %in% c("N","R"))) {
-             stop(paste("Error: Grain.NO", GrainNumber[i], 
-                  " of Data contains incorrect SAR.Cycle!", sep=""))
+        if (!all(iSAR.Cycle %in% c("N","R"))) {
+             stop(paste("[NO=", NO[i], ",Position=",Position[i], ",Grain=",Grain[i],
+                        "]: incorrect 'SAR.Cycle'!", sep=""))
         } # end if.
         ###
-        if (all(SarCyclei=="N")) {
-           stop(paste("Error: Grain.NO", GrainNumber[i], 
-                " of Data should contain SAR.Cycle of R!", sep=""))
+        if (sum(iSAR.Cycle=="N")>=2L) {
+           stop(paste("[NO=", NO[i], ",Position=",Position[i], ",Grain=",Grain[i],
+                      "]: should not contain more than one 'SAR.Cycle' of 'N'!", sep=""))
         } # end if. 
-        ###
-        if (all(SarCyclei=="R")) {
-            stop(paste("Error: Grain.NO", GrainNumber[i], 
-                " of Data should contain SAR.Cycle of N!", sep=""))
-        } # end if.
-        ###
-        if (sum(SarCyclei=="N")>1L) {
-            stop(paste("Error: Grain.NO", GrainNumber[i], 
-                " of Data should contain only one SAR.Cycle of N!", sep=""))
-        } # end if.
     } # end for.
     ###
+    ###
+    action_character <- "Total number of analyzed aliquots (grains)"
+    step_reject_N <- nag
+    ###
+    sigma <- 2.0
+    ###
+    NPG <- function(x) paste("[NO=",x[1L],",Position=",x[2L],",Grain=",x[3L],"]",sep="")
+    ###
+
+    ### Apply signal related rejection criteria. 
+    ###------------------------------------------------------------------
+
+    ### No se consideration.
+    if (Tn.above.3BG==TRUE) {
+        all_value <- criteria[,"Tn3BG",drop=TRUE]
+        ###
+        select_index <- which(all_value==1L)
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(criteria) - length(select_index)
+        ###
+        action_character <- c(action_character, "Tn below 3 sigma BG")
+        step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        criteria <- criteria[select_index,,drop=FALSE]
+        Tn3BG_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        Tn3BG_reject <- NULL
+    } # end if.
+    ###
+
+    ### Have se consideration.
+    if (!is.null(TnBG.ratio.low)) {
+        all_value <- criteria[,"TnBG.ratio",drop=TRUE]
+        ###
+        if (use.se==FALSE) {
+            select_index <- which(all_value>TnBG.ratio.low)
+        } else {
+            all_se_value <- criteria[,"seTnBG.ratio",drop=TRUE]
+            select_index <- which(all_value+sigma*all_se_value>TnBG.ratio.low)
+        } # end if.
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(criteria) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("Ratio of Tn to BG below ", TnBG.ratio.low, sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        criteria <- criteria[select_index,,drop=FALSE]
+        TnBG.ratio_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        TnBG.ratio_reject <- NULL
+    } # end if.
+    ###
+
+    ### No se consideration.
+    if (!is.null(rseTn.up)) {
+        all_value <- criteria[,"rseTn",drop=TRUE]
+        ###
+        select_index <- which(abs(all_value)<rseTn.up)
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(criteria) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("RSE of Tn exceeds ", rseTn.up, "%", sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ### 
+        criteria <- criteria[select_index,,drop=FALSE]
+        rseTn_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        rseTn_reject <- NULL
+    } # end if.
+    ###
+
+    ### Have se consideration.
+    if (!is.null(FR.low)) {
+        all_value <- criteria[,"FR",drop=TRUE]
+        ###
+        if (use.se==FALSE) {
+            select_index <- which(all_value>FR.low)
+        } else {
+            all_se_value <- criteria[,"seFR",drop=TRUE]
+            select_index <- which(all_value+sigma*all_se_value>FR.low)
+        } # end if.
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(criteria) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("Fast ratio of Tn below ", FR.low, sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ### 
+        criteria <- criteria[select_index,,drop=FALSE]
+        FR_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        FR_reject <- NULL
+    } # end if.
+    ###
+    ###----------------------------------------------------------------------------------------------
+
+    ### Re-write NO, Position, and Grain.
+    NO <- agID[,"NO",drop=TRUE]
+    Position <- agID[,"Position",drop=TRUE]
+    Grain <- agID[,"Grain",drop=TRUE]
+    n <- length(NO)
+    ###
+    RcyRcp_mat <- matrix(nrow=n, ncol=10L)
+    colnames(RcyRcp_mat) <- c("RecyclingRatio1", "seRecyclingRatio1",
+        "RecyclingRatio2", "seRecyclingRatio2", "RecyclingRatio3", "seRecyclingRatio3",
+        "Recuperation1", "seRecuperation1", "Recuperation2", "seRecuperation2")
+    ###
+    for (i in seq(n)) {
+        iIndex <- which(SARdata[,"NO",drop=TRUE]==NO[i]) 
+        ### 
+        ith_SARdata <- SARdata[iIndex,,drop=FALSE]
+        ###
+        Data4L <- ith_SARdata[,c("SAR.Cycle","Dose","Signal","Signal.Err"),drop=FALSE]
+        DataR <- Data4L[Data4L[,"SAR.Cycle",drop=TRUE]!="N",c("Dose","Signal","Signal.Err"),drop=FALSE]
+        ###
+        index_SAR.Cycle_N <- which(Data4L[,"SAR.Cycle",drop=TRUE]=="N")
+        if (length(index_SAR.Cycle_N)==0L) {
+            DataN <- rep(NA, 2L)
+        } else {
+            DataN <- as.numeric(Data4L[index_SAR.Cycle_N,c("Signal","Signal.Err"),drop=FALSE])
+        } # end if.
+        ###
+        res_calRcyRcp <- calRcyRcp(Curvedata=DataR, Ltx=DataN)
+        RcyRcp_mat[i,1L:2L] <- res_calRcyRcp$RecyclingRatio1
+        RcyRcp_mat[i,3L:4L] <- res_calRcyRcp$RecyclingRatio2
+        RcyRcp_mat[i,5L:6L] <- res_calRcyRcp$RecyclingRatio3
+        RcyRcp_mat[i,7L:8L] <- res_calRcyRcp$Recuperation1
+        RcyRcp_mat[i,9L:10L] <- res_calRcyRcp$Recuperation2  
+    } # end for.
+    ###
+
+    ### Apply growth curve related rejection criteria (1).
+    ###---------------------------------------------------------------------------------------------
+
+    ### Have se consideration. 
+    if (!is.null(rcy1.range)) {
+        all_value <- RcyRcp_mat[,"RecyclingRatio1",drop=TRUE]
+        ### 
+        if (use.se==FALSE) {
+            select_index <- which(all_value>rcy1.range[1L] & all_value<rcy1.range[2L])
+        } else {
+            all_se_value <- RcyRcp_mat[,"seRecyclingRatio1",drop=TRUE]
+            select_index <- which((all_value-sigma*all_se_value<rcy1.range[1L] & 
+                                   all_value+sigma*all_se_value>rcy1.range[2L]) |
+                                  (all_value-sigma*all_se_value>rcy1.range[1L] & 
+                                   all_value-sigma*all_se_value<rcy1.range[2L]) |
+                                  (all_value+sigma*all_se_value>rcy1.range[1L] & 
+                                   all_value+sigma*all_se_value<rcy1.range[2L]))
+        } # end if.
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(RcyRcp_mat) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("Recycling ratio 1 outsides [",
+                              rcy1.range[1L], ",",rcy1.range[2L],"]", sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
+        criteria <- criteria[select_index,,drop=FALSE]
+        rcy1_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        rcy1_reject <- NULL
+    } # end if.
+    ###
+
+    ### Have se consideration.
+    if (!is.null(rcy2.range)) {
+        all_value <- RcyRcp_mat[,"RecyclingRatio2",drop=TRUE]
+        ###
+        if (use.se==FALSE) {
+            select_index <- which(all_value>rcy2.range[1L] & all_value<rcy2.range[2L])
+        } else {
+            all_se_value <- RcyRcp_mat[,"seRecyclingRatio2",drop=TRUE]
+            select_index <- which((all_value-sigma*all_se_value<rcy2.range[1L] & 
+                                   all_value+sigma*all_se_value>rcy2.range[2L]) |
+                                  (all_value-sigma*all_se_value>rcy2.range[1L] & 
+                                   all_value-sigma*all_se_value<rcy2.range[2L]) |
+                                  (all_value+sigma*all_se_value>rcy2.range[1L] & 
+                                   all_value+sigma*all_se_value<rcy2.range[2L]))
+        } # end if.
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(RcyRcp_mat) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("Recycling ratio 2 outsides [",
+                              rcy2.range[1L], ",",rcy2.range[2L],"]", sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
+        criteria <- criteria[select_index,,drop=FALSE]
+        rcy2_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        rcy2_reject <- NULL
+    } # end if.
+    ###
+
+    ### Have se consideration.
+    if (!is.null(rcy3.range)) {
+        all_value <- RcyRcp_mat[,"RecyclingRatio3",drop=TRUE]
+        ###
+        if (use.se==FALSE) {
+            select_index <- which(all_value>rcy3.range[1L] & all_value<rcy3.range[2L])
+        } else {
+            all_se_value <- RcyRcp_mat[,"seRecyclingRatio3",drop=TRUE]
+            select_index <- which((all_value-sigma*all_se_value<rcy3.range[1L] & 
+                                   all_value+sigma*all_se_value>rcy3.range[2L]) |
+                                  (all_value-sigma*all_se_value>rcy3.range[1L] & 
+                                   all_value-sigma*all_se_value<rcy3.range[2L]) |
+                                  (all_value+sigma*all_se_value>rcy3.range[1L] & 
+                                   all_value+sigma*all_se_value<rcy3.range[2L]))
+        } # end if.
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(RcyRcp_mat) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("Recycling ratio 3 outsides [",
+                              rcy3.range[1L], ",",rcy3.range[2L],"]", sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
+        criteria <- criteria[select_index,,drop=FALSE]
+        rcy3_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        rcy3_reject <- NULL
+    } # end if.
+    ###
+
+    ### Have se consideration.
+    if (!is.null(rcp1.up)) {
+        all_value <- RcyRcp_mat[,"Recuperation1",drop=TRUE]
+        ###
+        if (use.se==FALSE) {
+            select_index <- which(abs(all_value)<rcp1.up)
+        } else {
+            all_se_value <- RcyRcp_mat[,"seRecuperation1",drop=TRUE]
+            select_index <- which(abs(all_value)-sigma*all_se_value<rcp1.up)
+        } # end if.
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(RcyRcp_mat) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("Recuperation 1 exceeds ", rcp1.up, "%",sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
+        criteria <- criteria[select_index,,drop=FALSE]
+        rcp1_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        rcp1_reject <- NULL
+    } # end if.
+    ###
+
+    ### Have se consideration.
+    if (!is.null(rcp2.up)) {
+        all_value <- RcyRcp_mat[,"Recuperation2",drop=TRUE]
+        ###
+        if (use.se==FALSE) {
+            select_index <- which(abs(all_value)<rcp2.up)
+        } else {
+            all_se_value <- RcyRcp_mat[,"seRecuperation2",drop=TRUE]
+            select_index <- which(abs(all_value)-sigma*all_se_value<rcp2.up)
+        } # end if.
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(RcyRcp_mat) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("Recuperation 2 exceeds ", rcp2.up, "%",sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
+        criteria <- criteria[select_index,,drop=FALSE]
+        rcp2_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        rcp2_reject <- NULL
+    } # end if.
+    ###------------------------------------------------------------------------------------
+
+    ### Re-write NO, Position, and Grain.
+    NO <- agID[,"NO",drop=TRUE]
+    Position <- agID[,"Position",drop=TRUE]
+    Grain <- agID[,"Grain",drop=TRUE]
+    n <- length(NO)
     ###
     DataList <- vector(mode="list", length=n)
+    ###
     for (i in seq(n)) {
-        GrainIndex <- which(Data[,"Grain.NO",drop=TRUE]==GrainNumber[i])  
-        DataList[[i]] <- Data[GrainIndex,,drop=FALSE]
+        iIndex <- which(SARdata[,"NO",drop=TRUE]==NO[i])  
+        DataList[[i]] <- SARdata[iIndex,,drop=FALSE]
     } # end for.
     ###
     ###
-    tab <- data.frame(matrix(nrow=n, ncol=8L))
-    rownames(tab) <- paste("Grain.NO",GrainNumber,sep="")
-    colnames(tab) <- c("RecyclingRatio", "Std.RecyclingRatio",
-                       "Recuperation1", "Std.Recuperation1",
-                       "Recuperation2", "Std.Recuperation2",
-                       "FOM", "RCS")
+    fitOK_NO <- fitOK_Position <- fitOK_Grain <-  
+    Tn3BG_vec <- TnBG.ratio_vec <- seTnBG.ratio_vec <- 
+    rseTn_vec <- FR_vec <- seFR_vec <- 
+    RecyclingRatio1_vec <- seRecyclingRatio1_vec <- 
+    RecyclingRatio2_vec <- seRecyclingRatio2_vec <-
+    RecyclingRatio3_vec <- seRecyclingRatio3_vec <-
+    Recuperation1_vec <- seRecuperation1_vec <-
+    Recuperation2_vec <- seRecuperation2_vec <- 
+    FOM_vec <- RCS_vec <- failFit_ID <- c()
     ###
-    failFitGrainIndex <- c()
-    failFitGrainNumber <- NULL
+    LMpars <- list()
+    ###
+    norm.SARdata <- c()
+    ###
+    if (!is.null(outpdf)) {
+        pdf(paste(outpdf, ".pdf", sep=""))
+        if_plot <- TRUE
+    } else {
+        if_plot <- FALSE
+    } # end if.
+    ###
+    if (n>=5L) {
+        pb <- txtProgressBar(min=1L, max=n, initial=1L, char="=") 
+        cat("Growth curve fitting is in progress, please wait, ...\n")
+    } # end if.
+    ###-------------------------------------------------------------------
     for (i in seq(n)) {
-        Data4L <- DataList[[i]][,c("SAR.Cycle","Dose","Signal","Signal.Err"),drop=FALSE]
-        DataN <- as.numeric(Data4L[Data4L[,"SAR.Cycle",drop=TRUE]=="N",-1L])
-        DataR <- Data4L[Data4L[,"SAR.Cycle",drop=TRUE]!="N",-1L,drop=FALSE]
+        if (n>=5L) setTxtProgressBar(pb, i)
         ###
-        res <- try(fitGrowth(DataR, model=model, origin=origin,
-                   weight=weight, plot=FALSE), silent=TRUE)
+        Data4L <- DataList[[i]][,c("SAR.Cycle","Dose","Signal","Signal.Err"),drop=FALSE]
+        DataR <- Data4L[Data4L[,"SAR.Cycle",drop=TRUE]!="N",c("Dose","Signal","Signal.Err"),drop=FALSE]
+        ###
+        index_SAR.Cycle_N <- which(Data4L[,"SAR.Cycle",drop=TRUE]=="N")
+        if (length(index_SAR.Cycle_N)==0L) {
+            DataN <- rep(NA, 2L)
+        } else {
+            DataN <- as.numeric(Data4L[index_SAR.Cycle_N,c("Signal","Signal.Err"),drop=FALSE])
+        } # end if.
+        ###
+        res <- try(fitGrowth(Curvedata=DataR, model=model, origin=origin,
+                             weight=weight, trial=trial, plot=if_plot, 
+                             agID=agID[i,,drop=TRUE]), 
+                             silent=TRUE)
         ###
         if (class(res)=="try-error") {
-            failFitGrainIndex <- c(failFitGrainIndex, i)
-            tab[i,] <- NA
+             cat(paste("[NO=",NO[i],",Position=",Position[i],",Grain=",Grain[i],"]:\n", sep=""))
+             print(attr(res, "condition"))
         } else {
+            if (res$message==0L) {
+                fitOK_NO <- c(fitOK_NO, NO[i])
+                fitOK_Position <- c(fitOK_Position, Position[i])
+                fitOK_Grain <- c(fitOK_Grain, Grain[i])
+                ###
+                res_calRcyRcp <- calRcyRcp(Curvedata=DataR, Ltx=DataN)
+                ###
+                RecyclingRatio1_vec   <- c(RecyclingRatio1_vec,   res_calRcyRcp$RecyclingRatio1[1L])
+                seRecyclingRatio1_vec <- c(seRecyclingRatio1_vec, res_calRcyRcp$RecyclingRatio1[2L])
+                ###
+                RecyclingRatio2_vec   <- c(RecyclingRatio2_vec,   res_calRcyRcp$RecyclingRatio2[1L])
+                seRecyclingRatio2_vec <- c(seRecyclingRatio2_vec, res_calRcyRcp$RecyclingRatio2[2L])
+                ###
+                RecyclingRatio3_vec   <- c(RecyclingRatio3_vec,   res_calRcyRcp$RecyclingRatio3[1L])
+                seRecyclingRatio3_vec <- c(seRecyclingRatio3_vec, res_calRcyRcp$RecyclingRatio3[2L])
+                ###
+                Recuperation1_vec   <- c(Recuperation1_vec,   res_calRcyRcp$Recuperation1[1L])
+                seRecuperation1_vec <- c(seRecuperation1_vec, res_calRcyRcp$Recuperation1[2L])
+                ###
+                Recuperation2_vec   <- c(Recuperation2_vec,   res_calRcyRcp$Recuperation2[1L])
+                seRecuperation2_vec <- c(seRecuperation2_vec, res_calRcyRcp$Recuperation2[2L])
+                ###
+                FOM_vec <- c(FOM_vec, res$FOM)
+                RCS_vec <- c(RCS_vec, res$RCS)
+                ###
+                Tn3BG_vec <- c(Tn3BG_vec, criteria[i,"Tn3BG",drop=TRUE])
+                TnBG.ratio_vec <- c(TnBG.ratio_vec, criteria[i,"TnBG.ratio",drop=TRUE])
+                seTnBG.ratio_vec <- c(seTnBG.ratio_vec, criteria[i,"seTnBG.ratio",drop=TRUE])
+                rseTn_vec <- c(rseTn_vec, criteria[i,"rseTn",drop=TRUE])
+                FR_vec <- c(FR_vec, criteria[i,"FR",drop=TRUE])
+                seFR_vec <- c(seFR_vec, criteria[i,"seFR",drop=TRUE])
+                ###
+                ### Growth curve fitting succeeded.
+                characterNO <- paste("NO", NO[i], "Position", Position[i], "Grain", Grain[i], sep="")
+                LMpars[[characterNO]] <- res$LMpars
+                ###
+                if (!is.null(norm.dose)) {
+                    pars <-  res$LMpars[,1L,drop=TRUE]
+                    cst <- ifelse(origin==TRUE, 0, pars[length(pars)])
+                    if (model=="line") {
+                        norm.signal <- pars[1L]*norm.dose+cst
+                    } else if(model=="exp") {
+                        norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+cst
+                    } else if(model=="lexp")  {
+                        norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
+                                       pars[3L]*norm.dose+cst
+                    } else if(model=="dexp") {
+                        norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
+                                       pars[3L]*(1.0-exp(-pars[4L]*norm.dose))+cst
+                    } else if(model=="gok") {
+                        norm.signal <- pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*norm.dose)^(-1.0/pars[3L]))+cst
+                    } # end if.
+                    ith_norm.SARdata <- DataList[[i]]
+                    ith_norm.SARdata[,c("Signal","Signal.Err")] <- 
+                    ith_norm.SARdata[,c("Signal","Signal.Err"),drop=FALSE]/norm.signal
+                    norm.SARdata <- rbind(norm.SARdata, ith_norm.SARdata)
+                } # end if.
+                ###
+            } else if (res$message==1L) {
+                failFit_ID <- rbind(failFit_ID, agID[i,,drop=TRUE])
+            } # end if. 
             ###
-            ### Calculate recycling ratio.
-            dose <- DataR[,"Dose",drop=TRUE]
-            doseltx <- DataR[,"Signal",drop=TRUE]
-            sdoseltx <- DataR[,"Signal.Err",drop=TRUE]
-            ###
-            lvl.dose <- as.numeric(levels(factor(dose)))
-            existrpd <- length(dose)>length(lvl.dose)
-            if (existrpd==TRUE) {
-                RepeatIndex <- apply(as.matrix(lvl.dose), MARGIN=1L, function(x,y)
-                                     which(abs(x-y)<=.Machine$double.eps^0.5), dose)
-                RepeatIndex <- unlist(RepeatIndex[sapply(RepeatIndex,length)>=2L])
-                RecycleRatio <- doseltx[RepeatIndex[2L]]/doseltx[RepeatIndex[1L]]
-                sRecycleRatio <- abs(RecycleRatio)*sqrt((sdoseltx[RepeatIndex[2L]]/doseltx[RepeatIndex[2L]])^2L+
-                    (sdoseltx[RepeatIndex[1L]]/doseltx[RepeatIndex[1L]])^2L)
-                tab[i,c(1L,2L)] <- c(RecycleRatio, sRecycleRatio)
-            } else {
-                tab[i,c(1L,2L)] <- NA
-            } # end if.
-            ###
-            ###
-            ### Calculate recuperation.
-            exist0d <- which(abs(dose)<=.Machine$double.eps^0.5)
-            if (length(exist0d)>=1L) {
-                Recuperation1 <- (doseltx[exist0d[1L]]/DataN[2L])*100.0
-                sRecuperation1 <- abs(Recuperation1)*sqrt((sdoseltx[exist0d[1L]]/doseltx[exist0d[1L]])^2L+
-                    (DataN[3L]/DataN[2L])^2L)
-                Recuperation2 <- (doseltx[exist0d[1L]]/max(doseltx))*100.0
-                sRecuperation2 <- abs(Recuperation2)*sqrt((sdoseltx[exist0d[1L]]/doseltx[exist0d[1L]])^2L+
-                    (sdoseltx[which.max(doseltx)]/max(doseltx))^2L)
-                tab[i,c(3L,4L)] <- c(Recuperation1, sRecuperation1)
-                tab[i,c(5L,6L)] <- c(Recuperation2, sRecuperation2)
-            } else {
-                tab[i,c(3L,4L)] <- NA
-                tab[i,c(5L,6L)] <- NA
-            } # end if.  
-            ###
-            ###
-            tab[i,7L] <- 100*sum(abs(res$fit.value[,2L,drop=TRUE]-
-                res$fit.value[,3L,drop=TRUE]))/sum(res$fit.value[,3L,drop=TRUE])
-            tab[i,8L] <- res$value/(nrow(DataR)-nrow(res$LMpars))
         } # end if.
     } # end for.
+    ###------------------------------------------------------------------------
+    if (n>=5L) close(pb)
     ###
+    if (!is.null(outpdf)) dev.off()
     ###
-    nfailFitGrainIndex <- length(failFitGrainIndex)
-    if (nfailFitGrainIndex>=1L) {
-        if (nfailFitGrainIndex==n) stop("Error: fail in fitting al growth curves!")
-        tab <- tab[-failFitGrainIndex,,drop=FALSE]
-        failFitGrainNumber <- GrainNumber[failFitGrainIndex] 
-        GrainNumber <- GrainNumber[-failFitGrainIndex]
+    if (is.null(fitOK_NO)) stop("Error: fail in fitting al growth curves!") 
+    ###
+    SARdata.table <- data.frame("NO"=fitOK_NO, "Position"=fitOK_Position, "Grain"=fitOK_Grain,
+                                "Tn3BG"=Tn3BG_vec, "TnBG.ratio"=TnBG.ratio_vec, 
+                                "seTnBG.ratio"=seTnBG.ratio_vec, 
+                                "rseTn"=rseTn_vec, "FR"=FR_vec, "seFR"=seFR_vec,
+                                "RecyclingRatio1"=RecyclingRatio1_vec, "seRecyclingRatio1"=seRecyclingRatio1_vec, 
+                                "RecyclingRatio2"=RecyclingRatio2_vec, "seRecyclingRatio2"=seRecyclingRatio2_vec,
+                                "RecyclingRatio3"=RecyclingRatio3_vec, "seRecyclingRatio3"=seRecyclingRatio3_vec,
+                                "Recuperation1"=Recuperation1_vec, "seRecuperation1"=seRecuperation1_vec,
+                                "Recuperation2"=Recuperation2_vec, "seRecuperation2"=seRecuperation2_vec,
+                                "FOM"=FOM_vec, "RCS"=RCS_vec, 
+                                stringsAsFactors=FALSE)
+    ###
+    agID <- cbind("NO"=fitOK_NO, "Position"=fitOK_Position, "Grain"=fitOK_Grain)
+    ###
+    ### Apply growth curve related rejection criteria (2).
+    ###---------------------------------------------------------------------------------
+
+    ### No se consideration.
+    if (!is.null(fom.up)) {
+        all_value <- SARdata.table[,"FOM",drop=TRUE]
+        ###
+        select_index <- which(abs(all_value)<fom.up)
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(SARdata.table) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("FOM of growth curve exceeds ", fom.up, "%",sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        SARdata.table <- SARdata.table[select_index,,drop=FALSE]
+        fom_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        fom_reject <- NULL
     } # end if.
     ###
+
+    ### No se consideration.
+    if (!is.null(rcs.up)) {
+        all_value <- SARdata.table[,"RCS",drop=TRUE]
+        ###
+        select_index <- which(abs(all_value)<rcs.up)
+        ###
+        if (length(select_index)==0L) {
+            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        } # end if.
+        ###
+        reject_N <- nrow(SARdata.table) - length(select_index)
+        ###
+        action_character <- c(action_character, paste("RCS of growth curve exceeds ", rcs.up, sep=""))
+        step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        SARdata.table <- SARdata.table[select_index,,drop=FALSE]
+        rcs_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+        agID <- agID[select_index,,drop=FALSE]
+    } else {
+        rcs_reject <- NULL
+    } # end if.
+    ###------------------------------------------------------------------------------------
+
     ###
+    if (!is.null(outfile)) write.csv(SARdata.table, file=paste(outfile,".csv",sep=""))
     ###
-    if (!is.null(rcy.interval)) {
-        indexValue <- tab[,"RecyclingRatio",drop=TRUE]
-        selected <- which(indexValue>rcy.interval[1L] & indexValue<rcy.interval[2L])
-        tab <- tab[selected,,drop=FALSE]
-        if (nrow(tab)<=0L) stop("Error: no Grain.NO satisfies the given conditions!")
-        GrainNumber <- GrainNumber[selected]   
+    select_NO <- agID[,"NO",drop=TRUE]
+    SARdata <- SARdata[SARdata[,"NO",drop=TRUE] %in% select_NO,,drop=FALSE]
+    norm.SARdata <- norm.SARdata[norm.SARdata[,"NO",drop=TRUE] %in% select_NO,,drop=FALSE]
+    ###
+    output <- list("LMpars"=LMpars,
+                   "SARdata"=SARdata,
+                   "norm.SARdata"=norm.SARdata,
+                   "agID"=agID)
+    ###
+     ###
+    if (length(Tn3BG_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
+        print(Tn3BG_reject)
+        cat("\n")
     } # end if.
     ###
-    if (!is.null(rcp1.limit)) {
-        indexValue <- tab[,"Recuperation1",drop=TRUE]
-        selected <- which(indexValue<rcp1.limit)
-        tab <- tab[selected,,drop=FALSE]
-        if (nrow(tab)<=0L) stop("Error: no Grain.NO satisfies the given conditions!")
-        GrainNumber <- GrainNumber[selected]
+    if (length(TnBG.ratio_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [TnBG.ratio]:\n")
+        print(TnBG.ratio_reject)
+        cat("\n")
     } # end if.
     ###
-    if (!is.null(rcp2.limit)) {
-        indexValue <- tab[,"Recuperation2",drop=TRUE]
-        selected <- which(indexValue<rcp2.limit)
-        tab <- tab[selected,,drop=FALSE]
-        if (nrow(tab)<=0L) stop("Error: no Grain.NO satisfies the given conditions!")
-        GrainNumber <- GrainNumber[selected]
+    if (length(rseTn_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [rseTn]:\n")
+        print(rseTn_reject)
+        cat("\n")
+    } # end if.
+    ### 
+    if (length(FR_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [FR]:\n")
+        print(FR_reject)
+        cat("\n")
     } # end if.
     ###
-    if (!is.null(fom.limit)) {
-        indexValue <- tab[,"FOM",drop=TRUE]
-        selected <- which(indexValue<fom.limit)
-        tab <- tab[selected,,drop=FALSE]
-        if (nrow(tab)<=0L) stop("Error: no Grain.NO satisfies the given conditions!")
-        GrainNumber <- GrainNumber[selected]
+    if (length(rcy1_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [rcy1]:\n")
+        print(rcy1_reject)
+        cat("\n")
     } # end if.
     ###
-    if (!is.null(rcs.limit)) {
-        indexValue <- tab[,"RCS",drop=TRUE]
-        selected <- which(indexValue<rcs.limit)
-        tab <- tab[selected,,drop=FALSE]
-        if (nrow(tab)<=0L) stop("Error: no Grain.NO satisfies the given conditions!")
-        GrainNumber <- GrainNumber[selected]
+    if (length(rcy2_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [rcy2]:\n")
+        print(rcy2_reject)
+        cat("\n")
     } # end if.
     ###
-    Data <- Data[Data[,"Grain.NO",drop=TRUE] %in% GrainNumber,,drop=FALSE]
+    if (length(rcy3_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [rcy3]:\n")
+        print(rcy3_reject)
+        cat("\n")
+    } # end if.
     ###
-    if (!is.null(outfile)) {
-        write.csv(tab, file=paste(outfile,".csv",sep=""))
-    } # end if.  
+    if (length(rcp1_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [rcp1]:\n")
+        print(rcp1_reject)
+        cat("\n")
+    } # end if.
     ###
-    rejectGrainNumber <- originGrainNumber[which(!originGrainNumber %in% 
-        as.numeric(substr(rownames(tab), start=9L, stop=10000L)))]
-    if (length(rejectGrainNumber)==0L) rejectGrainNumber <- NULL
+    if (length(rcp2_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [rcp2]:\n")
+        print(rcp2_reject)
+        cat("\n")
+    } # end if.
     ###
-    output <- list("Data"=Data,
-                   "tab"=tab,
-                   "failFit.NO"=failFitGrainNumber,
-                   "reject.NO"=rejectGrainNumber)
+    if (length(fom_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [fom]:\n")
+        print(fom_reject)
+        cat("\n")
+    } # end if.
     ###
-    return(output)
+    if (length(rcs_reject)>0L) {
+        cat("\n")
+        cat("Aliquot (grain) ID rejected use [rcs]:\n")
+        print(rcs_reject)
+        cat("\n")
+    } # end if.
+    ###
+    if (!is.null(failFit_ID)) {
+        cat("\n")
+        cat("Aliquot (grain) ID failed in growth curve fitting:\n")
+        print(apply(failFit_ID, MARGIN=1L, NPG))
+        cat("\n")
+    } # end if.
+    ###
+    action_character <- c(action_character, 
+                          "Failed in growth curve fitting",
+                          "Total number of rejected aliquots (grains)",
+                          "Total number of accepted aliquots (grains)")
+    ###
+    step_reject_N <- c(step_reject_N, 
+                       ifelse(is.null(failFit_ID), 0L, nrow(failFit_ID)),
+                       nag-nrow(agID), 
+                       nrow(agID))
+    ###
+    summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+    print(summary_info)
+    ###
+    invisible(output)
 } # end function pickSARdata.default.
 #####

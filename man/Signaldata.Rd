@@ -11,7 +11,7 @@ CW-OSL and LM-OSL decay curves.
 \format{
   A list that contains CW-OSL and LM-OSL decay curves:
   \describe{
-    \item{cw}{14 CW-OSL decay curves of a sand sample from the Tengger Desert in northern china (Peng and Han, 2013)}
+    \item{cw}{a number of CW-OSL decay curves of a sand sample from the Tengger Desert in northern china (Peng and Han, 2013)}
     \item{lm}{a LM-OSL decay curve from Li and Li (2006)}
 }
 }
@@ -20,9 +20,15 @@ Li SH, Li B, 2006. Dose measurement using the fast component of LM-OSL signals f
 
 Peng J, Han FQ, 2013. Selections of fast-component OSL signal using sediments from the south edge of Tengger Desert. Acta Geoscientica Sinica, 34(6): 757-762.
 }
+
+\seealso{
+  \link{decomp}; \link{fastED}
+}
+
 \examples{
-data(Signaldata)
-names(Signaldata)
+# Not run.
+# data(Signaldata)
+# names(Signaldata)
 }
 \keyword{OSL dating}
 \keyword{decay curve}

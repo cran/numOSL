@@ -1,79 +1,49 @@
 #####
 fastED <-
-function(Sigdata, Redose, ncomp=2, constant=TRUE,
-         control.args=list(), typ="cw", model="exp",
-         origin=FALSE, ErrorMethod="mc", 
-         nsim=1000, weight=TRUE) {
+function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
+         control.args=list(), typ="cw", model="gok", origin=FALSE, 
+         nsim=1000, weight.decomp=FALSE, weight.fitGrowth=TRUE, 
+         trial=TRUE, outpdf=NULL, log="x", lwd=2,
+         test.dose=NULL, agID=NULL) {
     UseMethod("fastED")
 } ###
-### 2016.07.15.
+### 2017.01.22.
 fastED.default <-
-function(Sigdata, Redose, ncomp=2, constant=TRUE,
-         control.args=list(), typ="cw", model="exp", 
-         origin=FALSE, ErrorMethod="mc", 
-         nsim=1000, weight=TRUE) {
+function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
+         control.args=list(), typ="cw", model="gok", origin=FALSE, 
+         nsim=1000, weight.decomp=FALSE, weight.fitGrowth=TRUE, 
+         trial=TRUE, outpdf=NULL, log="x", lwd=2,
+         test.dose=NULL, agID=NULL) {
     ### Stop if not.
-    stopifnot(ncol(Sigdata)>=5L, ncol(Sigdata)%%2L==1L, all(Sigdata[,-1L,drop=TRUE]>0),
-              is.vector(Redose), length(Redose)==(ncol(Sigdata)-3L)/2L, is.numeric(Redose), all(Redose>=0),
-              length(ncomp)==1L, ncomp %in% seq(4L),
+    stopifnot(ncol(Sigdata)>=5L, ncol(Sigdata)%%2L==1L,
+              is.numeric(Redose), all(Redose>=0),
+              length(delay.off)==2L, all(delay.off>=0L),
+              length(ncomp)==1L, ncomp %in% seq(5L),
               length(constant)==1L, is.logical(constant),
-              class(control.args)=="list", all(names(control.args) %in% list("factor","f","cr","maxiter","tol")),
-              length(typ)==1L, is.character(typ), typ=="cw",
-              length(model)==1L, is.character(model), model %in% c("line","exp","lexp","dexp","gok"),
+              class(control.args)=="list", 
+              all(names(control.args) %in% list("factor","f","cr","maxiter","tol")),
+              length(typ)==1L, typ=="cw",
+              length(model)==1L, model %in% c("line","exp","lexp","dexp","gok"),
               length(origin)==1L, is.logical(origin),
-              length(ErrorMethod)==1L, is.character(ErrorMethod), ErrorMethod %in% c("mc","sp"),
               length(nsim)==1L, is.numeric(nsim), nsim>=50L, nsim<=3000L,
-              length(weight)>=1L, is.logical(weight))
+              length(weight.decomp)==1L, is.logical(weight.decomp),
+              length(weight.fitGrowth)==1L, is.logical(weight.fitGrowth),
+              length(trial)==1L, is.logical(trial),
+              is.null(outpdf) || (length(outpdf)==1L && is.character(outpdf)),
+              length(log)==1L, log %in% c("", "x", "y", "xy", "yx"),
+              length(lwd)==1L, is.numeric(lwd),
+              is.null(test.dose) || (length(test.dose)==1L && is.numeric(test.dose)),
+              is.null(agID) || (length(agID)==3L && is.numeric(agID)))
     ###
+    if (any(Sigdata[,,drop=TRUE]<=0)) stop("Error: values in 'Sigdata' should larger than zero!")
     ###
-    Plot2<-function(tim,sig,pars,cvalue,samplename) {
-        ###
-        par(mgp=c(2,1,0), mar=c(3,3,2,1)+0.1)
-        ###
-        plot(tim, sig, main=samplename, log="x", las=0, cex.main=1.25,
-             lab=c(7,7,9), ylim=c(-max(sig)*0.01,max(sig)*1.01), cex.lab=1,
-             xlab="Stimulated Time (s)", ylab="Photon Counts", xaxs="r", 
-             yaxs="i", type="p", pch=21, cex=1.5, bg="white", col="black")
-        ### 
-        colors<-c("blue", "green", "red", "deepskyblue")
-        ###
-        nrp <- nrow(pars)
-        x <- seq(min(tim), max(tim), by=(max(tim)-min(tim))/length(tim)/100L)
-        lines(x, eval(parse(text=paste("pars[",seq(nrp),",1L,drop=TRUE]*pars[",
-              seq(nrp),",3L,drop=TRUE]*exp(-pars[",seq(nrp),",3L,drop=TRUE]*x)",
-              collapse="+",sep="")))+cvalue,lwd=3,col="black",lty="solid")
-        ###
-        for (i in seq(nrp)) {
-            curve(pars[i,1L,drop=TRUE]*pars[i,3L,drop=TRUE]*
-                  exp(-pars[i,3L,drop=TRUE]*x),lwd=3,col=colors[i],
-                  lty="solid",add=TRUE)
-        } # end for.
-        ###
-        if (cvalue>0) {
-            abline(h=cvalue, lty="dashed", lwd=3)
-            legend("topright",legend=c("Fitted.Curve",paste("Comp.",
-                   seq(nrp),sep=""),"Constant"),col=c("black", 
-                   colors[seq(nrp)],"black"),pch=c(21,rep(NA,nrp+1L)), 
-                   lty=c(rep("solid",nrp+1L),"dashed"),yjust=2,ncol=1L, 
-                   cex=par("cex"),bty="o",lwd=3,pt.bg="white")
-        } else {
-            legend("topright",legend=c("Fitted.Curve",paste("Comp.",seq(nrp),sep="")), 
-                   col=c("black", colors[seq(nrp)]),pch=c(21,rep(NA,nrp)),lty="solid", 
-                   yjust=2,ncol=1L,cex=par("cex"),bty="o",lwd=3,pt.bg="white")
-        } # end if.
-        ###
-        grid(equilogs=FALSE)
-        box(lwd=2L)
-        par(mgp=c(3,1,0), mar=c(5,4,4,2)+0.1)
-        ###
-    } # end function Plot2.
+    if (length(Redose)!=(ncol(Sigdata)-3L)/2L) stop("Error: incorrect length of 'Redose'!")
     ###
+    length_curve <- ncol(Sigdata)-1L
+    fast_Ltx <- matrix(nrow=length_curve, ncol=2L)
+    decomp_pars <- list()
     ###
-    ncs1 <- ncol(Sigdata)-1L
-    fLtx <- matrix(nrow=ncs1, ncol=2L)
-    pars <- vector("list", length=ncs1)    
-    ###
-    args <- list(factor=10L,f=0.5,cr=0.99,maxiter=500L,tol=0.1)
+    args <- list(factor=20L,f=0.5,cr=0.99,maxiter=500L,tol=0.1)
     args[names(control.args)] <- control.args
     factor <- args$factor
     f <- args$f
@@ -86,113 +56,117 @@ function(Sigdata, Redose, ncomp=2, constant=TRUE,
               length(maxiter)==1L, is.numeric(maxiter), maxiter>=10L, maxiter<=5000L,
               length(tol)==1L, is.numeric(tol), tol>0.0)
     ###
-    res <- try(decomp(Sigdata[,c(1L,2L),drop=FALSE], 
-               ncomp=ncomp, constant=constant, typ=typ, 
-               control.args=args, transf=TRUE, weight=FALSE,
-               plot=FALSE), silent=TRUE)
-    if (class(res)=="try-error") {
-        stop("Error: fail in decomposing the natural decay curve!")
+    if (!is.null(outpdf)) {
+        pdf(paste(outpdf,".pdf",sep=""))
+        if_plot <- TRUE
+    } else {
+        if_plot <- FALSE
     } # end if.
+    ###-------------------------------------------------------------------------------
+    res <- try(decomp(Sigdata[,c(1L,2L),drop=FALSE], delay.off=delay.off, ncomp=ncomp, 
+                      constant=constant, typ=typ, control.args=args, weight=weight.decomp, 
+                      plot=if_plot, log=log, lwd=lwd, curve.no=1L, SAR.Cycle="Natural", 
+                      irr.dose=0, outfile=NULL, transf=TRUE), silent=TRUE)
     ###
+    if (class(res)!="try-error" && res$message==0L) {
+        decomp_pars[["N"]] <- res$LMpars
+        fast_Ltx[1L,] <- res$LMpars[which.max(res$LMpars[,3L,drop=TRUE]),seq(2L),drop=TRUE]    
+    } else {
+        if (!is.null(outpdf)) dev.off()
+        if (class(res)=="try-error")  print(attr(res,"condition"))
+        stop("Error: fail in natural (1st) decay curve fitting!")
+    } # end if.
+    ###--------------------------------------------------------------------------------
+    res <- try(decomp(Sigdata[,c(1L,3L),drop=FALSE], delay.off=delay.off, ncomp=ncomp, 
+                      constant=constant, typ=typ, control.args=args, weight=weight.decomp, 
+                      plot=if_plot, log=log, lwd=lwd, curve.no=2L, SAR.Cycle="Test [Natural]", 
+                      irr.dose=test.dose, outfile=NULL, transf=TRUE), silent=TRUE)
     ###
-    par(mfrow=c(ifelse(ncs1%%4L==0L, ncs1/4L+1L, ncs1%/%4L+1L), 4L))
-    pars[[1L]] <- res$LMpars
-    fLtx[1L,] <- res$LMpars[which.max(res$LMpars[,3L,drop=TRUE]),seq(2L),drop=TRUE]
+    if (class(res)!="try-error" && res$message==0L) {
+        decomp_pars[["TN"]] <- res$LMpars
+        fast_Ltx[2L,] <- res$LMpars[which.max(res$LMpars[,3L,drop=TRUE]),seq(2L),drop=TRUE]    
+    } else {
+        if (!is.null(outpdf)) dev.off()
+        if (class(res)=="try-error")  print(attr(res,"condition"))
+        stop("Error: fail in natural test dose (2st) decay curve fitting!")
+    } # end if.
+    ###--------------------------------------------------------------------------------
     ###
-    Plot2(tim=Sigdata[,1L,drop=TRUE], sig=Sigdata[,2L,drop=TRUE], pars=res$LMpars, 
-          cvalue=ifelse(constant==FALSE,0,res$constant[1L]), samplename="Natural")   
-    ###
-    ###
-    for (i in 3L:ncol(Sigdata)) {
-        res <- try(decomp(Sigdata[,c(1L,i),drop=FALSE], ncomp=ncomp, constant=constant, 
-                   typ=typ, control.args=args, transf=TRUE, weight=FALSE, plot=FALSE), silent=TRUE)
+    for (i in 4L:ncol(Sigdata)) {
+        iSAR.Cycle <- ifelse(i%%2L==0L,paste("Redose.",i/2L-1L,sep=""), 
+                             paste("Test [Redose.",(i-1L)/2L-1L,"]",sep=""))
+        if (i%%2L==0L) i_irr.dose <- Redose[i/2L-1L] else i_irr.dose <- test.dose
         ###
-        samplename <- ifelse(i==3L,"Test[Natural]",
-                      ifelse(i%%2L==0L,paste("Redose.",i/2L-1L,sep=""), 
-                      paste("Test[Redose.",(i-1L)/2L-1L,"]",sep="")))
+        res <- try(decomp(Sigdata[,c(1L,i),drop=FALSE], delay.off=delay.off, ncomp=ncomp, 
+                          constant=constant, typ=typ, control.args=args, weight=weight.decomp, 
+                          plot=if_plot, log=log, lwd=lwd, curve.no=i-1L, SAR.Cycle=iSAR.Cycle, 
+                          irr.dose=i_irr.dose, outfile=NULL, transf=TRUE), silent=TRUE)
         ###
-        if (class(res)=="try-error") {
-            cat(paste("Note: fail in decomposing the ",i-1L,"th decay curve!\n",sep=""))
-            par(mgp=c(2,1,0), mar=c(3,3,2,1)+0.1)
+        if (class(res)!="try-error" && res$message==0L) {
+            characterNO <- ifelse(i%%2L==0L,paste("R",i/2L-1L,sep=""), 
+                                  paste("TR",(i-1L)/2L-1L,sep=""))
+            decomp_pars[[characterNO]] <- res$LMpars
+            fast_Ltx[i-1L,] <- res$LMpars[which.max(res$LMpars[,3L,drop=TRUE]),seq(2L),drop=TRUE]
             ###
-            plot(x=Sigdata[,1L,drop=TRUE], y=Sigdata[,i,drop=TRUE], 
-                 main=samplename, log="x", las=0, cex.main=1.25,
-                 lab=c(7,7,9), ylim=c(-max(Sigdata[,i,drop=TRUE])*0.01, 
-                 max(Sigdata[,i,drop=TRUE])*1.2), cex.lab=1, 
-                 xlab="Stimulated Time (s)", ylab="Photon Counts",
-                 xaxs="r", yaxs="i", typ="p", pch=21, cex=1.5, 
-                 bg="white", col="black")
-            grid(equilogs=FALSE)
-            box(lwd=2L)
-            par(mgp=c(3,1,0), mar=c(5,4,4,2)+0.1)
         } else {
-            pars[[i-1L]] <- res$LMpars
-            fLtx[i-1L,] <- res$LMpars[which.max(res$LMpars[,3L,drop=TRUE]),seq(2L),drop=TRUE]
-            ###
-            Plot2(tim=Sigdata[,1L,drop=TRUE], sig=Sigdata[,i,drop=TRUE], pars=res$LMpars, 
-                  cvalue=ifelse(constant==FALSE,0,res$constant[1L]), samplename=samplename)   
+            if (class(res)=="try-error")  print(attr(res,"condition"))
+            cat(paste("Note: fail in fit the ",i-1L,"th decay curve!\n",sep=""))
+            fast_Ltx[i-1L,] <- NA
         } # end if.
     } # end for.
+    ###--------------------------------------------------------------------------------------
     ###
+    odd_index <- which(seq(length_curve)%%2L==1L)
+    even_index <- which(seq(length_curve)%%2L==0L)
     ###
-    fLtx[,2L] <- fLtx[,2L,drop=TRUE]/fLtx[,1L,drop=TRUE]
-    fLxTx <- fLtx[seq(nrow(fLtx))%%2L==1L,1L,drop=TRUE]/fLtx[seq(nrow(fLtx))%%2L==0L,1L,drop=TRUE]
-    sfLxTx <- fLxTx*sqrt((fLtx[seq(nrow(fLtx))%%2L==1L,2L,drop=TRUE])^2L+
-        (fLtx[seq(nrow(fLtx))%%2L==0L,2L,drop=TRUE])^2L)
+    Lx_vec <- fast_Ltx[odd_index]
+    Tx_vec <- fast_Ltx[even_index]
+    rseLx_vec <- (fast_Ltx[,2L,drop=TRUE]/fast_Ltx[,1L,drop=TRUE])[odd_index]
+    rseTx_vec <- (fast_Ltx[,2L,drop=TRUE]/fast_Ltx[,1L,drop=TRUE])[even_index]
     ###
-    Curvedata <- data.frame("Redose"=Redose, "OSL"=fLxTx[-1L], "Std.OSL"=sfLxTx[-1L])
+    TxTn_vec <- Tx_vec[is.finite(Tx_vec)]
+    TxTn_vec <- TxTn_vec/TxTn_vec[1L]
+    ###
+    LxTx_vec <- Lx_vec/Tx_vec
+    seLxTx_vec <- abs(Lx_vec/Tx_vec)*sqrt(rseLx_vec^2L+rseTx_vec^2L)
+    ###
+    Curvedata <- data.frame("Redose"=Redose, "LxTx"=LxTx_vec[-1L], "seLxTx"=seLxTx_vec[-1L])
     Curvedata <- Curvedata[complete.cases(Curvedata),,drop=FALSE]
-    ###
-    NatureLxTx <- c(fLxTx[1L],sfLxTx[1L])
-    if(any(!is.finite(NatureLxTx))) { 
-        stop("Error: fail in calculating the standardised natural OSL!")
+    if (nrow(Curvedata)==0L) {
+        if (!is.null(outpdf)) dev.off() 
+        stop("Error: no data can be used to build the fast-component growth curve!")
     } # end if.
     ###
+    Nature_LxTx <- c(LxTx_vec[1L], seLxTx_vec[1L])
     ###
-    dose <- Curvedata[,1L,drop=TRUE]
-    doseltx <- Curvedata[,2L,drop=TRUE]
-    sdoseltx <- Curvedata[,3L,drop=TRUE]
+    res <- try(calED(Curvedata=Curvedata, Ltx=Nature_LxTx, model=model, origin=origin, 
+                     nsim=nsim, weight=weight.fitGrowth, trial=trial, plot=if_plot,
+                     TxTn=TxTn_vec, agID=agID, Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL,  
+                     FR=NULL, Tn=NULL), silent=TRUE)
     ###
-    ### Calculate recycling ratio.
-    lvl.dose <- as.numeric(levels(factor(dose)))
-    existrpd <- length(Curvedata[,1L,drop=TRUE])>length(lvl.dose)
-    if (existrpd==TRUE) {
-        RepeatIndex <- apply(as.matrix(lvl.dose), MARGIN=1L, function(x,y) 
-                             which(abs(x-y)<=.Machine$double.eps^0.5), dose)
-        RepeatIndex <- unlist(RepeatIndex[sapply(RepeatIndex,length)>=2L])
-        RecycleRatio <- doseltx[RepeatIndex[2L]]/doseltx[RepeatIndex[1L]]
-        sRecycleRatio <- abs(RecycleRatio)*sqrt((sdoseltx[RepeatIndex[2L]]/doseltx[RepeatIndex[2L]])^2L+
-            (sdoseltx[RepeatIndex[1L]]/doseltx[RepeatIndex[1L]])^2L)
-    } else {
-        RecycleRatio <- sRecycleRatio <- NA
-    } # end if
+    if (!is.null(outpdf)) dev.off() 
+    ### 
+    if (class(res)=="try-error")  stop("Error: data points is not enough for growth curve fitting")
     ###
-    ### Calculate recuperation.
-    exist0d <- which(abs(dose)<=.Machine$double.eps^0.5)
-    if (length(exist0d)>=1L) {
-        Recuperation <- (doseltx[exist0d[1L]]/NatureLxTx[1L])*100.0
-        sRecuperation <- abs(Recuperation)*sqrt((sdoseltx[exist0d[1L]]/doseltx[exist0d[1L]])^2L+
-            (NatureLxTx[2L]/NatureLxTx[1L])^2L)
-    } else {
-        Recuperation <- sRecuperation <- NA
-    } # end if
-    ###
-    ###
-    res <- calED(Curvedata=Curvedata, Ltx=NatureLxTx, model=model, origin=origin, 
-                 ErrorMethod=ErrorMethod, nsim=nsim, weight=weight, plot=TRUE)
-    ###
-    par(mfrow=c(1L,1L))
-    ###
-    output <- list("decayPars"=pars,
+    output <- list("decomp.pars"=decomp_pars,
                    "Curvedata"=Curvedata, 
-                   "Ltx"=NatureLxTx, 
+                   "Ltx"=Nature_LxTx, 
                    "LMpars"=res$LMpars, 
                    "value"=res$value, 
-                   "fastED"=res$ED, 
-                   "RecyclingRatio"=c(RecycleRatio,sRecycleRatio), 
-                   "Recuperation"=c(Recuperation,sRecuperation))
-    ### 
-    return(output)
+                   "avg.error"=res$avg.error,
+                   "RCS"=res$RCS,
+                   "FOM"=res$FOM, 
+                   "calED.method"=res$calED.method,
+                   "mcED"=res$mcED,
+                   "ED"=res$ED,
+                   "ConfInt"=res$ConfInt,
+                   "RecyclingRatio1"=res$RecyclingRatio1,
+                   "RecyclingRatio2"=res$RecyclingRatio2,
+                   "RecyclingRatio3"=res$RecyclingRatio3,
+                   "Recuperation1"=res$Recuperation1,
+                   "Recuperation2"=res$Recuperation2)
+    ###
+    invisible(output)
     ###
 } # end function fastED.default.
-#####                    
+#####

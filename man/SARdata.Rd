@@ -9,22 +9,29 @@ SAR data sets for individual aliquots from the "later" group of sample HF11 from
 }
 \usage{data(SARdata)}
 \format{
-  A data frame with 840 observations on the following 5 variables.
+  A \link{data.frame} with 840 observations containing the following 5 variables:
   \describe{
-    \item{Grain.NO}{Grain number for each aliquot (grain)}
-    \item{SAR.Cycle}{natural (N) or regenerative (R) measurement cycles for each Grain.NO}
-    \item{Dose}{regenerative doses for each Grain.NO}
-    \item{Signal}{standardised OSL signals for each Grain.NO}
-    \item{Signal.Err}{measurement error of standardised OSL signals for each Grain.NO}
+    \item{NO}{aliquot (grain) number}
+    \item{SAR.Cycle}{SAR cycles}
+    \item{Dose}{regenerative doses}
+    \item{Signal}{OSL signals}
+    \item{Signal.Err}{standard error of OSL signals}
   }
 }
 
 \references{
 Li B, Jacobs Z, Roberts RG, 2016. Investigation of the applicability of standardised growth curves for OSL dating of quartz from Haua Fteah cave, Libya. Quaternary Geochronology, 35: 1-15.
 }
+
+\seealso{
+  \link{fitGrowth}; \link{lsNORM}; \link{calSGCED};\cr
+  \link{as_analyseBIN}
+}
+
 \examples{
-data(SARdata)
-head(SARdata)
+ # Not run.
+ # data(SARdata)
+ # head(SARdata)
 }
 \keyword{OSL dating}
 \keyword{growth curve}

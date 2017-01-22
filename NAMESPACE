@@ -1,7 +1,9 @@
 useDynLib(numOSL)
 exportPattern("^[^\\.]")
 
-S3method(analyst, default)
+S3method(loadBINdata, default)
+S3method(pickBINdata, default)
+S3method(analyseBINdata, default)
 S3method(calDA, default)
 S3method(calED, default)
 S3method(dbED, default)
@@ -13,20 +15,21 @@ S3method(mcMAM, default)
 S3method(psRadialPlot, default)
 S3method(RadialPlotter, default)
 S3method(reportSAM, default)
-S3method(select, default)
-S3method(viewer, default)
 S3method(calSARED, default)
 S3method(calSGCED, default)
 S3method(lsNORM, default)
 S3method(pickSARdata, default)
-S3method(pickSARED, default)
-S3method(summary, calSARED)
-S3method(summary.calSARED, default)
+S3method(scaleSGCN, default)
+S3method(as_analyseBIN, default)
+S3method(calRcyRcp, default)
 
 importFrom(graphics, abline, arrows, axTicks, axis, box,
      curve, grid, hist, layout, legend, lines, mtext,
      par, plot, points, polygon, rug, segments, text)
+
 importFrom(stats, acf, approx, complete.cases, density, dnorm, runif,
      kmeans, median, nlminb, optim, pnorm, quantile, rnorm, sd, var)
-importFrom(utils, write.csv)
+
+importFrom(utils, write.csv, View, edit, setTxtProgressBar, txtProgressBar)
+
 importFrom(grDevices, pdf, dev.off)

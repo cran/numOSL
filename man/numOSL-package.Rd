@@ -9,8 +9,8 @@ Package for routine numeric optimization and data visualization in optically sti
 \tabular{ll}{
 Package: \tab numOSL\cr
 Type: \tab Package\cr
-Version: \tab 2.0\cr
-Date: \tab 2016-07-18\cr
+Version: \tab 2.1\cr
+Date: \tab 2017-01-22\cr
 License: \tab GPL-3\cr
 }
 }
@@ -28,7 +28,7 @@ Jun Peng
 R program KMS
 \url{https://github.com/pengjunUCAS/KMS}\cr
 R package tgcd
-\url{http://CRAN.R-project.org/package=tgcd}
+\url{https://CRAN.R-project.org/package=tgcd}
 }
 \references{
 Peng J, Dong ZB, Han FQ, Long H, Liu XJ, 2013. R package numOSL: numeric routines for optically stimulated luminescence dating. Ancient TL, 31(2): 41-48.
@@ -39,4 +39,4 @@ Peng J, Dong ZB, Han FQ, Long H, Liu XJ, 2013. R package numOSL: numeric routine
 \keyword{decay curve}
 \keyword{growth curve}
 \keyword{equivalent dose}
-\keyword{annual dose rate}
+\keyword{dose rate}

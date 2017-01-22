@@ -10,15 +10,16 @@ Calculating the annual dose rate and burial age.
 \usage{
 calDA(dose, minGrainSize, maxGrainSize, Ucontent, Thcontent, Kcontent, 
       Wct, depth, altitude, latitude, longitude, bulkDensity = 2.5, 
-      alphaValue = 0.03, nsim = 10000, rdcf = 0.05, rba = 0.05, plot = TRUE)
+      alphaValue = 0.03, nsim = 10000, rdcf = 0.05, rba = 0.05, 
+      plot = TRUE)
 }
 
 \arguments{
   \item{dose}{\link{vector}(\bold{required}): equivalent dose and associated measurement error (unit, Gy)}
 
-  \item{minGrainSize}{\link{double}(\bold{required}): lower limit on grain size (unit, um)}
+  \item{minGrainSize}{\link{numeric}(\bold{required}): lower limit on grain size (unit, um)}
 
-  \item{maxGrainSize}{\link{double}(\bold{required}): upper limit on grain size (unit, um)}
+  \item{maxGrainSize}{\link{numeric}(\bold{required}): upper limit on grain size (unit, um)}
 
   \item{Ucontent}{\link{vector}(\bold{required}): uranium content and its measurement error (unit, ppm)}
 
@@ -28,23 +29,23 @@ calDA(dose, minGrainSize, maxGrainSize, Ucontent, Thcontent, Kcontent,
 
   \item{Wct}{\link{vector}(\bold{required}): water content and its measurement error (unit, 1 percent)}
 
-  \item{depth}{\link{double}(\bold{required}): sampling depth (unit, m)}
+  \item{depth}{\link{numeric}(\bold{required}): sampling depth (unit, m)}
 
-  \item{altitude}{\link{double}(\bold{required}): altitude of the sampling site (unit, m above sea level)}
+  \item{altitude}{\link{numeric}(\bold{required}): altitude of the sampling site (unit, m above sea level)}
 
-  \item{latitude}{\link{double}(\bold{required}): latitude of the sampling site (unit, decimal degree)}
+  \item{latitude}{\link{numeric}(\bold{required}): latitude of the sampling site (unit, decimal degree)}
 
-  \item{longitude}{\link{double}(\bold{required}): longitude of the sampling site (unit, decimal degree)}
+  \item{longitude}{\link{numeric}(\bold{required}): longitude of the sampling site (unit, decimal degree)}
 
-  \item{bulkDensity}{\link{double}(with default): average density of bulk sample (unit, g/cm^3)}
+  \item{bulkDensity}{\link{numeric}(with default): average density of bulk sample (unit, g/cm^3)}
 
-  \item{alphaValue}{\link{double}(with default): average alpha efficiency}
+  \item{alphaValue}{\link{numeric}(with default): average alpha efficiency}
 
   \item{nsim}{\link{integer}(with default): number of Monte Carlo iterations}
 
-  \item{rdcf}{\link{double}(with default): constant relative standard error for dose-rate conversion factors (unit, 1 percent)}
+  \item{rdcf}{\link{numeric}(with default): constant relative standard error for dose-rate conversion factors (unit, 1 percent)}
 
-  \item{rba}{\link{double}(with default): constant relative standard error for beta dose absorption fraction (unit, 1 percent)}
+  \item{rba}{\link{numeric}(with default): constant relative standard error for beta dose absorption fraction (unit, 1 percent)}
 
   \item{plot}{\link{logical}(with default): draw a plot or not}
 }
@@ -55,7 +56,7 @@ The standard error of an annual dose rate is estimated by a "parametric bootstra
 }
 
 \value{
-Return a matrix that contains calculated annual dose rate and age
+Return a \link{matrix} that contains calculated annual dose rate and age
 }
 
 \references{
@@ -74,4 +75,4 @@ calDA(dose=c(25.04,0.68), minGrainSize=90,
       latitude=c(37.64,1.88), longitude=c(103.16,5.16),
       bulkDensity=c(2.5,0.1), nsim=10000, rdcf=0.05, rba=0.05) 
 }
-\keyword{annual dose rate}
+\keyword{dose rate}

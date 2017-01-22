@@ -12,6 +12,6 @@ citEntry(entry="Article",
          volume = 31,
          number = 2,
          pages = "41-48",
-         url = "http://CRAN.R-project.org/package=numOSL",
+         url = "https://CRAN.R-project.org/package=numOSL",
          pdf = "www.aber.ac.uk/en/media/departmental/iges/ancienttl/pdf/vol31no2/peng_atl_31(2)_41.pdf",
          textVersion = "Peng J, Dong ZB, Han FQ, Long H, Liu XJ, 2013. R package numOSL: numeric routines for optically stimulated luminescence dating. Ancient TL, 31(2): 41-48")

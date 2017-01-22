@@ -12,18 +12,19 @@ mcFMM(EDdata, ncomp = 1, addsigma = 0, iflog = TRUE,
       nsim = 50000, inis = list(), control.args = list())
 }
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}):  a two-column matrix (i.e., equivalent dose values and associated standard errors)}
+  \item{EDdata}{\link{matrix}(\bold{required}):  a two-column matrix (i.e., equivalent dose values and\cr
+associated standard errors)}
 
   \item{ncomp}{\link{integer}(with default): number of components (\code{1} denotes the central age model)}
 
-\item{addsigma}{\link{double}(with default): additional uncertainty}
+\item{addsigma}{\link{numeric}(with default): additional uncertainty}
 
   \item{iflog}{\link{logical}(with default): transform equivalent dose values to log-scale or not}
 
   \item{nsim}{\link{integer}(with default): deseried number of iterations}
 
   \item{inis}{\link{list}(with default): initial state of parameters.\cr 
-Example, \code{inis=list(p1=1,p2=1,mu1=5,mu2=10)} in FMM2 (the sum of \code{p1} and \code{p2} will be normalized to 1 during the simulation)}
+Example: \code{inis=list(p1=1,p2=1,mu1=5,mu2=10)} in FMM2 (the sum of \code{p1} and \code{p2} will be normalized to 1 during the simulation)}
 
   \item{control.args}{\link{list}(with default): arguments used in the Slice Sampling algorithm, see details}
 }
@@ -36,7 +37,7 @@ Function \link{mcFMM} is used for sampling from the joint-likelihood functions o
 }
 
 \value{
-Return an invisible list of S3 class \code{"mcAgeModels"} including the following elements:
+Return an invisible \link{list} of S3 class object \code{"mcAgeModels"} including the following elements:
   \item{EDdata}{equivalent dose values}
   \item{addsigma}{additional uncertainty}
   \item{model}{fitting model}
@@ -52,11 +53,12 @@ Neal RM, 2003. "Slice sampling" (with discussion). Annals of Statistics, 31(3): 
 }
 
 \seealso{
-  \link{mcMAM}; \link{reportSAM}; \link{RadialPlotter}
+  \link{mcMAM}; \link{reportSAM};\cr
+  \link{RadialPlotter}; \link{EDdata}
 }
 
 \examples{
-  # Do not run.
+  # Not run.
   # data(EDdata)
   # Construct a MCMC chain for FMM3.
   # obj<-mcFMM(EDdata$gl11,ncomp=3,nsim=5000)

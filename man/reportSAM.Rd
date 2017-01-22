@@ -14,7 +14,8 @@ reportSAM(obj, burn = 10000, thin = 5,
 \arguments{
   \item{obj}{\link{list}(\bold{required}): an object of S3 class \code{"mcAgeModels"}, which is produced by function \link{mcFMM} or \link{mcMAM} }
 
-  \item{burn}{\link{integer}(with default): number of iterations (i.e., the initial, non-stationary portion of the chain) to be discarded}
+  \item{burn}{\link{integer}(with default): number of iterations (i.e., the initial, non-stationary\cr
+portion of the chain) to be discarded}
 
   \item{thin}{\link{integer}(with default): take every \code{thin-th} iteration}
 
@@ -30,7 +31,7 @@ Function \link{reportSAM} summarizes the output of a Markov chain (the mean valu
 }
 
 \value{
-Return a list that contains the following elements:
+Return a \link{list} that contains the following elements:
 \item{pars}{parameters and relevant statistics}
 \item{quantile}{quantiles of simulated parameters}
 \item{maxlik}{calculated maximum logged likelihood value}
@@ -47,5 +48,8 @@ Gelman A, Carlin JB, Stern HS, Dunson DB, Vehtari A, Rubin DB, 2013. Bayesian da
 }
 
 \keyword{statistical age models}
+\keyword{Central Age Model}
+\keyword{Finite Mixture Age Model}
+\keyword{Minimum Age Model}
 \keyword{equivalent dose}
 \keyword{Markov chain Monte Carlo}

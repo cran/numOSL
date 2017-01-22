@@ -1,76 +1,31 @@
 #####
 lsNORM<- 
-function(Data, model="gok", origin=FALSE, 
-         maxiter=10, weight=TRUE, plot=TRUE) {
+function(SARdata, model="gok", origin=FALSE, weight=TRUE, 
+         natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
     UseMethod("lsNORM")
 } ###	
-### 2016.07.09.
+### 2017.01.15.
 lsNORM.default<- 
-function(Data, model="gok", origin=FALSE, 
-         maxiter=10, weight=TRUE, plot=TRUE) {
+function(SARdata, model="gok", origin=FALSE, weight=TRUE, 
+         natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
     ### Stop if not.
-    stopifnot(ncol(Data)==5L, nrow(Data)>=5L,
-              is.numeric(Data[,1L,drop=TRUE]), all(abs(Data[,1L]-round(Data[,1L]))<.Machine$double.eps^0.5),
-              is.numeric(Data[,3L,drop=TRUE]), is.numeric(Data[,4L,drop=TRUE]), is.numeric(Data[,5L,drop=TRUE]),
-              all(Data[,3L,drop=TRUE]>=0), all(Data[,5L,drop=TRUE]>0),
-              length(model)==1L, is.character(model), model %in% c("line","exp","lexp","dexp","gok"),
+    stopifnot(ncol(SARdata)==5L, nrow(SARdata)>=5L,
+              is.numeric(SARdata[,1L,drop=TRUE]), 
+              is.numeric(SARdata[,3L,drop=TRUE]), all(SARdata[,3L,drop=TRUE]>=0),
+              is.numeric(SARdata[,4L,drop=TRUE]), 
+              is.numeric(SARdata[,5L,drop=TRUE]), all(SARdata[,5L,drop=TRUE]>0),
+              length(model)==1L, model %in% c("line","exp","lexp","dexp","gok"),
               length(origin)==1L, is.logical(origin),
-              length(maxiter)==1L, is.numeric(maxiter), maxiter>0, maxiter<=1e3, abs(maxiter-round(maxiter))<.Machine$double.eps^0.5,
+              length(maxiter)==1L, is.numeric(maxiter), maxiter>0, maxiter<=1e3,
               length(weight)==1L, is.logical(weight),
+              length(natural.rm)==1L, is.logical(natural.rm),
+              is.null(norm.dose) || (length(norm.dose)==1L && is.numeric(norm.dose)),
               length(plot)==1L, is.logical(plot))
     ###
-    colnames(Data) <- c("Grain.NO","SAR.Cycle","Dose","Signal","Signal.Err")
+    colnames(SARdata) <- c("NO","SAR.Cycle","Dose","Signal","Signal.Err")
     ###
-    GrainNumber <- as.numeric(levels(factor(Data[,"Grain.NO",drop=TRUE])))
-    n <- length(GrainNumber)
-    ###
-    ### Check Grain.NO and SAR.Cycle for Data.
-    for (i in seq(n)) {  
-        GrainIndex <- which(Data[,"Grain.NO",drop=TRUE]==GrainNumber[i])     
-        SarCyclei <- substr(Data[GrainIndex,"SAR.Cycle",drop=TRUE], start=1L, stop=1L) 
-        ###
-        if (!all(diff(GrainIndex)==1L)) {
-            stop(paste("Error: Grain.NO", GrainNumber[i], 
-                " of Data appears in discontinuous locations!", sep=""))
-        } ### end if. 
-        ###    
-        if (!all(SarCyclei %in% c("N","R"))) {
-            stop(paste("Error: Grain.NO", GrainNumber[i], 
-                 " of Data contains incorrect SAR.Cycle!", sep=""))
-        } # end if.
-        ###
-        if (all(SarCyclei=="N")) {
-           stop(paste("Error: Grain.NO", GrainNumber[i], 
-                " of Data should contain SAR.Cycle of R!", sep=""))
-        } # end if. 
-        ###
-        if (sum(SarCyclei=="N")>1L) {
-            stop(paste("Error: Grain.NO", GrainNumber[i],
-                 " of Data should contain not more than one SAR.Cycle of N!", sep=""))
-        } # end if.
-    } # end for.
-    ###
-    ###
-    ### Filter on Data (remove data with SAR.Cycle=N).
-    Data <- Data[Data[,"SAR.Cycle",drop=TRUE]!="N",,drop=FALSE]
-    GrainNumber <- as.numeric(levels(factor(Data[,"Grain.NO",drop=TRUE])))
-    n <- length(GrainNumber)
-    ###
-    DataList <- vector(mode="list", length=n)
-    for (i in seq(n)) {
-        GrainIndex <- which(Data[,"Grain.NO",drop=TRUE]==GrainNumber[i])  
-        DataList[[i]] <- Data[GrainIndex,,drop=FALSE]
-    } # end for.
-    ###
-    ###
-    originData3L <- cbind(c(unlist(sapply(DataList, function(x) x[,"Dose",drop=TRUE]))),
-                          c(unlist(sapply(DataList, function(x) x[,"Signal",drop=TRUE]))),
-                          c(unlist(sapply(DataList, function(x) x[,"Signal.Err",drop=TRUE]))))
-    ###
-    ###
-    iter <- 0
-    savedataList <- DataList 
-    tol <- 1.0e-06
+    NO <- sort(as.numeric(levels(factor(SARdata[,"NO",drop=TRUE]))))
+    n <- length(NO)
     ###
     if (model=="line") {
         n2 <- 1L+!origin
@@ -89,89 +44,199 @@ function(Data, model="gok", origin=FALSE,
         mdl <- 7L
     } # end if.
     ###
+    ### Check Grain.NO and SAR.Cycle for SARdata.
+    for (i in seq(n)) {  
+        iIndex <- which(SARdata[,"NO",drop=TRUE]==NO[i])  
+        ###
+        if (!all(diff(iIndex)==1L)) {
+            stop(paste("[NO=", NO[i], 
+                       "]: 'NO' appears in discontinuous locations!", sep=""))
+        } ### end if. 
+        ###     
+        iSAR.Cycle <- substr(SARdata[iIndex,"SAR.Cycle",drop=TRUE], start=1L, stop=1L) 
+        ###
+        ###
+        if (!all(iSAR.Cycle %in% c("N","R"))) {
+            stop(paste("[NO=", NO[i], 
+                       "]: incorrect SAR.Cycle!", sep=""))
+        } # end if.
+        ###
+        if (sum(iSAR.Cycle=="N")>1L) {
+            stop(paste("[NO=", NO[i],
+                       "]: should contain not more than one SAR.Cycle of 'N'!", sep=""))
+        } # end if.
+        ###
+        ndat <- sum(iSAR.Cycle=="R")
+        if (ndat < n2) {
+             stop(paste("[NO=", NO[i], 
+                       "]: ", ndat, " data points are not enough for fitting the ",
+                       model, " (origin=",origin,") model!", sep=""))
+        } # end if.
+        ###
+    } # end for.
     ###
-    repeat {
-        Data3L <- cbind(c(unlist(sapply(DataList, function(x) x[,"Dose",drop=TRUE]))),
-                        c(unlist(sapply(DataList, function(x) x[,"Signal",drop=TRUE]))),
-                        c(unlist(sapply(DataList, function(x) x[,"Signal.Err",drop=TRUE]))))
-        rsd_old <- sd(Data3L[,2L,drop=TRUE])/
-                   mean(Data3L[,2L,drop=TRUE])
+    ### Remove data with SAR.Cycle=N if possible.
+    if (natural.rm==TRUE) {
+        SARdata <- SARdata[SARdata[,"SAR.Cycle",drop=TRUE]!="N",,drop=FALSE]
+    } # end if. 
+    ###
+    origin_SARdata <- SARdata 
+    origin_Curvedata <- SARdata[SARdata[,"SAR.Cycle",drop=TRUE]!="N",
+                                c("Dose","Signal","Signal.Err"),drop=FALSE]
+    ###
+    vary_SARdata <- SARdata 
+    vary_Curvedata <- origin_Curvedata
+    ###
+    iter <- 0
+    tol <- 1.0e-06
+    ax <- 1.0e-05
+    bx <- 1.0e+05
+    ###
+    ###
+    cat("LS-normalisation is in progress, please wait, ...\n")
+    repeat {  
+        old_rsd <- sd(vary_Curvedata[,"Signal",drop=TRUE])/
+                 mean(vary_Curvedata[,"Signal",drop=TRUE])
         ###
+        res1 <- try(fitGrowth(Curvedata=vary_Curvedata, 
+                              model=model, origin=origin, weight=weight, 
+                              trial=FALSE, plot=FALSE, agID=NULL),
+                              silent=TRUE)
         ###
-        res1 <- fitGrowth(Data3L, model=model, origin=origin,
-                          weight=weight, plot=FALSE)
+        if (class(res1)=="try-error" || res1$message==1L) {
+            if (class(res1)=="try-error") print(attr(res1,"condition"))
+            stop("Error: growth curve fitting failed!")
+        } # end if.
+        ###
         pars <- res1$LMpars[,1L,drop=TRUE]
         ###
-        ax <- 1.0e-05
-        bx <- 1.0e+05
+        if (!is.null(norm.dose)) {
+            cst <- ifelse(origin==TRUE, 0, pars[length(pars)])
+            if (model=="line") {
+                norm.signal <- pars[1L]*norm.dose+cst
+            } else if(model=="exp") {
+                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+cst
+            } else if(model=="lexp")  {
+                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
+                               pars[3L]*norm.dose+cst
+            } else if(model=="dexp") {
+                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
+                               pars[3L]*(1.0-exp(-pars[4L]*norm.dose))+cst
+            } else if(model=="gok") {
+                norm.signal <- pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*norm.dose)^(-1.0/pars[3L]))+cst
+            } # end if.
+        } else {
+            norm.signal <- 1.0
+        } # end if.
+        ###
         ###
         for (i in seq(n)) {
-            xx <- DataList[[i]][,"Dose",drop=TRUE]
-            yy <- DataList[[i]][,"Signal",drop=TRUE]
+            iIndex <- which(vary_SARdata[,"NO",drop=TRUE]==NO[i] &
+                            vary_SARdata[,"SAR.Cycle",drop=TRUE]!="N") 
+            xx <- vary_SARdata[iIndex,"Dose",drop=TRUE]
+            yy <- vary_SARdata[iIndex,"Signal",drop=TRUE]
             nd <- length(xx)
-            SF <- 0
-            fmin <- 0
+            SF <- fmin <- 0.0
             ###    
             res2 <- .Fortran("calcSF",as.double(ax),as.double(bx),as.double(xx),as.double(yy),
                              as.double(pars),as.integer(nd),as.integer(n2),as.integer(mdl),
                              SF=as.double(SF),fmin=as.double(fmin),PACKAGE="numOSL")
             ###
-            DataList[[i]][,c("Signal","Signal.Err")] <- 
-            DataList[[i]][,c("Signal","Signal.Err"),drop=FALSE]*res2$SF
+            iIndex <- which(vary_SARdata[,"NO",drop=TRUE]==NO[i])
+            vary_SARdata[iIndex, c("Signal","Signal.Err")] <- 
+            vary_SARdata[iIndex, c("Signal","Signal.Err")]*res2$SF/norm.signal
         } # end for. 
         ###
         ###
-        Data3L <- cbind(c(unlist(sapply(DataList, function(x) x[,"Dose",drop=TRUE]))),
-                        c(unlist(sapply(DataList, function(x) x[,"Signal",drop=TRUE]))),
-                        c(unlist(sapply(DataList, function(x) x[,"Signal.Err",drop=TRUE]))))
-        rsd_new <- sd(Data3L[,2L,drop=TRUE])/
-                   mean(Data3L[,2L,drop=TRUE])
+        vary_Curvedata <- vary_SARdata[vary_SARdata[,"SAR.Cycle",drop=TRUE]!="N",
+                                       c("Dose","Signal","Signal.Err"),drop=FALSE]
+        ###
+        new_rsd <- sd(vary_Curvedata[,"Signal",drop=TRUE])/
+                 mean(vary_Curvedata[,"Signal",drop=TRUE])
         ###
         iter <- iter + 1L
         ###
+        cat(paste("Iteration=", iter,  ": RSD of SARdata=", old_rsd, "\n",sep=""))
         ###
         if (iter==1L) {
             LMpars1 <- res1$LMpars
             value1 <- res1$value
+            avg.error1 <- res1$avg.error
+            RCS1 <- res1$RCS
+            FOM1 <- res1$FOM
         } # end if
         ###
-        ###
         if (iter==maxiter) break 
-        if (abs(rsd_new-rsd_old)<=tol) break
+        if (abs(new_rsd-old_rsd)<=tol) break
     } # end repeat.
+    ###
+    ###
+    new_SARdata <- vary_SARdata
+    new_Curvedata <- vary_Curvedata
     ###
     SFs <- vector(length=n)
     for (i in seq(n)) {
-        SFs[i] <- DataList[[i]][1L,"Signal"]/
-                  savedataList[[i]][1L,"Signal"]
+        iIndex <- which(new_SARdata[,"NO",drop=TRUE]==NO[i]) 
+        SFs[i] <- new_SARdata[iIndex,"Signal"][1L]/
+               origin_SARdata[iIndex,"Signal"][1L]
     } # end if.
     ###
+    ### Fit the scaled growth curve.
+    res3 <- try(fitGrowth(Curvedata=new_Curvedata, 
+                          model=model, origin=origin, weight=weight, 
+                          trial=FALSE, plot=FALSE, agID=NULL),
+                          silent=TRUE)
     ###
-    Data[,c("Signal","Signal.Err")] <- Data3L[,-1L,drop=FALSE]
+    if (class(res3)=="try-error" || res3$message==1L) {
+        if (class(res3)=="try-error") print(attr(res3,"condition"))
+        stop("Error: growth curve fitting failed!")
+    } # end if.
     ###
-    ### Fit the growth curve for the last time.
-    res3 <- fitGrowth(Data3L, model=model, origin=origin,
-                      weight=weight, plot=FALSE)
+    LMpars2 <- res3$LMpars
+    value2 <- res3$value
+    avg.error2 <- res3$avg.error
+    RCS2 <- res3$RCS
+    FOM2 <- res3$FOM
     ###
-    output <- list("optData"=Data,
-                   "sf"=SFs,
-                   "iter"=iter,
-                   "LMpars1"=LMpars1,
-                   "value1"=value1,
-                   "LMpars2"=res3$LMpars,
-                   "value2"=res3$value)
+    output <- list("norm.SARdata"=new_SARdata,
+                   "sf"=SFs, "iter"=iter,
+                   "LMpars1"=LMpars1, "value1"=value1,
+                   "avg.error1"=avg.error1, "RCS1"=RCS1, "FOM1"=FOM1,
+                   "LMpars2"=LMpars2, "value2"=value2,
+                   "avg.error2"=avg.error2, "RCS2"=RCS2, "FOM2"=FOM2)
     ###
-    ###
-    Plot3 <- function(Curvedata,pars,model,origin,
-                      ylim,xlab,ylab,xaxt,legend) {
+    if (plot==TRUE) {
+        layout(matrix(c(1L,1L,1L,2L,2L,2L,
+                        1L,1L,1L,2L,2L,2L,
+                        3L,3L,3L,4L,4L,4L),nrow=6L), 
+                        respect=FALSE)
+        par(mgp=c(2.5,1,0)) 
+        ### 
+        ### The first plot.
+        ###---------------------------------------------------------------------------
+        par(mar=c(4,4,2,0.5)+0.1)
         ###
-        plot(Curvedata[,-3L,drop=FALSE], type="p", pch=21, bg="black", cex=1.5,
-             ylim=ylim, xlab=xlab, ylab=ylab, las=0, xaxt=xaxt, xaxs="r", 
-             yaxs="i", cex.lab=1.5, cex.axis=1.5) 
+        ylim <- c(min(origin_Curvedata[,"Signal",drop=TRUE],0)*1.1, 
+                  max(origin_Curvedata[,"Signal",drop=TRUE])*1.1)
         ###
-        legend("topleft", legend=legend, yjust=2, ncol=1, cex=1.5, bty="o")
+        plot(origin_Curvedata[,c("Dose","Signal")], type="p", pch=21, bg="black", cex=1.3,
+             ylim=ylim, xlab="Regenerative dose (Gy|s)", ylab="Standardised OSL", 
+             las=0, xaxs="r", yaxs="i", cex.lab=1.5, cex.axis=1.5) 
+        legend("topleft", legend="A", yjust=2, ncol=1, cex=1.5, bty="o")
+        ###
+        dose <- origin_Curvedata[,"Dose",drop=TRUE]
+        doseltx <- origin_Curvedata[,"Signal",drop=TRUE]
+        sdoseltx <- origin_Curvedata[,"Signal.Err",drop=TRUE]
+        ###
+        arrowIndex <- which(sdoseltx>0.05 & sdoseltx/doseltx>0.01)
+        if (length(arrowIndex)>=1L) {
+            arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
+                   x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
+                   code=3, lwd=1, angle=90, length=0.05, col="black")
+        } # end if.
         ###
         x <- NULL
+        pars <- LMpars1[,1L,drop=TRUE]
         cst <- ifelse(origin==TRUE, 0, pars[length(pars)])
         ###
         if (model=="line") {
@@ -190,11 +255,19 @@ function(Data, model="gok", origin=FALSE,
             curve(pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*x)^(-1.0/pars[3L]))+cst, 
                   type="l", add=TRUE, lwd=2, col="skyblue")
         } # end if.
+        ###------------------------------------------------------------------------------
+        ### The second plot.
+        par(mar=c(4,4,0.5,0.5)+0.1)
+        ylim <- c(min(new_Curvedata[,"Signal",drop=TRUE],0)*1.1, 
+                  max(new_Curvedata[,"Signal",drop=TRUE])*1.1)
+        plot(new_Curvedata[,c("Dose","Signal")], type="p", pch=21, bg="black", cex=1.3,
+             ylim=ylim, xlab="Regenerative dose (Gy|s)", ylab="Normalised standardised OSL", 
+             las=0, xaxs="r", yaxs="i", cex.lab=1.5, cex.axis=1.5) 
+        legend("topleft", legend="B", yjust=2, ncol=1, cex=1.5, bty="o")
         ###
-        ###
-        dose <- Curvedata[,1L,drop=TRUE]
-        doseltx <- Curvedata[,2L,drop=TRUE]
-        sdoseltx <- Curvedata[,3L,drop=TRUE]
+        dose <- new_Curvedata[,"Dose",drop=TRUE]
+        doseltx <- new_Curvedata[,"Signal",drop=TRUE]
+        sdoseltx <- new_Curvedata[,"Signal.Err",drop=TRUE]
         ###
         arrowIndex <- which(sdoseltx>0.05 & sdoseltx/doseltx>0.01)
         if (length(arrowIndex)>=1L) {
@@ -203,46 +276,88 @@ function(Data, model="gok", origin=FALSE,
                    code=3, lwd=1, angle=90, length=0.05, col="black")
         } # end if.
         ###
-        grid()
-        box(lwd=2)
-    } # end function Plot3.
-    ###
-    ###
-    if (plot==TRUE) {
-        layout(cbind(c(rep(1,9), 2, rep(3,9)),
-                     c(rep(1,9), 2, rep(3,9))))
+        x <- NULL
+        pars <- LMpars2[,1L,drop=TRUE]
+        cst <- ifelse(origin==TRUE, 0, pars[length(pars)])
         ###
-        ylim <- c(min(originData3L[,2L],0)*1.1, max(originData3L[,2L])*1.1)
+        if (model=="line") {
+            curve(pars[1L]*x+cst, 
+                  type="l", add=TRUE, lwd=2, col="skyblue")
+        } else if (model=="exp") {
+            curve(pars[1L]*(1.0-exp(-pars[2L]*x))+cst, 
+                  type="l", add=TRUE, lwd=2, col="skyblue")
+        } else if (model=="lexp") {
+            curve(pars[1L]*(1.0-exp(-pars[2L]*x))+pars[3L]*x+cst, 
+                  type="l", add=TRUE, lwd=2, col="skyblue")
+        } else if (model=="dexp") {
+            curve(pars[1L]*(1.0-exp(-pars[2L]*x))+pars[3L]*(1.0-exp(-pars[4L]*x))+cst, 
+                  type="l", add=TRUE, lwd=2, col="skyblue")
+        } else if (model=="gok") {
+            curve(pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*x)^(-1.0/pars[3L]))+cst, 
+                  type="l", add=TRUE, lwd=2, col="skyblue")
+        } # end if.
+        ###--------------------------------------------------------------------------
+        ### The thrid plot.
+        par(mar=c(4,0.5,2,0.5)+0.1)
+        par(mgp=c(1,1,0))
+        plot(c(0,0), type="n", xaxt="n", yaxt="n", xlab="Summary A", ylab="", cex.lab=1.5)
         ###
-        ### The first plot.
-        par(mar=c(0,6.1,1.1,6.1))
-        Curvedata <- originData3L 
         pars <- LMpars1[,1L,drop=TRUE]
-        xlab <- ""
-        ylab <- "Standardised OSL"
-        xaxt <- "n"
-        legend <- "Before LS-normalisation"
-        Plot3(Curvedata, pars, model, origin, ylim, xlab, ylab, xaxt, legend)
+        se_pars <-  LMpars1[,2L,drop=TRUE]
         ###
-        ### The second plot.
-        par(mar=c(0,6.1,0,6.1))
-        plot(c(0,0), type="n", xaxt="n", yaxt="n", xlab="", ylab="")
+        legend("center", 
+               legend=c("Before LS-normalisation", 
+               "======================",
+               paste("Fit model: ", model, sep=""),
+               paste("Pass origin: ", origin, sep=""),
+               paste("Weighted fit: ", weight, sep=""),
+               "======================",
+               paste("a=", signif(pars[1L],2L), " +/- ", signif(se_pars[1L],2L), sep=""),
+               paste("b=", ifelse(length(pars)>=2L, paste(signif(pars[2L],2L)," +/- ",signif(se_pars[2L],2L),sep=""), "NULL"), sep=""),
+               paste("c=", ifelse(length(pars)>=3L, paste(signif(pars[3L],2L)," +/- ",signif(se_pars[3L],2L),sep=""), "NULL"), sep=""),
+               paste("d=", ifelse(length(pars)>=4L, paste(signif(pars[4L],2L)," +/- ",signif(se_pars[4L],2L),sep=""), "NULL"), sep=""),
+               paste("e=", ifelse(length(pars)>=5L, paste(signif(pars[5L],2L)," +/- ",signif(se_pars[5L],2L),sep=""), "NULL"), sep=""),
+               "======================",
+               paste("Minimized value: ", round(value1,2L), sep=""),
+               paste("Average error in fit: ", round(avg.error1,2L), sep=""),
+               paste("Reduced Chi-Square: ", round(RCS1,2L), sep=""),
+               paste("Figure Of Merit: ", round(FOM1,2L)," (%)", sep="")),  
+               yjust=2, ncol=1, cex=1.2, bty="n")
+        box(lwd=1L)
         ###
-        ### Then thrid plot.
-        par(mar=c(4.1,6.1,0,6.1))
-        Curvedata <- Data3L 
-        pars <- res3$LMpars[,1L,drop=TRUE]
-        xlab <- "Dose (Gy)"
-        ylab <- "Normalised standardised OSL"
-        xaxt <- "s"
-        legend <- "After LS-normalisation"
-        Plot3(Curvedata, pars, model, origin, ylim, xlab, ylab, xaxt, legend)
+        ###---------------------------------------------------------------------------
+        ### The fourth plot.
+        par(mar=c(4,0.5,0.5,0.5)+0.1)
+        plot(c(0,0), type="n", xaxt="n", yaxt="n", xlab="Summary B", ylab="", cex.lab=1.5)
         ###
+        pars <- LMpars2[,1L,drop=TRUE]
+        se_pars <-  LMpars2[,2L,drop=TRUE]
         ###
-        par(mar=c(5,4,4,2)+0.1)
-        layout(1L)
+        legend("center", 
+               legend=c("After LS-normalisation", 
+               "======================",
+               paste("Fit model: ", model, sep=""),
+               paste("Pass origin: ", origin, sep=""),
+               paste("Weighted fit: ", weight, sep=""),
+               "======================",
+               paste("a=", signif(pars[1L],2L), " +/- ", signif(se_pars[1L],2L), sep=""),
+               paste("b=", ifelse(length(pars)>=2L, paste(signif(pars[2L],2L)," +/- ",signif(se_pars[2L],2L),sep=""), "NULL"), sep=""),
+               paste("c=", ifelse(length(pars)>=3L, paste(signif(pars[3L],2L)," +/- ",signif(se_pars[3L],2L),sep=""), "NULL"), sep=""),
+               paste("d=", ifelse(length(pars)>=4L, paste(signif(pars[4L],2L)," +/- ",signif(se_pars[4L],2L),sep=""), "NULL"), sep=""),
+               paste("e=", ifelse(length(pars)>=5L, paste(signif(pars[5L],2L)," +/- ",signif(se_pars[5L],2L),sep=""), "NULL"), sep=""),
+               "======================",
+               paste("Minimized value: ", round(value2,2L), sep=""),
+               paste("Average error in fit: ", round(avg.error2,2L), sep=""),
+               paste("Reduced Chi-Square: ", round(RCS2,2L), sep=""),
+               paste("Figure Of Merit: ", round(FOM2,2L)," (%)", sep="")),  
+               yjust=2, ncol=1, cex=1.2, bty="n")
+        box(lwd=1L)
+        ###
+        on.exit(par(mar=c(5,4,4,2)+0.1,
+                    mgp=c(3,1,0),
+                    mfrow=c(1L,1L)))
     } # end if. 
     ### 
-    return(output)
+    invisible(output)
 } # end function lsNORM.default.
 #####

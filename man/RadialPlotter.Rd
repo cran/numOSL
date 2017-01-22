@@ -14,11 +14,14 @@ RadialPlotter(EDdata, ncomp = 0, addsigma = 0,
               kratio = 0.3, zscale = NULL)
 }
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and associated standard errors)}
+  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and\cr
+associated standard errors)}
 
-  \item{ncomp}{\link{integer}(with default): number of components, \code{-1=MAM3}, \code{-2=MAM4}, \code{0} means fitting FMM automatically, \code{1=CAM}, and \code{>=1} means fitting FMM with a given number of components}
+  \item{ncomp}{\link{integer}(with default): number of components, \code{-1=MAM3}, \code{-2=MAM4}, \code{1=CAM},\cr
+\code{0} means fitting FMM automatically, and \code{>=1} means fitting FMM\cr
+with a given number of components}
 
-  \item{addsigma}{\link{double}(with default): additional uncertainty}
+  \item{addsigma}{\link{numeric}(with default): additional uncertainty}
 
   \item{maxcomp}{\link{integer}(with default): maximum number of components in FMM}
 
@@ -29,9 +32,9 @@ default \code{algorithm="port"}}
 
   \item{pcolor}{\link{character}(with default): color of a data point, input \link{colors}() to see more available colors}
 
-  \item{psize}{\link{double}(with default): size of a data point}
+  \item{psize}{\link{numeric}(with default): size of a data point}
 
-  \item{kratio}{\link{double}(with default): argument controlling the shape of zscale}
+  \item{kratio}{\link{numeric}(with default): argument controlling the shape of zscale}
 
   \item{zscale}{\link{vector}(optional): argument controlling the scale of z-axis.\cr
 Example: \code{zscale=seq(min(EDdata),max(EDdata),by=3L)}}
@@ -42,7 +45,7 @@ Both CAM and FMM are fitted using a iterative Maximum Likelihood Estimation proc
 }
 
 \value{
-Return a list of S3 class \code{"RadialPlotter"} that contains the following elements:
+Return an object of S3 class \code{"RadialPlotter"} that contains the following elements:
   \item{pars}{optimizaed parameters}
   \item{bic}{calculated Bayesian Information Criterion (BIC) value}
   \item{maxlik}{optimized maximum logged likelihood value}
@@ -72,7 +75,7 @@ Galbraith RF, Roberts RG, 2012. Statistical aspects of equivalent dose and error
 Duller GAT, 2008. Single-grain optical dating of Quaternary sediments: why aliquot size matters in luminescence dating. Boreas, 37(4): 589-612.
 
 Kreutzer S, Schmidt C, Fuchs MC, Dietze M, Fischer M, Fuchs M, 2012. Introducing an R package for luminescence dating analysis. Ancient TL, 30(1): 1-8. 
-Software is freely available at \url{http://CRAN.R-project.org/package=Luminescence}.
+Software is freely available at \url{https://CRAN.R-project.org/package=Luminescence}.
 
 Rodnight H, 2008. How many equivalent dose values are needed to obtain a reproducible distribution? Ancient TL, 26(1): 3-10.
 
@@ -90,7 +93,8 @@ The original \bold{\emph{S}} code for drawing a radial plot was written by Rex G
 }
 
 \seealso{
-  \link{dbED}; \link{mcMAM}; \link{mcFMM}; \link{psRadialPlot}
+  \link{mcMAM}; \link{mcFMM};\cr
+  \link{dbED}; \link{psRadialPlot}; \link{EDdata}
 }
 
 \examples{
@@ -98,8 +102,9 @@ The original \bold{\emph{S}} code for drawing a radial plot was written by Rex G
   # Find out the appropriate number of components 
   # in FMM and fit automatically.
   RadialPlotter(EDdata$al3,zscale=seq(24,93,7))
-  # Fit MAM3. 
-  RadialPlotter(EDdata$gl11,ncomp=-1,zscale=seq(20,37,3))
+
+  # Fit MAM3 (not run). 
+  # RadialPlotter(EDdata$gl11,ncomp=-1,zscale=seq(20,37,3))
 }
 \keyword{statistical age models}
 \keyword{radial plot}

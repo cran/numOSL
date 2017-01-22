@@ -14,15 +14,16 @@ psRadialPlot(EDdata, addsigma = 0, dose = NULL, zmin = NULL,
 }
 
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and associated standard errors)}
+  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and\cr
+associated standard errors)}
 
-  \item{addsigma}{\link{double}(with default): additional uncertainty}
+  \item{addsigma}{\link{numeric}(with default): additional uncertainty}
 
   \item{dose}{\link{vector}(optional): dose population(s) to be drawn}
 
-  \item{zmin}{\link{double}(with default): lower limit on z-axis}
+  \item{zmin}{\link{numeric}(with default): lower limit on z-axis}
 
-  \item{zmax}{\link{double}(with default): upper limit on z-axis}
+  \item{zmax}{\link{numeric}(with default): upper limit on z-axis}
 
   \item{ntick}{\link{integer}(with default): desired number of ticks in z-axis}
 
@@ -30,7 +31,7 @@ psRadialPlot(EDdata, addsigma = 0, dose = NULL, zmin = NULL,
 
   \item{pcolor}{\link{character}(with default): color of a data point, input \link{colors}() to see more available colors}
 
-  \item{psize}{\link{double}(with default): size of a data point}
+  \item{psize}{\link{numeric}(with default): size of a data point}
   
   \item{rg}{\link{integer}(with default): range of a dose population, \code{0=dose},\cr 
 \code{1=dose+/-sigma}, \code{2=dose+/-2sigma}}
@@ -56,7 +57,7 @@ Galbraith RF, Roberts RG, Laslett GM, Yoshida H, Olley JM, 1999. Optical dating 
 }
 
 \seealso{
-  \link{dbED}; \link{RadialPlotter}
+  \link{dbED}; \link{RadialPlotter}; \link{EDdata}
 }
 
 \examples{

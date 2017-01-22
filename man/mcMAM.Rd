@@ -12,11 +12,12 @@ mcMAM(EDdata, ncomp = -1, addsigma = 0, iflog = TRUE,
       nsim = 50000, inis = list(), control.args = list())
 }
 \arguments{
-  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and associated standard errors)}
+  \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and\cr
+associated standard errors)}
 
   \item{ncomp}{\link{integer}(with default): number of components, \code{-1=MAM3}, \code{-2=MAM4}}
 
-  \item{addsigma}{\link{double}(with default): additional uncertainty}
+  \item{addsigma}{\link{numeric}(with default): additional uncertainty}
 
   \item{iflog}{\link{logical}(with default): transform equivalent dose values to log-scale or not}
 
@@ -29,7 +30,7 @@ Example: \code{inis=list(p=0.1,gamma=20,sigma=0.5)} in MAM3}
 }
 
 \value{
-Return an invisible list of S3 class \code{"mcAgeModels"}. See \link{mcFMM} for details.
+Return an invisible \link{list} of S3 class object \code{"mcAgeModels"}. See \link{mcFMM} for details.
 }
 
 \references{
@@ -39,11 +40,12 @@ Neal RM, 2003. "Slice sampling" (with discussion). Annals of Statistics, 31(3): 
 }
 
 \seealso{
-  \link{mcFMM}; \link{reportSAM}; \link{RadialPlotter}
+  \link{mcFMM}; \link{reportSAM}; 
+  \link{RadialPlotter}; \link{EDdata}
 }
 
 \examples{
-  # Do not run.
+  # Not run.
   # data(EDdata)
   # Construct a MCMC chain for MAM3.
   # obj<-mcMAM(EDdata$al3,ncomp=-1,addsigma=0.1,nsim=5000)

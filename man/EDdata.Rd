@@ -20,9 +20,16 @@ Peng J, Han FQ, 2013. Selections of fast-component OSL signal using sediments fr
 
 Schmidt S, Tsukamoto S, Salomon E, Frechen M, Hetzel R, 2012. Optical dating of alluvial deposits at the orogenic front of the andean precordillera (Mendoza, Argentina). Geochronometria, 39(1): 62-75.
 }
+
+\seealso{
+  \link{dbED}; \link{psRadialPlot}; \link{RadialPlotter};\cr
+  \link{mcFMM}; \link{mcMAM}
+}
+
 \examples{
-  data(EDdata)
-  names(EDdata)
+  # Not run.
+  # data(EDdata)
+  # names(EDdata)
 }
 \keyword{OSL dating}
 \keyword{equivalent dose}
