@@ -12,8 +12,8 @@ Calculating an equivalent dose and assessing its standard error.
 
 \usage{
 calED(Curvedata, Ltx, model = "gok", origin = FALSE, 
-      nsim = 1000, weight = TRUE, trial = FALSE, 
-      plot = TRUE, TxTn = NULL, agID = NULL, 
+      errMethod = "sp", nsim = 500, weight = TRUE,  
+      trial = FALSE, plot = TRUE, TxTn = NULL, agID = NULL, 
       Tn3BG = NULL, TnBG.ratio = NULL, rseTn = NULL, 
       FR = NULL, Tn = NULL)
 }
@@ -29,7 +29,10 @@ natural-dose signal and its error}
 
   \item{origin}{\link{logical}(with default): logical value indicating if the growth curve should be forced to pass the origin}
 
-  \item{nsim}{\link{integer}(with default): number of Monte Carlo simulations used for equivalent dose error estimation}
+  \item{errMethod}{\link{character}(with default): method used for equivalent dose error assessment. \code{"sp"} and \code{"mc"} denote
+error estimation using the Simple Transformation and Monte Carlo methods, respectively}
+
+  \item{nsim}{\link{integer}(with default): desired number of randomly simulated equivalent dose obtained by Monte Carlo simulation}
 
   \item{weight}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using a weighted procedure, see function \link{fitGrowth} for details}
 
@@ -59,7 +62,7 @@ standard error of Tn}
 
 \details{
 Function \link{calED} is used for calculating an equivalent dose and assessing its standard error.
-The standard errors of an equivalent dose is assessd using a Monte Carlo method (also called a "parametric bootstrap" protocol).\cr\cr
+The standard errors of an equivalent dose can be assessd using the Simple Transformation or Monte Carlo method (Duller, 2007).\cr\cr
 Interpolation is performed using a combination of golden section search and successive parabolic interpolation (\bold{\emph{R}} function \link{optimize} in package \bold{\emph{stats}}) (freely available Fortran 77 source code at \url{http://www.netlib.org/fmm/fmin.f}). See function \link{fitGrowth} for more details on growth curve fitting.
 }
 
@@ -76,8 +79,7 @@ Return an invisible \link{list} that contains the following elements:
 \code{"Interpolation"} or \code{"Extrapolation"}}
   \item{mcED}{randomly simulated equivalent doses}
   \item{ED}{calculated equivalent dose and its standard error}
-  \item{ConfInt}{68 percent and 95 percent confidence intervals for the equivalent dose\cr
-determined by Monte Carlo simulation}
+  \item{ConfInt}{68 percent and 95 percent confidence intervals for the equivalent dose}
   \item{RecyclingRatio1}{the first recycling ratio and its standard error}
   \item{RecyclingRatio2}{the second recycling ratio and its standard error}
   \item{RecyclingRatio3}{the third recycling ratio and its standard error}
@@ -96,7 +98,7 @@ Galbraith RF, Roberts RG, 2012. Statistical aspects of equivalent dose and error
 }
 
 \seealso{
-  \link{analyseBINdata}; \link{fitGrowth};\cr
+  \link{analyseBINdata}; \link{fitGrowth}; \link{calRcyRcp};\cr
   \link{calSARED}; \link{fastED}; \link{calSGCED}
 }
 
@@ -104,6 +106,9 @@ Galbraith RF, Roberts RG, 2012. Statistical aspects of equivalent dose and error
 \note{
 Argument \code{TxTn}, \code{agID}, \code{Tn3BG}, \code{TnBG.ratio}, \code{rseTn}, \code{FR}, and \code{Tn} have nothing to do with equivalent dose calculation.\cr\cr
 Argument \code{Tn3BG} indicates if Tn (after background subtraction) is more than 3 sigma above BG, while argument \code{TnBG.ratio} denotes the ratio of Tn (no background subtraction) to BG.\cr\cr
+Function \link{calED} will return \code{message=3} (i.e.,\code{"Failed in equivalent dose calculation"}) if the equivalent dose to be calculated below -50 (Gy|s).\cr\cr
+68 percent (one sigma) and 95 percent (two sigma) confidence intervals of equivalent doses will be determined respectively using normal approximation and Monte Carlo simulation,\cr
+for \code{errMethod="sp"} and \code{errMethod="mc"}.\cr\cr
 Function \code{sgcED} in previous versions was bundled to function \link{calSGCED}.
 }
 

@@ -1,7 +1,7 @@
-subroutine fitGrowth(dose,ltx,sltx,ndat,n2,pars,stdp,&
-                     model,uw,fvec1,fmin,message)
+subroutine fitGrowth_fort(dose,ltx,sltx,ndat,n2,pars,stdp,&
+                          model,uw,fvec1,fmin,message)
 !--------------------------------------------------------------
-! Subroutine fitGrowth is used to fitting a growth curve.
+! Subroutine fitGrowth_fort is used to fitting a growth curve.
 !--------------------------------------------------------------
 ! dose(ndat):: input, real values, dose values.
 ! ltx(ndat) :: input, real values, standardised OSLs.
@@ -15,7 +15,7 @@ subroutine fitGrowth(dose,ltx,sltx,ndat,n2,pars,stdp,&
 !      fvec1:: output, real value, minimized objective.
 !    message:: output, integer, 0=success, 1=fail.
 !--------------------------------------------------------------
-! Author:: Peng Jun, 2016.07.08.
+! Author:: Peng Jun, 2017.03.30. 
 !--------------------------------------------------------------
 ! Dependence:: subroutine linefit; 
 !              subroutine inipars;
@@ -34,8 +34,8 @@ subroutine fitGrowth(dose,ltx,sltx,ndat,n2,pars,stdp,&
     integer(kind=4):: info, i, j
     real   (kind=8):: maxDose, ran(2), outp(3),&
                       locp(5), cpars(n2), cstdp(n2),&
-                      cfvec1(ndat), cfmin, grad,&
-                      wght1(ndat), minValue, inib(24)
+                      cfvec1(ndat), cfmin, wght1(ndat),&
+                      minValue, inib(24)
     !
     pars = -99.0
     stdp = -99.0
@@ -94,17 +94,6 @@ subroutine fitGrowth(dose,ltx,sltx,ndat,n2,pars,stdp,&
                            n2,model,cfvec1,cfmin,info)
                 if (info/=0) cycle loopA
                 !
-                ! Check the saturating level.
-                locp = 0.0
-                locp(1:n2) = cpars
-                if (model==1) then
-                    grad = locp(1)*locp(2)*exp(-locp(2)*maxDose)
-                else if (model==2) then
-                    grad = locp(1)*locp(2)*exp(-locp(2)*maxDose)+locp(3)
-                end if
-                !
-                if (grad<1.0D-13) cycle loopA
-                !
                 if (cfmin<minValue) then
                     pars = cpars
                     stdp = cstdp
@@ -139,14 +128,6 @@ subroutine fitGrowth(dose,ltx,sltx,ndat,n2,pars,stdp,&
                                n2,model,cfvec1,cfmin,info)
                     if (info/=0) cycle loopC
                     !
-                    ! Check the saturating level.
-                    locp = 0.0
-                    locp(1:n2) = cpars
-                    grad = locp(1)*locp(2)*exp(-locp(2)*maxDose)+&
-                           locp(3)*locp(4)*exp(-locp(4)*maxDose)
-                    !
-                    if (grad<1.0D-13) cycle loopC
-                    !
                     if (cfmin<minValue) then
                         pars = cpars
                         stdp = cstdp
@@ -163,4 +144,4 @@ subroutine fitGrowth(dose,ltx,sltx,ndat,n2,pars,stdp,&
     end if
     !
     return
-end subroutine fitGrowth                                         
+end subroutine fitGrowth_fort                                         

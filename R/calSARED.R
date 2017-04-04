@@ -1,7 +1,7 @@
 #####
 calSARED <-
-function(obj_analyseBIN, model="gok", origin=FALSE, 
-         nsim=1000, weight=TRUE, trial=TRUE, Tn.above.3BG=TRUE, 
+function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
+         nsim=500, weight=TRUE, trial=TRUE, Tn.above.3BG=TRUE, 
          TnBG.ratio.low=NULL, rseTn.up=NULL, FR.low=NULL,
          rcy1.range=NULL, rcy2.range=NULL, rcy3.range=NULL, 
          rcp1.up=NULL, rcp2.up=NULL, fom.up=NULL, rcs.up=NULL,
@@ -9,10 +9,10 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
          outpdf=NULL, outfile=NULL) {
     UseMethod("calSARED")
 } #
-### 2017.01.22.
+### 2017.03.31.
 calSARED.default <-
-function(obj_analyseBIN, model="gok", origin=FALSE, 
-         nsim=1000, weight=TRUE, trial=TRUE, Tn.above.3BG=TRUE, 
+function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
+         nsim=500, weight=TRUE, trial=TRUE, Tn.above.3BG=TRUE, 
          TnBG.ratio.low=NULL, rseTn.up=NULL, FR.low=NULL,
          rcy1.range=NULL, rcy2.range=NULL, rcy3.range=NULL, 
          rcp1.up=NULL, rcp2.up=NULL, fom.up=NULL, rcs.up=NULL,
@@ -23,6 +23,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
               names(obj_analyseBIN)==c("SARdata","criteria","Tn","TxTn","agID"),
               length(model)==1L, model %in% c("line","exp","lexp","dexp","gok"),
               length(origin)==1L, is.logical(origin),
+              length(errMethod)==1L, errMethod %in% c("sp","mc"),
               length(nsim)==1L, is.numeric(nsim), nsim>=50L, nsim<=3000L,
               length(weight)==1L, is.logical(weight),
               length(trial)==1L, is.logical(trial), 
@@ -112,12 +113,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         select_index <- which(all_value==1L)
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR ED if [Tn.above.3BG] is applied!")
         } # end if.
         ###
         reject_N <- nrow(criteria) - length(select_index)
         ###
-        action_character <- c(action_character, "Tn below 3 sigma BG")
+        action_character <- c(action_character, 
+            "Rejection criterion: Tn below 3 sigma BG")
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         criteria <- criteria[select_index,,drop=FALSE]
@@ -141,12 +143,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR ED if [TnBG.ratio.low] is applied!")
         } # end if.
         ###
         reject_N <- nrow(criteria) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Ratio of Tn to BG below ", TnBG.ratio.low, sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: ratio of Tn to BG below ", TnBG.ratio.low, sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         criteria <- criteria[select_index,,drop=FALSE]
@@ -165,12 +168,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         select_index <- which(abs(all_value)<rseTn.up)
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR ED if [rseTn.up] is applied!")
         } # end if.
         ###
         reject_N <- nrow(criteria) - length(select_index)
         ###
-        action_character <- c(action_character, paste("RSE of Tn exceeds ", rseTn.up, "%", sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: RSE of Tn exceeds ", rseTn.up, "%", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         criteria <- criteria[select_index,,drop=FALSE]
@@ -194,12 +198,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR ED if [FR.low] is applied!")
         } # end if.
         ###
         reject_N <- nrow(criteria) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Fast ratio of Tn below ", FR.low, sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: fast ratio of Tn below ", FR.low, sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ### 
         criteria <- criteria[select_index,,drop=FALSE]
@@ -257,13 +262,14 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR ED if [rcy1.range] is applied!")
         } # end if.
         ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recycling ratio 1 outsides [",
-                              rcy1.range[1L], ",",rcy1.range[2L],"]", sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recycling ratio 1 outsides [",
+            rcy1.range[1L], ",",rcy1.range[2L],"]", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -293,12 +299,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         } # end if.  
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR ED if [rcy2.range] is applied!")
         } # end if.
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recycling ratio 2 outsides [",
-                              rcy2.range[1L], ",",rcy2.range[2L],"]", sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recycling ratio 2 outsides [",
+            rcy2.range[1L], ",",rcy2.range[2L],"]", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -328,13 +335,14 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         } # end if. 
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR ED if [rcy3.range] is applied!")
         } # end if.
         ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recycling ratio 3 outsides [",
-                              rcy3.range[1L], ",",rcy3.range[2L],"]", sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recycling ratio 3 outsides [",
+            rcy3.range[1L], ",",rcy3.range[2L],"]", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -359,12 +367,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR ED if [rcp1.up] is applied!")
         } # end if.
         ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recuperation 1 exceeds ", rcp1.up, "%",sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recuperation 1 exceeds ", rcp1.up, "%",sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -389,12 +398,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR ED if [rcp2.up] is applied!")
         } # end if.
         ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recuperation 2 exceeds ", rcp2.up, "%",sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recuperation 2 exceeds ", rcp2.up, "%",sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -434,7 +444,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
     ED_vec <- seED_vec <- rseED_vec <- 
     lower68_vec <- upper68_vec <- 
     lower95_vec <- upper95_vec <- 
-    failFit_ID <- saturate_ID <- failED_ID <- 
+    tryError_ID <- failFit_ID <- saturate_ID <- failED_ID <- 
     failEDError_ID <- extrapolateED_ID <- c()
     ###
     LMpars <- list()
@@ -468,12 +478,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
         calED_TxTn <- if (!is.null(TxTn)) TxTn[TxTn[,"NO",drop=TRUE]==NO[i],"TxTn",drop=TRUE] else NULL                     
         ###
         res <- try(calED(Curvedata=DataR, Ltx=DataN, model=model, origin=origin, 
-                         nsim=nsim, weight=weight, trial=trial, plot=if_plot, 
-                         TxTn=calED_TxTn, agID=agID[i,,drop=TRUE], Tn3BG=calED_Tn3BG, 
-                         TnBG.ratio=calED_TnBG.ratio, rseTn=calED_rseTn, 
+                         errMethod=errMethod, nsim=nsim, weight=weight, trial=trial, 
+                         plot=if_plot, TxTn=calED_TxTn, agID=agID[i,,drop=TRUE], 
+                         Tn3BG=calED_Tn3BG, TnBG.ratio=calED_TnBG.ratio, rseTn=calED_rseTn, 
                          FR=calED_FR, Tn=calED_Tn), silent=TRUE)
         ###
         if (class(res)=="try-error") {
+            tryError_ID <- rbind(tryError_ID, agID[i,,drop=TRUE])
             cat(paste("[NO=",NO[i],",Position=",Position[i],",Grain=",Grain[i],"]:\n", sep=""))
             print(attr(res, "condition"))
             ###
@@ -555,249 +566,265 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
     ###
     if (!is.null(outpdf)) dev.off()
     ###
-    if (is.null(acceptNO)) stop("Error: SAR ED calculation failed!")
-    ###
-    SARED.table <- data.frame("NO"=acceptNO, "Position"=acceptPosition, "Grain"=acceptGrain,
-                              "Tn3BG"=Tn3BG_vec, "TnBG.ratio"=TnBG.ratio_vec, 
-                              "seTnBG.ratio"=seTnBG.ratio_vec, "rseTn"=rseTn_vec, 
-                              "FR"=FR_vec, "seFR"=seFR_vec, "Tn"=Tn_vec, "seTn"=seTn_vec,
-                              "RecyclingRatio1"=RecyclingRatio1_vec, "seRecyclingRatio1"=seRecyclingRatio1_vec,
-                              "RecyclingRatio2"=RecyclingRatio2_vec, "seRecyclingRatio2"=seRecyclingRatio2_vec,
-                              "RecyclingRatio3"=RecyclingRatio3_vec, "seRecyclingRatio3"=seRecyclingRatio3_vec,
-                              "Recuperation1"=Recuperation1_vec, "seRecuperation1"=seRecuperation1_vec,
-                              "Recuperation2"=Recuperation2_vec, "seRecuperation2"=seRecuperation2_vec,
-                              "FOM"=FOM_vec, "RCS"=RCS_vec, "Method"=calEDMethod_vec, "rseED"=rseED_vec, 
-                              "ED"=ED_vec, "seED"=seED_vec, "lower68"=lower68_vec, "upper68"=upper68_vec, 
-                              "lower95"=lower95_vec, "upper95"=upper95_vec,
-                              stringsAsFactors=FALSE)
-    ###
-    agID <- cbind("NO"=acceptNO, "Position"=acceptPosition, "Grain"=acceptGrain)
-    ###
+    ###===========================================================================================
+    if (!is.null(acceptNO)) {
+        SARED.table <- data.frame("NO"=acceptNO, "Position"=acceptPosition, "Grain"=acceptGrain,
+                           "Tn3BG"=Tn3BG_vec, "TnBG.ratio"=TnBG.ratio_vec, 
+                           "seTnBG.ratio"=seTnBG.ratio_vec, "rseTn"=rseTn_vec, 
+                           "FR"=FR_vec, "seFR"=seFR_vec, "Tn"=Tn_vec, "seTn"=seTn_vec,
+                           "RecyclingRatio1"=RecyclingRatio1_vec, "seRecyclingRatio1"=seRecyclingRatio1_vec,
+                           "RecyclingRatio2"=RecyclingRatio2_vec, "seRecyclingRatio2"=seRecyclingRatio2_vec,
+                           "RecyclingRatio3"=RecyclingRatio3_vec, "seRecyclingRatio3"=seRecyclingRatio3_vec,
+                           "Recuperation1"=Recuperation1_vec, "seRecuperation1"=seRecuperation1_vec,
+                           "Recuperation2"=Recuperation2_vec, "seRecuperation2"=seRecuperation2_vec,
+                           "FOM"=FOM_vec, "RCS"=RCS_vec, "Method"=calEDMethod_vec, "rseED"=rseED_vec, 
+                           "ED"=ED_vec, "seED"=seED_vec, "lower68"=lower68_vec, "upper68"=upper68_vec, 
+                           "lower95"=lower95_vec, "upper95"=upper95_vec, stringsAsFactors=FALSE)
+        ###
+        agID <- cbind("NO"=acceptNO, "Position"=acceptPosition, "Grain"=acceptGrain)
+        ###
 
-    ### Apply growth curve related rejection criteria (2).
-    ###---------------------------------------------------------------------------------------------
-    ### No se consideration.
-    if (!is.null(fom.up)) {
-        all_value <- SARED.table[,"FOM",drop=TRUE]
-        ###
-        select_index <- which(abs(all_value)<fom.up)
-        ###
-        if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+        ### Apply growth curve related rejection criteria (2).
+        ###---------------------------------------------------------------------------------------------
+        ### No se consideration.
+        if (!is.null(fom.up)) {
+            all_value <- SARED.table[,"FOM",drop=TRUE]
+            ###
+            select_index <- which(abs(all_value)<fom.up)
+            ###
+            if (length(select_index)==0L) {
+                stop("Error: no acceptable SAR ED if [fom.up] is applied!")
+            } # end if.
+            ###
+            reject_N <- nrow(SARED.table) - length(select_index)
+            ###
+            action_character <- c(action_character, 
+                paste("Rejection criterion: FOM of growth curve exceeds ", fom.up, "%",sep=""))
+            step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            SARED.table <- SARED.table[select_index,,drop=FALSE]
+            fom_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+            agID <- agID[select_index,,drop=FALSE]
+        } else {
+            fom_reject <- NULL
         } # end if.
         ###
-        reject_N <- nrow(SARED.table) - length(select_index)
-        ###
-        action_character <- c(action_character, paste("FOM of growth curve exceeds ", fom.up, "%",sep=""))
-        step_reject_N <- c(step_reject_N, reject_N)
-        ###
-        SARED.table <- SARED.table[select_index,,drop=FALSE]
-        fom_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
-        agID <- agID[select_index,,drop=FALSE]
-    } else {
-        fom_reject <- NULL
-    } # end if.
-    ###
 
-    ### No se consideration.
-    if (!is.null(rcs.up)) {
-        all_value <- SARED.table[,"RCS",drop=TRUE]
+        ### No se consideration.
+        if (!is.null(rcs.up)) {
+            all_value <- SARED.table[,"RCS",drop=TRUE]
+            ###
+            select_index <- which(abs(all_value)<rcs.up)
+            ###
+            if (length(select_index)==0L) {
+                stop("Error: no acceptable SAR ED if [rcs.up] is applied!")
+            } # end if.
+            ###
+            reject_N <- nrow(SARED.table) - length(select_index)
+            ###
+            action_character <- c(action_character, 
+                paste("Rejection criterion: RCS of growth curve exceeds ", rcs.up, sep=""))
+            step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            SARED.table <- SARED.table[select_index,,drop=FALSE]
+            rcs_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+            agID <- agID[select_index,,drop=FALSE]
+        } else {
+            rcs_reject <- NULL
+        } # end if.
+        ###-------------------------------------------------------------------------
         ###
-        select_index <- which(abs(all_value)<rcs.up)
-        ###
-        if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+
+        ### Apply ED related rejection criteria.
+        ###---------------------------------------------------------------------
+        ### No se consideration.
+        if (!is.null(calED.method)) {
+            all_value <- SARED.table[,"Method",drop=TRUE]
+            ###
+            select_index <- which(all_value==calED.method)
+            ###
+            if (length(select_index)==0L) {
+                stop("Error: no acceptable SAR ED if [calED.method] is applied!")
+            } # end if.
+            ###
+            reject_N <- nrow(SARED.table) - length(select_index)
+            ###
+            action_character <- c(action_character, 
+                paste("Rejection criterion: ED not calculated by ", calED.method, sep=""))
+            step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            SARED.table <- SARED.table[select_index,,drop=FALSE]
+            calED.method_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+            agID <- agID[select_index,,drop=FALSE]
+        } else {
+            calED.method_reject <- NULL
         } # end if.
         ###
-        reject_N <- nrow(SARED.table) - length(select_index)
-        ###
-        action_character <- c(action_character, paste("RCS of growth curve exceeds ", rcs.up, sep=""))
-        step_reject_N <- c(step_reject_N, reject_N)
-        ###
-        SARED.table <- SARED.table[select_index,,drop=FALSE]
-        rcs_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
-        agID <- agID[select_index,,drop=FALSE]
-    } else {
-         rcs_reject <- NULL
-    } # end if.
-    ###-------------------------------------------------------------------------
-    ###
 
-    ### Apply ED related rejection criteria.
-    ###---------------------------------------------------------------------
-    ### No se consideration.
-    if (!is.null(calED.method)) {
-        all_value <- SARED.table[,"Method",drop=TRUE]
-        ###
-        select_index <- which(all_value==calED.method)
-        ###
-        if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
+        ### No se consideration.
+        if (!is.null(rseED.up)) {
+            all_value <- SARED.table[,"rseED",drop=TRUE]
+            ###
+            select_index <- which(abs(all_value)<rseED.up)
+            ###
+            if (length(select_index)==0L) {
+                stop("Error: no acceptable SAR ED if [rseED.up] is applied!")
+            } # end if.
+            ###
+            reject_N <- nrow(SARED.table) - length(select_index)
+            ###
+            action_character <- c(action_character, 
+                paste("Rejection criterion: RSE of ED exceeds ", rseED.up, "%",sep=""))
+            step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            SARED.table <- SARED.table[select_index,,drop=FALSE]
+            rseED_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+            agID <- agID[select_index,,drop=FALSE]
+        } else {
+            rseED_reject <- NULL
         } # end if.
+        ###-------------------------------------------------------------------
         ###
-        reject_N <- nrow(SARED.table) - length(select_index)
-        ###
-        action_character <- c(action_character, paste("ED not calculated by ", calED.method, sep=""))
-        step_reject_N <- c(step_reject_N, reject_N)
-        ###
-        SARED.table <- SARED.table[select_index,,drop=FALSE]
-        calED.method_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
-        agID <- agID[select_index,,drop=FALSE]
-    } else {
-        calED.method_reject <- NULL
-    } # end if.
-    ###
 
-    ### No se consideration.
-    if (!is.null(rseED.up)) {
-        all_value <- SARED.table[,"rseED",drop=TRUE]
         ###
-        select_index <- which(abs(all_value)<rseED.up)
+        if (!is.null(outfile)) write.csv(SARED.table, file=paste(outfile,".csv",sep=""))
         ###
-        if (length(select_index)==0L) {
-            stop("Error: no SAR ED satisfies the specified rejection criteria!")
-        } # end if.
+        sarED <- SARED.table[,c("ED","seED"),drop=FALSE]
+        rownames(sarED) <- paste("[NO=",SARED.table[,"NO",drop=TRUE],"]",sep="")
         ###
-        reject_N <- nrow(SARED.table) - length(select_index)
+        ConfInt <- as.matrix(SARED.table[,c("lower68","upper68","lower95","upper95"),drop=FALSE])
+        rownames(ConfInt) <- paste("[NO=",SARED.table[,"NO",drop=TRUE],"]",sep="")
+        ### 
+        Tn <- as.matrix(SARED.table[,c("Tn","seTn"),drop=FALSE])
+        rownames(Tn) <- paste("[NO=",SARED.table[,"NO",drop=TRUE],"]",sep="")
         ###
-        action_character <- c(action_character, paste("RSE of ED exceeds ", rseED.up, "%",sep=""))
-        step_reject_N <- c(step_reject_N, reject_N)
-        ###
-        SARED.table <- SARED.table[select_index,,drop=FALSE]
-        rseED_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
-        agID <- agID[select_index,,drop=FALSE]
-    } else {
-        rseED_reject <- NULL
+        output <- list("LMpars"=LMpars,
+                       "sarED"=sarED,
+                       "ConfInt"=ConfInt,
+                       "Tn"=Tn,
+                       "agID"=agID)
     } # end if.
-    ###-------------------------------------------------------------------
-    ###
-
-    ###
-    if (!is.null(outfile)) write.csv(SARED.table, file=paste(outfile,".csv",sep=""))
-    ###
-    sarED <- SARED.table[,c("ED","seED"),drop=FALSE]
-    rownames(sarED) <- paste("[NO=",SARED.table[,"NO",drop=TRUE],"]",sep="")
-    ###
-    ConfInt <- as.matrix(SARED.table[,c("lower68","upper68","lower95","upper95"),drop=FALSE])
-    rownames(ConfInt) <- paste("[NO=",SARED.table[,"NO",drop=TRUE],"]",sep="")
-    ### 
-    Tn <- as.matrix(SARED.table[,c("Tn","seTn"),drop=FALSE])
-    rownames(Tn) <- paste("[NO=",SARED.table[,"NO",drop=TRUE],"]",sep="")
-    ###
-    output <- list("LMpars"=LMpars,
-                   "sarED"=sarED,
-                   "ConfInt"=ConfInt,
-                   "Tn"=Tn,
-                   "agID"=agID)
+    ###===========================================================================================
     ###
     if (length(Tn3BG_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
         print(Tn3BG_reject)
         cat("\n")
     } # end if.
     ###
     if (length(TnBG.ratio_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [TnBG.ratio]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [TnBG.ratio]:\n")
         print(TnBG.ratio_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rseTn_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rseTn]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rseTn]:\n")
         print(rseTn_reject)
         cat("\n")
     } # end if.
     ### 
     if (length(FR_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [FR]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [FR]:\n")
         print(FR_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcy1_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcy1]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcy1]:\n")
         print(rcy1_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcy2_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcy2]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcy2]:\n")
         print(rcy2_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcy3_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcy3]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcy3]:\n")
         print(rcy3_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcp1_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcp1]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcp1]:\n")
         print(rcp1_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcp2_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcp2]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcp2]:\n")
         print(rcp2_reject)
         cat("\n")
     } # end if.
     ###
-    if (length(fom_reject)>0L) {
-        cat("\n")
-        cat("Aliquot (grain) ID rejected use [fom]:\n")
-        print(fom_reject)
-        cat("\n")
+    ###------------------------------------------------------
+    if (!is.null(acceptNO)) {
+        if (length(fom_reject)>0L) {
+            cat("\n")
+            cat("Rejection criterion: aliquot (grain) ID rejected use [fom]:\n")
+            print(fom_reject)
+            cat("\n")
+        } # end if.
+        ###
+        if (length(rcs_reject)>0L) {
+            cat("\n")
+            cat("Rejection criterion: aliquot (grain) ID rejected use [rcs]:\n")
+            print(rcs_reject)
+            cat("\n")
+        } # end if.
+        ###
+        if (length(calED.method_reject)>0L) {
+            cat("\n")
+            cat("Rejection criterion: aliquot (grain) ID rejected use [calED.method]:\n")
+            print(calED.method_reject)
+            cat("\n")
+        } # end if.
+        ###
+        if (length(rseED_reject)>0L) {
+            cat("\n")
+            cat("Rejection criterion: aliquot (grain) ID rejected use [rseED]:\n")
+            print(rseED_reject)
+            cat("\n")
+        } # end if.
     } # end if.
+    ###--------------------------------------------------------
     ###
-    if (length(rcs_reject)>0L) {
+    if (!is.null(tryError_ID)) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcs]:\n")
-        print(rcs_reject)
-        cat("\n")
-    } # end if.
-    ###
-    if (length(calED.method_reject)>0L) {
-        cat("\n")
-        cat("Aliquot (grain) ID rejected use [calED.method]:\n")
-        print(calED.method_reject)
-        cat("\n")
-    } # end if.
-    ###
-    if (length(rseED_reject)>0L) {
-        cat("\n")
-        cat("Aliquot (grain) ID rejected use [rseED]:\n")
-        print(rseED_reject)
+        cat("Function calED(): aliquot (grain) ID with improper input argument:\n")
+        print(apply(tryError_ID, MARGIN=1L, NPG))
         cat("\n")
     } # end if.
     ###
     if (!is.null(failFit_ID)) {
         cat("\n")
-        cat("Aliquot (grain) ID failed in growth curve fitting:\n")
+        cat("Function calED(): aliquot (grain) ID failed in growth curve fitting:\n")
         print(apply(failFit_ID, MARGIN=1L, NPG))
         cat("\n")
     } # end if.
     ###
     if (!is.null(saturate_ID)) {
         cat("\n")
-        cat("Aliquot (grain) ID saturated in Ln/Tn:\n")
+        cat("Function calED(): aliquot (grain) ID saturated in Ln/Tn:\n")
         print(apply(saturate_ID, MARGIN=1L, NPG))
         cat("\n")
     } # end if.
     ###
     if (!is.null(failED_ID)) {
         cat("\n")
-        cat("Aliquot (grain) ID failed in ED calculation:\n")
+        cat("Function calED(): aliquot (grain) ID failed in ED calculation:\n")
         print(apply(failED_ID, MARGIN=1L, NPG))
         cat("\n")
     } # end if.
@@ -805,30 +832,37 @@ function(obj_analyseBIN, model="gok", origin=FALSE,
     ###
     if (!is.null(failEDError_ID)) {
         cat("\n")
-        cat("Aliquot (grain) ID failed in ED error estimation:\n")
+        cat("Function calED(): aliquot (grain) ID failed in ED error estimation:\n")
         print(apply(failEDError_ID, MARGIN=1L, NPG))
         cat("\n")
     } # end if.
     ###
-    action_character <- c(action_character, 
-                          "Failed in growth curve fitting",
-                          "Saturated in Ln/Tn",
-                          "Failed in ED calculation",
-                          "Failed in ED error estimation",
+    action_character <- c(action_character,
+                          "Function calED(): improper input argument",
+                          "Function calED(): failed in growth curve fitting",
+                          "Function calED(): saturated in Ln/Tn",
+                          "Function calED(): failed in ED calculation",
+                          "Function calED(): failed in ED error estimation",
                           "Total number of rejected aliquots (grains)",
                           "Total number of accepted aliquots (grains)")
     ###
-    step_reject_N <- c(step_reject_N, 
+    step_reject_N <- c(step_reject_N,
+                       ifelse(is.null(tryError_ID), 0L, nrow(tryError_ID)),
                        ifelse(is.null(failFit_ID), 0L, nrow(failFit_ID)),
                        ifelse(is.null(saturate_ID), 0L, nrow(saturate_ID)),
                        ifelse(is.null(failED_ID), 0L, nrow(failED_ID)),
                        ifelse(is.null(failEDError_ID), 0L, nrow(failEDError_ID)),
-                       nag-nrow(agID), 
-                       nrow(agID))
+                       ifelse(is.null(acceptNO), nag, nag-nrow(agID)), 
+                       ifelse(is.null(acceptNO), 0L, nrow(agID)))
     ###
     summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
     print(summary_info)
     ###
-    invisible(output)
+    if (!is.null(acceptNO)) {
+        return(invisible(output))
+    } else {
+        return(invisible(NULL))
+    } # end if.
+    ###
 } # end function calSARED.default.
 #####

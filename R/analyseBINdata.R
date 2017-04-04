@@ -6,7 +6,7 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
          signal.type="LxTx", outfile=NULL) {
     UseMethod("analyseBINdata")
 } #
-### 2017.01.21.
+### 2017.03.27.
 analyseBINdata.default <- 
 function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0, 
          distp="p", kph=NULL, kdc=NULL, dcr=NULL, 
@@ -232,7 +232,12 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
             iNO <- rep(NO[i], nPairedLxTx)
             iPosition <- rep(Position[i], nPairedLxTx)
             iGrain <- rep(Grain[i], nPairedLxTx)
-            iSAR.Cycle <- c("N", paste("R",seq(nPairedLxTx-1L),sep=""))
+            ###
+            if (nPairedLxTx==1L) {
+                iSAR.Cycle <- "N"
+            } else {
+                iSAR.Cycle <- c("N", paste("R",seq(nPairedLxTx-1L),sep=""))
+            } # end if.
             ###
             ###
             Dose <- 

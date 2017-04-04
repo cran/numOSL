@@ -13,13 +13,13 @@ loadBINdata(filename, view = TRUE)
 }
 
 \arguments{
-  \item{filename}{\link{character}(\bold{required}): name of a file (with file extension ".BIN", ".bin", "BINX", or "binx"), the file must be available from the current working directory}
+  \item{filename}{\link{character}(\bold{required}): name(s) of file(s) (with file extension ".BIN", ".bin", "BINX", or "binx"), the file(s) must be available from the current working directory. Example: \code{filename=c("foo1.bin","foo2.binx")}}
 
   \item{view}{\link{logical}(optional): logical value indicating if the loaded data should be visualized in a Summary Table}
 }
 
 \details{
-Function \link{loadBINdata} is used for loading BIN (BINX) files into the R platform. Five versions of binary files (V3, V4, V6, V7, and V8) are loadable.
+Function \link{loadBINdata} is used for loading BIN (BINX) files into the R platform. Five versions of binary files (V3, V4, V6, V7, and V8) are loadable. It can load a single BIN (BINX) file or a number of files into R simultaneously.\cr
 Items reserved during the loading process include:\cr
 \bold{(1)} \emph{Position}: Carousel position;
 

@@ -1,13 +1,13 @@
 #####
-calSGCED<-
-function(SGCdata, pars, model, origin, 
-         method="gSGC", nsim=1000, outpdf=NULL) {
+calSGCED <-
+function(SGCdata, pars, model, origin, avgDev, method="gSGC", 
+         errMethod="sp", nsim=500, outpdf=NULL) {
     UseMethod("calSGCED")
 } ###
-### 2017.01.18.
-calSGCED.default<-
-function(SGCdata, pars, model, origin, 
-         method="gSGC", nsim=1000, outpdf=NULL) {
+### 2017.04.04. 
+calSGCED.default <-
+function(SGCdata, pars, model, origin, avgDev, method="gSGC", 
+         errMethod="sp", nsim=500, outpdf=NULL) {
     ### Stop if not.
     stopifnot(ncol(SGCdata)==5L, nrow(SGCdata)>=1L,
               is.numeric(SGCdata[,1L,drop=TRUE]),
@@ -17,7 +17,9 @@ function(SGCdata, pars, model, origin,
               is.numeric(pars), 
               length(model)==1L, model %in% c("line","exp","lexp","dexp","gok"),
               length(origin)==1L, is.logical(origin),
+              length(avgDev)==1L, is.numeric(avgDev), avgDev>0.0,
               length(method)==1L, method %in% c("SGC", "gSGC"),
+              length(errMethod)==1L, errMethod %in% c("sp","mc"),
               length(nsim)==1L, is.numeric(nsim), nsim>=50L, nsim<=3000L,
               is.null(outpdf) || (length(outpdf)==1L && is.character(outpdf)))
     ###
@@ -150,15 +152,17 @@ function(SGCdata, pars, model, origin,
     for (i in seq(n)) {     
         LxTx_seLxTx <- ScaledNaturalSignal[i,,drop=FALSE]
         outDose <- matrix(0, nrow=1L, ncol=2L)
+        eemm <- ifelse(errMethod=="sp", 0L, 1L)
         mcED <- vector(length=nsim)
         saturateDose <- -99.0
         acceptRate <- 0.0
         message <- 100
         ###
-        res <- .Fortran("calSGCED",as.integer(n2),as.double(LxTx_seLxTx),
-                    as.double(pars),outDose=as.double(outDose),mcED=as.double(mcED),
-                    saturateDose=as.double(saturateDose),as.integer(mdl),as.integer(nsim), 
-                    acceptRate=as.double(acceptRate),message=as.integer(message),PACKAGE="numOSL")
+        res <- .Fortran("calSGCED_fort",as.integer(n2),as.double(LxTx_seLxTx),
+                    as.double(pars),outDose=as.double(outDose),as.integer(eemm),
+                    as.double(avgDev),mcED=as.double(mcED),saturateDose=as.double(saturateDose),
+                    as.integer(mdl),as.integer(nsim),acceptRate=as.double(acceptRate),
+                    message=as.integer(message),PACKAGE="numOSL")
         ###
         message <- res$message
         ED <- res$outDose[1L]
@@ -170,7 +174,16 @@ function(SGCdata, pars, model, origin,
         if (message==0L) {
             scaleLtx <- rbind(scaleLtx, LxTx_seLxTx)
             sgcED <- rbind(sgcED, c(ED, seED))
-            i_ConfInt <- quantile(mcED,probs=c(0.16,0.84,0.025,0.975))
+            if (errMethod=="mc") {
+                i_ConfInt <- quantile(mcED,probs=c(0.16,0.84,0.025,0.975))
+            } # end if.
+            if (errMethod=="sp") {
+                i_ConfInt <- vector(length=4L)
+                i_ConfInt[1L] <- ED - 0.9944579*seED
+                i_ConfInt[2L] <- ED + 0.9944579*seED
+                i_ConfInt[3L] <- ED - 1.959964*seED
+                i_ConfInt[4L] <- ED + 1.959964*seED
+            } # end if.
             ConfInt <- rbind(ConfInt, i_ConfInt)
             accept_ID <- c(accept_ID, NO[i])
         } else if (message==1L) {
@@ -227,7 +240,7 @@ function(SGCdata, pars, model, origin,
                 ### message=0L: ED and Error calculation succeeded.
                 points(x=ED, y=LxTx_seLxTx[1L], pch=23, cex=1.5, bg="grey")
                 ###
-                if (LxTx_seLxTx[1L]>0) {
+                if (LxTx_seLxTx[1L]>0 && errMethod=="mc") {
                     dmcED <- density(mcED)
                     dxy <- cbind(dmcED$x,dmcED$y)
                     dxy[,2L] <- (dxy[,2L,drop=TRUE]-min(dxy[,2L,drop=TRUE]))/
@@ -236,10 +249,9 @@ function(SGCdata, pars, model, origin,
                     polygon(dxy, col="grey")
                 } # end if.
                 ###
-                if (seED>0.05 && seED/ED>0.01) {
-                    arrows(x0=ED-seED/2.0, y0=LxTx_seLxTx[1L],
-                           x1=ED+seED/2.0, y1=LxTx_seLxTx[1L],
-                           code=3, lwd=1, angle=90, length=0.05, col="black")
+                if (seED/ED>0.001) {
+                    suppressWarnings(arrows(x0=ED-seED/2.0, y0=LxTx_seLxTx[1L],
+                        x1=ED+seED/2.0, y1=LxTx_seLxTx[1L],code=3, lwd=1, angle=90, length=0.05, col="black"))
                 } # end if.
                 lines(x=c(0, ED, ED), y=c(LxTx_seLxTx[1L], LxTx_seLxTx[1L], 0), lty="dashed", lwd=1.5) 
                 ###                
@@ -271,7 +283,7 @@ function(SGCdata, pars, model, origin,
                        paste("Method: ", method, sep=""),
                        paste("Fit model: ", model, sep=""),
                        paste("Pass origin: ", origin, sep=""),
-                       paste("MC accept-rate: ", round(acceptRate,2L), " (%)", sep=""),
+                       paste("MC accept-rate: ", ifelse(errMethod=="sp","NULL", round(acceptRate,2L)), " (%)", sep=""),
                        "======================",
                        paste("ED: ",round(ED,2L), " +/- ",round(seED,2L)," (Gy|s)",sep=""), 
                        paste("RSE of ED: ",round(seED/abs(ED)*100.0,2L), " (%)",sep=""),
@@ -315,7 +327,9 @@ function(SGCdata, pars, model, origin,
                 legend("center", 
                        legend=c(paste("ID: [NO=", i, "]", sep=""),
                        "======================",
+                       ifelse(errMethod=="mc",
                        "Status: ED Error failed (MC accept-rate < 1%)",
+                       "Status: ED Error failed (infinite upper ED)"),
                        "======================",
                        paste("Method: ", method, sep=""),
                        paste("Fit model: ", model, sep=""),
@@ -337,7 +351,7 @@ function(SGCdata, pars, model, origin,
     ###
     if (!is.null(outpdf)) dev.off()
     ###
-    if (is.null(sgcED)) stop("Error: fail in ED calculation!")
+    if (is.null(sgcED)) stop("Error: fail in SGC ED calculation!")
     ###
     ###
     rownames(scaleLtx) <- paste("[NO=",accept_ID,"]",sep="")

@@ -1,22 +1,23 @@
 #####
 calED <-
-function(Curvedata, Ltx, model="gok", origin=FALSE, 
-         nsim=1000, weight=TRUE, trial=FALSE, plot=TRUE, 
-         TxTn=NULL, agID=NULL, Tn3BG=NULL, TnBG.ratio=NULL,
+function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
+         nsim=500, weight=TRUE, trial=FALSE, plot=TRUE, TxTn=NULL, 
+         agID=NULL, Tn3BG=NULL, TnBG.ratio=NULL,
          rseTn=NULL, FR=NULL, Tn=NULL) {
     UseMethod("calED")
 } ###
-### 2017.01.21.
+### 2017.04.04. 
 calED.default <-
-function(Curvedata, Ltx, model="gok", origin=FALSE, 
-         nsim=1000, weight=TRUE, trial=FALSE, plot=TRUE, 
-         TxTn=NULL, agID=NULL, Tn3BG=NULL, TnBG.ratio=NULL,
-         rseTn=NULL, FR=NULL, Tn=NULL)  {
+function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
+         nsim=500, weight=TRUE, trial=FALSE, plot=TRUE, TxTn=NULL, 
+         agID=NULL, Tn3BG=NULL, TnBG.ratio=NULL,
+         rseTn=NULL, FR=NULL, Tn=NULL) {
     ### Stop if not.
     stopifnot(ncol(Curvedata)==3L, nrow(Curvedata)>=1L,
               length(Ltx)==2L, is.numeric(Ltx),
               length(model)==1L, model %in% c("line","exp","lexp","dexp","gok"),
               length(origin)==1L, is.logical(origin),
+              length(errMethod)==1L, errMethod %in% c("sp","mc"),
               length(nsim)==1L, is.numeric(nsim), nsim>=50L, nsim<=3000L,
               length(weight)==1L, is.logical(weight), 
               length(trial)==1L, is.logical(trial),
@@ -195,6 +196,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE,
     ###
     inltx <- matrix(Ltx, nrow=1L, ncol=2L) 
     outDose <- matrix(0, nrow=1L, ncol=2L)
+    eemm <- ifelse(errMethod=="sp", 0L, 1L)
     mcED <- vector(length=nsim)
     uw <- ifelse(weight==FALSE, 0L, 1L)
     fvec1 <- vector(length=ndat)
@@ -215,17 +217,18 @@ function(Curvedata, Ltx, model="gok", origin=FALSE,
         if (mdl==7L) {
             res <- .Fortran("calED1",as.double(dose),as.double(doseltx),as.double(sedoseltx),
                        as.integer(ndat),as.integer(n2),as.double(inltx),outDose=as.double(outDose),
-                       mcED=as.double(mcED),pars=as.double(pars),stdp=as.double(stdp),as.integer(uw),
-                       as.integer(nsim),fvec1=as.double(fvec1),fmin=as.double(fmin),
-                       saturateDose=as.double(saturateDose),acceptRate=as.double(acceptRate),
-                       message=as.integer(message),PACKAGE="numOSL")
-        } else if (mdl %in% c(0L,1L,2L,3L)) {
-            res <- .Fortran("calED",as.double(dose),as.double(doseltx),as.double(sedoseltx),
-                       as.integer(ndat),as.integer(n2),as.double(inltx),outDose=as.double(outDose),
-                       mcED=as.double(mcED),pars=as.double(pars),stdp=as.double(stdp),as.integer(mdl),
+                       as.integer(eemm),mcED=as.double(mcED),pars=as.double(pars),stdp=as.double(stdp),
                        as.integer(uw),as.integer(nsim),fvec1=as.double(fvec1),fmin=as.double(fmin),
                        saturateDose=as.double(saturateDose),acceptRate=as.double(acceptRate),
                        message=as.integer(message),PACKAGE="numOSL")
+        } else if (mdl %in% c(0L,1L,2L,3L)) {
+            res <- .Fortran("calED_fort",as.double(dose),as.double(doseltx),as.double(sedoseltx),
+                       as.integer(ndat),as.integer(n2),as.double(inltx),outDose=as.double(outDose),
+                       as.integer(eemm),mcED=as.double(mcED),pars=as.double(pars),stdp=as.double(stdp),
+                       as.integer(mdl),as.integer(uw),as.integer(nsim),fvec1=as.double(fvec1),
+                       fmin=as.double(fmin),saturateDose=as.double(saturateDose),
+                       acceptRate=as.double(acceptRate),message=as.integer(message),
+                       PACKAGE="numOSL")
         } # end if.
         ###
         if (res$message!=1L) break
@@ -235,13 +238,23 @@ function(Curvedata, Ltx, model="gok", origin=FALSE,
     message <- res$message
     if (message %in% c(0L,4L)) ED <- res$outDose[1L] else ED <- NA
     if (message==0L) seED <- res$outDose[2L] else  seED <- NA
-    if (message==0L) mcED <- res$mcED else  mcED <- NULL 
+    if (message==0L && errMethod=="mc") mcED <- res$mcED else  mcED <- NULL 
     if (message==0L) {
-        ConfInt <- quantile(mcED, probs=c(0.16,0.84,0.025,0.975)) 
+        if (errMethod=="mc") {
+            ConfInt <- quantile(mcED, probs=c(0.16,0.84,0.025,0.975)) 
+        } # end if.
+        if (errMethod=="sp") {
+            ConfInt <- vector(length=4L)
+            ConfInt[1L] <- ED - 0.9944579*seED
+            ConfInt[2L] <- ED + 0.9944579*seED
+            ConfInt[3L] <- ED - 1.959964*seED
+            ConfInt[4L] <- ED + 1.959964*seED
+        } # end if.
         names(ConfInt) <- c("lower68", "upper68", "lower95", "upper95")
     } else {
         ConfInt <- NULL
     } # end if.
+    ###
     ###
     if (message!=1L) {
         min_obj <- res$fmin
@@ -289,18 +302,23 @@ function(Curvedata, Ltx, model="gok", origin=FALSE,
     maxDose <- max(dose)
     pars <- res$pars
     cst <- ifelse(origin==TRUE, 0, pars[length(pars)])
-    if (model=="line") {
-        maxLtx <- pars[1L]*maxDose+cst
-    } else if (model=="exp") {
-        maxLtx <- pars[1L]*(1.0-exp(-pars[2L]*maxDose))+cst
-    } else if (model=="lexp") {
-        maxLtx <- pars[1L]*(1.0-exp(-pars[2L]*maxDose))+pars[3L]*maxDose+cst
-    } else if (model=="dexp") {
-        maxLtx <- pars[1L]*(1.0-exp(-pars[2L]*maxDose))+pars[3L]*(1.0-exp(-pars[4L]*maxDose))+cst
-    } else if (model=="gok") {
-        maxLtx <- pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*maxDose)^(-1.0/pars[3L]))+cst
+    ###
+    if (message!=1L) {
+        if (model=="line") {
+            maxLtx <- pars[1L]*maxDose+cst
+        } else if (model=="exp") {
+            maxLtx <- pars[1L]*(1.0-exp(-pars[2L]*maxDose))+cst
+        } else if (model=="lexp") {
+            maxLtx <- pars[1L]*(1.0-exp(-pars[2L]*maxDose))+pars[3L]*maxDose+cst
+        } else if (model=="dexp") {
+            maxLtx <- pars[1L]*(1.0-exp(-pars[2L]*maxDose))+pars[3L]*(1.0-exp(-pars[4L]*maxDose))+cst
+        } else if (model=="gok") {
+            maxLtx <- pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*maxDose)^(-1.0/pars[3L]))+cst
+        } # end if.
+        calED_method <- ifelse(Ltx[1L]>=maxLtx, "Extrapolation", "Interpolation")
+    } else {
+        calED_method <- "NULL"
     } # end if.
-    calED_method <- ifelse(message!=1L,ifelse(Ltx[1L]>=maxLtx, "Extrapolation", "Interpolation"), "NULL")
     ###
     ###
     saturateDose <- res$saturateDose
@@ -341,11 +359,11 @@ function(Curvedata, Ltx, model="gok", origin=FALSE,
         ###
         points(dose, doseltx, pch=21, cex=1.5, bg="black")
         ###
-        arrowIndex <- which(sedoseltx>0.05 & sedoseltx/doseltx>0.01)
+        arrowIndex <- which(sedoseltx/doseltx>0.001)
         if (length(arrowIndex)>=1L) {
-            arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sedoseltx[arrowIndex]/2.0, 
-                   x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sedoseltx[arrowIndex]/2.0,
-                   code=3, lwd=1, angle=90, length=0.05, col="black")
+            suppressWarnings(arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sedoseltx[arrowIndex]/2.0, 
+                x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sedoseltx[arrowIndex]/2.0,
+                code=3, lwd=1, angle=90, length=0.05, col="black"))
         } # end if.
         ###
         ###
@@ -374,7 +392,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE,
             ### message=0L: ED and Error calculation succeeded.
             points(x=ED[1L], y=Ltx[1L], pch=23, cex=1.5, bg="grey")
             ###
-            if (Ltx[1L]>0) {
+            if (Ltx[1L]>0 && errMethod=="mc") {
                 dmcED <- density(mcED)
                 dxy <- cbind(dmcED$x,dmcED$y)
                 dxy[,2L] <- (dxy[,2L,drop=TRUE]-min(dxy[,2L,drop=TRUE]))/
@@ -384,10 +402,9 @@ function(Curvedata, Ltx, model="gok", origin=FALSE,
             ###  
             lines(x=c(0,ED,ED), y=c(Ltx[1L],Ltx[1L],0), lty="dashed", lwd=1.5) 
             ###     
-            if (seED>0.05 && seED/ED>0.01) {
-                arrows(x0=ED-seED/2.0, y0=Ltx[1L],
-                       x1=ED+seED/2.0, y1=Ltx[1L],
-                       code=3, lwd=1, angle=90, length=0.05, col="black")
+            if (seED/ED>0.001) {
+                suppressWarnings(arrows(x0=ED-seED/2.0, y0=Ltx[1L],
+                    x1=ED+seED/2.0, y1=Ltx[1L], code=3, lwd=1, angle=90, length=0.05, col="black"))
             } # end if.
             ###           
         } else if (message==2L) {
@@ -449,7 +466,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE,
                    paste("Pass origin: ", origin, sep=""),
                    paste("Weighted fit: ", weight, sep=""),
                    paste("calED method: ",calED_method, sep=""),
-                   paste("MC accept-rate: ", round(acceptRate,2L), " (%)", sep=""),
+                   paste("MC accept-rate: ", ifelse(errMethod=="sp","NULL", round(acceptRate,2L)), " (%)", sep=""),
                    "=========================",
                    paste("ED: ",round(ED,2L), " +/- ",round(seED,2L)," (Gy|s)",sep=""),
                    paste("RSE of ED: ",round(seED/abs(ED)*100.0,2L)," (%)",sep=""),
@@ -587,7 +604,9 @@ function(Curvedata, Ltx, model="gok", origin=FALSE,
             legend("center", 
                   legend=c(paste("ID: ", NO_Position_Grain, sep=""),
                   "=========================",
+                  ifelse(errMethod=="mc",
                   "Status: ED Error failed (MC accept-rate < 1%)",
+                  "Status: ED Error failed (infinite upper ED)"),
                   "=========================",
                   paste("Fit model: ", paste(character_model_vec, collapse="-"), sep=""),
                   paste("Pass origin: ", origin, sep=""),

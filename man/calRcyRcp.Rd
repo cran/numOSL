@@ -44,4 +44,10 @@ their relevance in single-aliquot regeneration dating protocols. Radiation Measu
   \link{calSARED}; \link{pickSARdata}
 }
 
+\note{
+If the sensitivity-corrected signals for the frist, second, and third repeated regenerative doses are R1, R2, and R3, respectively, 
+then \code{RecyclingRatio1=R2/R1}, \code{RecyclingRatio2=R3/R1}, and \cr
+\code{RecyclingRatio3=R3/R2}.
+}
+
 \keyword{growth curve}

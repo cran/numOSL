@@ -1,7 +1,7 @@
-subroutine decomp(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
-                  factor,f,cr,maxiter,tol,fvec1,fmin,message)
+subroutine decomp_fort(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
+                       factor,f,cr,maxiter,tol,fvec1,fmin,message)
 !------------------------------------------------------------------------
-! Subroutine decomp is used for OSL decay curve decomposition.
+! Subroutine decomp_fort is used for OSL decay curve decomposition.
 !------------------------------------------------------------------------
 !   tim(ntim):: input, real values, time values.
 !   sig(ntim):: input, real values, decay signal values.
@@ -21,7 +21,7 @@ subroutine decomp(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
 !        fmin:: output, real value, minimumized objective.
 !     message:: output, integer, 0=success, 1=fail.
 !------------------------------------------------------------------------
-! Author:: Peng Jun, 2016.06.26.
+! Author:: Peng Jun, 2017.03.30. 
 !------------------------------------------------------------------------
 ! Dependence:: subroutine diffev; 
 !              subroutine lmfit; 
@@ -123,4 +123,4 @@ subroutine decomp(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
     end do loopA
     !
     return
-end subroutine decomp
+end subroutine decomp_fort

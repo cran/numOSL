@@ -15,7 +15,7 @@ subroutine linefit(xd,yd,syd,nd,pars,stdp,&
 !      fmin:: output, real value, minimized objective.
 !   message:: output, integer, 0=success, 1=fail.
 !-----------------------------------------------------
-! Author:: Peng Jun, 2016.07.06.
+! Author:: Peng Jun, 2017.03.27.
 !-----------------------------------------------------
 ! Dependence:: subroutine numHess; 
 !              subroutine inverse_sym.
@@ -81,13 +81,13 @@ subroutine linefit(xd,yd,syd,nd,pars,stdp,&
     call numHess(xd,yd,syd,nd,model,&
                  pars,n2,hess,errorflag)
     if (errorflag/=0) then
-        message = 1
+        stdp = 0.0
         return
     end if
     !
     call inverse_sym(hess,n2,ifault)
     if (ifault/=0) then
-        message = 1
+        stdp = 0.0
         return
     end if
     !
@@ -95,7 +95,7 @@ subroutine linefit(xd,yd,syd,nd,pars,stdp,&
         diag(i) = hess(i,i) * avgdv
     end do
     if (any(diag<=0.0)) then
-        message = 1
+        stdp = 0.0
         return
     end if
     stdp = sqrt(diag)

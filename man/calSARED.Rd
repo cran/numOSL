@@ -12,10 +12,10 @@ Calculating and selecting a series of equivalent doses in a batch mode according
 
 \usage{
 calSARED(obj_analyseBIN, model = "gok", origin = FALSE, 
-         nsim = 1000, weight = TRUE, trial = TRUE, 
-         Tn.above.3BG = TRUE, TnBG.ratio.low = NULL, 
+         errMethod = "sp", nsim = 500, weight = TRUE,  
+         trial = TRUE, Tn.above.3BG = TRUE, TnBG.ratio.low = NULL, 
          rseTn.up = NULL, FR.low = NULL, rcy1.range = NULL, 
-         rcy2.range = NULL, rcy3.range = NULL,  rcp1.up = NULL, 
+         rcy2.range = NULL, rcy3.range = NULL, rcp1.up = NULL, 
          rcp2.up = NULL, fom.up = NULL, rcs.up = NULL,
          calED.method = NULL, rseED.up = NULL, use.se = TRUE, 
          outpdf = NULL, outfile = NULL) 
@@ -29,7 +29,9 @@ function \link{analyseBINdata}}
 
   \item{origin}{\link{logical}(with default): logical value indicating if the growth curve should be forced to pass the origin}
 
-  \item{nsim}{\link{integer}(with default): number of Monte Carlo iterations used for equivalent dose error estimation}
+  \item{errMethod}{\link{character}(with default): method used for equivalent dose error assessment. See function \link{calED} for details}
+
+  \item{nsim}{\link{integer}(with default): desired number of randomly simulated equivalent dose obtained by Monte Carlo simulation}
 
   \item{weight}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using a weighted procedure, see function \link{fitGrowth} for details}
 
@@ -78,13 +80,17 @@ to a CSV file named \code{"outfile"} and saved to the current work directory}
 Return an invisible \link{list} that contains the following elements:
   \item{LMpars}{a \link{list} containing optimized parameters for successfully fitted growth curves}
   \item{sarED}{calculated (selected) SAR equivalent doses and associated standard errors}
-  \item{ConfInt}{68 percent (one sigma) and 95 percent (two sigma) confidence intervals of SAR equivalent doses obtained using Monte Carlo simulation}
+  \item{ConfInt}{68 percent (one sigma) and 95 percent (two sigma) confidence intervals of SAR equivalent doses}
   \item{Tn}{values and standard errors of Tn of calculated (selected) SAR equivalent doses}
   \item{agID}{aliquot (grain) ID of calculated (selected) SAR equivalent doses}
 }
 
 \references{
+Duller GAT, 2016. Analyst (v4.31.9), User Mannual (\url{http://www.nutech.dtu.dk/english/Products-and-Services/Dosimetry/Radiation-Measurement-Instruments/TL_OSL_reader/Manuals}).
+
 Murray AS, Wintle AG, 2000. Luminescence dating of quartz using improved single-aliquot regenerative-dose protocol. Radiation Measurements, 32(1): 57-73.
+
+Wintle AG, Murray AS, 2006. A review of quartz optically stimulated luminescence characteristics and their relevance in single-aliquot regeneration dating protocols. Radiation Measurements, 41(4): 369-391.
 }
 
 \seealso{

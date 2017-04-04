@@ -10,8 +10,8 @@ Estimating a fast-component equivalent dose using decay curves obtained from the
 \usage{
 fastED(Sigdata, Redose, delay.off = c(0,0), ncomp = 2, 
        constant = TRUE, control.args = list(), typ = "cw", 
-       model = "gok", origin = FALSE, nsim = 1000, 
-       weight.decomp = FALSE, weight.fitGrowth = TRUE,
+       model = "gok", origin = FALSE, errMethod = "sp", 
+       nsim = 500, weight.decomp = FALSE, weight.fitGrowth = TRUE,
        trial = TRUE, outpdf = NULL, log = "x", lwd = 2, 
        test.dose = NULL, agID = NULL)
 }
@@ -37,7 +37,9 @@ values of the decay curves, i.e., \code{delay.off[1]=Delay},\code{delay.off[2]=O
 
   \item{origin}{\link{logical}(with default): logical value indicating if the growth curve should be forced to pass the origin}
 
-  \item{nsim}{\link{integer}(with default): number of Monte Carlo iterations used for equivalent dose error estimation}
+  \item{errMethod}{\link{character}(with default): method used for equivalent dose error assessment. See function \link{calED} for details}
+
+  \item{nsim}{\link{integer}(with default): desired number of randomly simulated equivalent dose obtained by Monte Carlo simulation}
 
   \item{weight.decomp}{\link{character}(with default): logical value indicating if the decay curve should be fitted using a weighted procedure, see function \link{decomp} for details}
 

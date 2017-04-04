@@ -7,7 +7,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
          use.se=TRUE, norm.dose=NULL, outpdf=NULL, outfile=NULL) {
     UseMethod("pickSARdata")
 } #
-### 2017.01.22.
+### 2017.03.30.
 pickSARdata.default<-
 function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, 
          trial=TRUE, Tn.above.3BG=TRUE, TnBG.ratio.low=NULL, rseTn.up=NULL,
@@ -92,12 +92,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         select_index <- which(all_value==1L)
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR data if [Tn.above.3BG] is applied!")
         } # end if.
         ###
         reject_N <- nrow(criteria) - length(select_index)
         ###
-        action_character <- c(action_character, "Tn below 3 sigma BG")
+        action_character <- c(action_character, 
+            "Rejection criterion: Tn below 3 sigma BG")
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         criteria <- criteria[select_index,,drop=FALSE]
@@ -120,12 +121,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR data if [TnBG.ratio.low] is applied!")
         } # end if.
         ###
         reject_N <- nrow(criteria) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Ratio of Tn to BG below ", TnBG.ratio.low, sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: ratio of Tn to BG below ", TnBG.ratio.low, sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         criteria <- criteria[select_index,,drop=FALSE]
@@ -143,12 +145,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         select_index <- which(abs(all_value)<rseTn.up)
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR data if [rseTn.up] is applied!")
         } # end if.
         ###
         reject_N <- nrow(criteria) - length(select_index)
         ###
-        action_character <- c(action_character, paste("RSE of Tn exceeds ", rseTn.up, "%", sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: RSE of Tn exceeds ", rseTn.up, "%", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ### 
         criteria <- criteria[select_index,,drop=FALSE]
@@ -171,12 +174,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR data if [FR.low] is applied!")
         } # end if.
         ###
         reject_N <- nrow(criteria) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Fast ratio of Tn below ", FR.low, sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: fast ratio of Tn below ", FR.low, sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ### 
         criteria <- criteria[select_index,,drop=FALSE]
@@ -243,13 +247,14 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR data if [rcy1.range] is applied!")
         } # end if.
         ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recycling ratio 1 outsides [",
-                              rcy1.range[1L], ",",rcy1.range[2L],"]", sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recycling ratio 1 outsides [",
+            rcy1.range[1L], ",",rcy1.range[2L],"]", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -278,13 +283,14 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR data if [rcy2.range] is applied!")
         } # end if.
         ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recycling ratio 2 outsides [",
-                              rcy2.range[1L], ",",rcy2.range[2L],"]", sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recycling ratio 2 outsides [",
+            rcy2.range[1L], ",",rcy2.range[2L],"]", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -313,13 +319,14 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR data if [rcy3.range] is applied!")
         } # end if.
         ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recycling ratio 3 outsides [",
-                              rcy3.range[1L], ",",rcy3.range[2L],"]", sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recycling ratio 3 outsides [",
+            rcy3.range[1L], ",",rcy3.range[2L],"]", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -343,12 +350,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR data if [rcp1.up] is applied!")
         } # end if.
         ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recuperation 1 exceeds ", rcp1.up, "%",sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recuperation 1 exceeds ", rcp1.up, "%",sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -372,12 +380,13 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } # end if.
         ###
         if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+            stop("Error: no acceptable SAR data if [rcp2.up] is applied!")
         } # end if.
         ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
-        action_character <- c(action_character, paste("Recuperation 2 exceeds ", rcp2.up, "%",sep=""))
+        action_character <- c(action_character, 
+            paste("Rejection criterion: recuperation 2 exceeds ", rcp2.up, "%",sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
@@ -411,7 +420,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     RecyclingRatio3_vec <- seRecyclingRatio3_vec <-
     Recuperation1_vec <- seRecuperation1_vec <-
     Recuperation2_vec <- seRecuperation2_vec <- 
-    FOM_vec <- RCS_vec <- failFit_ID <- c()
+    FOM_vec <- RCS_vec <- tryError_ID <- failFit_ID <- c()
     ###
     LMpars <- list()
     ###
@@ -448,6 +457,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
                              silent=TRUE)
         ###
         if (class(res)=="try-error") {
+             tryError_ID <- rbind(tryError_ID, agID[i,,drop=TRUE])
              cat(paste("[NO=",NO[i],",Position=",Position[i],",Grain=",Grain[i],"]:\n", sep=""))
              print(attr(res, "condition"))
         } else {
@@ -520,181 +530,202 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     ###
     if (!is.null(outpdf)) dev.off()
     ###
-    if (is.null(fitOK_NO)) stop("Error: fail in fitting al growth curves!") 
-    ###
-    SARdata.table <- data.frame("NO"=fitOK_NO, "Position"=fitOK_Position, "Grain"=fitOK_Grain,
-                                "Tn3BG"=Tn3BG_vec, "TnBG.ratio"=TnBG.ratio_vec, 
-                                "seTnBG.ratio"=seTnBG.ratio_vec, 
-                                "rseTn"=rseTn_vec, "FR"=FR_vec, "seFR"=seFR_vec,
-                                "RecyclingRatio1"=RecyclingRatio1_vec, "seRecyclingRatio1"=seRecyclingRatio1_vec, 
-                                "RecyclingRatio2"=RecyclingRatio2_vec, "seRecyclingRatio2"=seRecyclingRatio2_vec,
-                                "RecyclingRatio3"=RecyclingRatio3_vec, "seRecyclingRatio3"=seRecyclingRatio3_vec,
-                                "Recuperation1"=Recuperation1_vec, "seRecuperation1"=seRecuperation1_vec,
-                                "Recuperation2"=Recuperation2_vec, "seRecuperation2"=seRecuperation2_vec,
-                                "FOM"=FOM_vec, "RCS"=RCS_vec, 
-                                stringsAsFactors=FALSE)
-    ###
-    agID <- cbind("NO"=fitOK_NO, "Position"=fitOK_Position, "Grain"=fitOK_Grain)
-    ###
-    ### Apply growth curve related rejection criteria (2).
-    ###---------------------------------------------------------------------------------
+    ###==========================================================================
+    if (!is.null(fitOK_NO)) {
+        ###
+        SARdata.table <- data.frame("NO"=fitOK_NO, "Position"=fitOK_Position, "Grain"=fitOK_Grain,
+            "Tn3BG"=Tn3BG_vec, "TnBG.ratio"=TnBG.ratio_vec, "seTnBG.ratio"=seTnBG.ratio_vec, 
+            "rseTn"=rseTn_vec, "FR"=FR_vec, "seFR"=seFR_vec,
+            "RecyclingRatio1"=RecyclingRatio1_vec, "seRecyclingRatio1"=seRecyclingRatio1_vec, 
+            "RecyclingRatio2"=RecyclingRatio2_vec, "seRecyclingRatio2"=seRecyclingRatio2_vec,
+            "RecyclingRatio3"=RecyclingRatio3_vec, "seRecyclingRatio3"=seRecyclingRatio3_vec,
+            "Recuperation1"=Recuperation1_vec, "seRecuperation1"=seRecuperation1_vec,
+            "Recuperation2"=Recuperation2_vec, "seRecuperation2"=seRecuperation2_vec,
+            "FOM"=FOM_vec, "RCS"=RCS_vec, 
+            stringsAsFactors=FALSE)
+        ###
+        agID <- cbind("NO"=fitOK_NO, "Position"=fitOK_Position, "Grain"=fitOK_Grain)
+        ###
+        ### Apply growth curve related rejection criteria (2).
+        ###---------------------------------------------------------------------------------
 
-    ### No se consideration.
-    if (!is.null(fom.up)) {
-        all_value <- SARdata.table[,"FOM",drop=TRUE]
-        ###
-        select_index <- which(abs(all_value)<fom.up)
-        ###
-        if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        ### No se consideration.
+        if (!is.null(fom.up)) {
+            all_value <- SARdata.table[,"FOM",drop=TRUE]
+            ###
+            select_index <- which(abs(all_value)<fom.up)
+            ###
+            if (length(select_index)==0L) {
+                stop("Error: no acceptable SAR data if [fom.up] is applied!")
+            } # end if.
+            ###
+            reject_N <- nrow(SARdata.table) - length(select_index)
+            ###
+            action_character <- c(action_character, 
+                paste("Rejection criterion: FOM of growth curve exceeds ", fom.up, "%",sep=""))
+            step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            SARdata.table <- SARdata.table[select_index,,drop=FALSE]
+            fom_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+            agID <- agID[select_index,,drop=FALSE]
+        } else {
+            fom_reject <- NULL
         } # end if.
         ###
-        reject_N <- nrow(SARdata.table) - length(select_index)
-        ###
-        action_character <- c(action_character, paste("FOM of growth curve exceeds ", fom.up, "%",sep=""))
-        step_reject_N <- c(step_reject_N, reject_N)
-        ###
-        SARdata.table <- SARdata.table[select_index,,drop=FALSE]
-        fom_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
-        agID <- agID[select_index,,drop=FALSE]
-    } else {
-        fom_reject <- NULL
-    } # end if.
-    ###
 
-    ### No se consideration.
-    if (!is.null(rcs.up)) {
-        all_value <- SARdata.table[,"RCS",drop=TRUE]
-        ###
-        select_index <- which(abs(all_value)<rcs.up)
-        ###
-        if (length(select_index)==0L) {
-            stop("Error: no SAR data satisfies the specified rejection criteria!")
+        ### No se consideration.
+        if (!is.null(rcs.up)) {
+            all_value <- SARdata.table[,"RCS",drop=TRUE]
+            ###
+            select_index <- which(abs(all_value)<rcs.up)
+            ###
+            if (length(select_index)==0L) {
+                stop("Error: no acceptable SAR data if [rcs.up] is applied!")
+            } # end if.
+            ###
+            reject_N <- nrow(SARdata.table) - length(select_index)
+            ###
+            action_character <- c(action_character, 
+                paste("Rejection criterion: RCS of growth curve exceeds ", rcs.up, sep=""))
+            step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            SARdata.table <- SARdata.table[select_index,,drop=FALSE]
+            rcs_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
+            agID <- agID[select_index,,drop=FALSE]
+        } else {
+            rcs_reject <- NULL
         } # end if.
-        ###
-        reject_N <- nrow(SARdata.table) - length(select_index)
-        ###
-        action_character <- c(action_character, paste("RCS of growth curve exceeds ", rcs.up, sep=""))
-        step_reject_N <- c(step_reject_N, reject_N)
-        ###
-        SARdata.table <- SARdata.table[select_index,,drop=FALSE]
-        rcs_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
-        agID <- agID[select_index,,drop=FALSE]
-    } else {
-        rcs_reject <- NULL
-    } # end if.
-    ###------------------------------------------------------------------------------------
+        ###------------------------------------------------------------------------------------
 
+        ###
+        if (!is.null(outfile)) write.csv(SARdata.table, file=paste(outfile,".csv",sep=""))
+        ###
+        select_NO <- agID[,"NO",drop=TRUE]
+        SARdata <- SARdata[SARdata[,"NO",drop=TRUE] %in% select_NO,,drop=FALSE]
+        norm.SARdata <- norm.SARdata[norm.SARdata[,"NO",drop=TRUE] %in% select_NO,,drop=FALSE]
+        ###
+        output <- list("LMpars"=LMpars,
+                       "SARdata"=SARdata,
+                       "norm.SARdata"=norm.SARdata,
+                       "agID"=agID)
+    } # end if.
+    ###==========================================================================
     ###
-    if (!is.null(outfile)) write.csv(SARdata.table, file=paste(outfile,".csv",sep=""))
-    ###
-    select_NO <- agID[,"NO",drop=TRUE]
-    SARdata <- SARdata[SARdata[,"NO",drop=TRUE] %in% select_NO,,drop=FALSE]
-    norm.SARdata <- norm.SARdata[norm.SARdata[,"NO",drop=TRUE] %in% select_NO,,drop=FALSE]
-    ###
-    output <- list("LMpars"=LMpars,
-                   "SARdata"=SARdata,
-                   "norm.SARdata"=norm.SARdata,
-                   "agID"=agID)
-    ###
-     ###
     if (length(Tn3BG_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
         print(Tn3BG_reject)
         cat("\n")
     } # end if.
     ###
     if (length(TnBG.ratio_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [TnBG.ratio]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [TnBG.ratio]:\n")
         print(TnBG.ratio_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rseTn_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rseTn]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rseTn]:\n")
         print(rseTn_reject)
         cat("\n")
     } # end if.
     ### 
     if (length(FR_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [FR]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [FR]:\n")
         print(FR_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcy1_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcy1]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcy1]:\n")
         print(rcy1_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcy2_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcy2]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcy2]:\n")
         print(rcy2_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcy3_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcy3]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcy3]:\n")
         print(rcy3_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcp1_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcp1]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcp1]:\n")
         print(rcp1_reject)
         cat("\n")
     } # end if.
     ###
     if (length(rcp2_reject)>0L) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcp2]:\n")
+        cat("Rejection criterion: aliquot (grain) ID rejected use [rcp2]:\n")
         print(rcp2_reject)
         cat("\n")
     } # end if.
     ###
-    if (length(fom_reject)>0L) {
-        cat("\n")
-        cat("Aliquot (grain) ID rejected use [fom]:\n")
-        print(fom_reject)
-        cat("\n")
+    ###------------------------------------------------------------
+    if (!is.null(fitOK_NO)) {
+        if (length(fom_reject)>0L) {
+            cat("\n")
+            cat("Rejection criterion: aliquot (grain) ID rejected use [fom]:\n")
+            print(fom_reject)
+            cat("\n")
+        } # end if.
+        ###
+        if (length(rcs_reject)>0L) {
+            cat("\n")
+            cat("Rejection criterion: aliquot (grain) ID rejected use [rcs]:\n")
+            print(rcs_reject)
+            cat("\n")
+        } # end if.
     } # end if.
+    ###------------------------------------------------------------
     ###
-    if (length(rcs_reject)>0L) {
+    if (!is.null(tryError_ID)) {
         cat("\n")
-        cat("Aliquot (grain) ID rejected use [rcs]:\n")
-        print(rcs_reject)
+        cat("Function fitGrowth(): aliquot (grain) ID with improper input argument:\n")
+        print(apply(tryError_ID, MARGIN=1L, NPG))
         cat("\n")
     } # end if.
     ###
     if (!is.null(failFit_ID)) {
         cat("\n")
-        cat("Aliquot (grain) ID failed in growth curve fitting:\n")
+        cat("Function fitGrowth(): aliquot (grain) ID failed in growth curve fitting:\n")
         print(apply(failFit_ID, MARGIN=1L, NPG))
         cat("\n")
     } # end if.
     ###
     action_character <- c(action_character, 
-                          "Failed in growth curve fitting",
+                          "Function fitGrowth(): improper input argument",
+                          "Function fitGrowth(): failed in growth curve fitting",
                           "Total number of rejected aliquots (grains)",
                           "Total number of accepted aliquots (grains)")
     ###
     step_reject_N <- c(step_reject_N, 
+                       ifelse(is.null(tryError_ID), 0L, nrow(tryError_ID)),
                        ifelse(is.null(failFit_ID), 0L, nrow(failFit_ID)),
-                       nag-nrow(agID), 
-                       nrow(agID))
+                       ifelse(is.null(fitOK_NO), nag, nag-nrow(agID)),
+                       ifelse(is.null(fitOK_NO), 0L, nrow(agID)))
     ###
     summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
     print(summary_info)
     ###
-    invisible(output)
+    if (!is.null(fitOK_NO)) {
+        return(invisible(output))
+    } else {
+        return(invisible(NULL))
+    } # end if.
+    ###
 } # end function pickSARdata.default.
 #####

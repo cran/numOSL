@@ -6,7 +6,7 @@ function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE,
          irr.dose=NULL, outfile=NULL, transf=TRUE) {
     UseMethod("decomp")
 } ###
-### 2017.01.10.
+### 2017.03.30.
 decomp.default <-
 function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE, 
          typ="cw", control.args=list(), weight=FALSE, plot=TRUE, 
@@ -75,7 +75,7 @@ function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE,
     fmin <- 0.0
     message <- 0
     ###
-    res<-.Fortran("decomp",as.double(tim),as.double(sig),as.integer(ntim), 
+    res<-.Fortran("decomp_fort",as.double(tim),as.double(sig),as.integer(ntim), 
                   pars=as.double(pars),stdp=as.double(stdp),as.integer(n2),
                   as.integer(uw),as.integer(addc),as.integer(typ1),as.integer(factor), 
                   as.double(f),as.double(cr),as.integer(maxiter),as.double(tol), 

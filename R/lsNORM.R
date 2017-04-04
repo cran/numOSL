@@ -4,7 +4,7 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
          natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
     UseMethod("lsNORM")
 } ###	
-### 2017.01.15.
+### 2017.04.04.
 lsNORM.default<- 
 function(SARdata, model="gok", origin=FALSE, weight=TRUE, 
          natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
@@ -64,13 +64,6 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
         if (sum(iSAR.Cycle=="N")>1L) {
             stop(paste("[NO=", NO[i],
                        "]: should contain not more than one SAR.Cycle of 'N'!", sep=""))
-        } # end if.
-        ###
-        ndat <- sum(iSAR.Cycle=="R")
-        if (ndat < n2) {
-             stop(paste("[NO=", NO[i], 
-                       "]: ", ndat, " data points are not enough for fitting the ",
-                       model, " (origin=",origin,") model!", sep=""))
         } # end if.
         ###
     } # end for.
@@ -228,11 +221,11 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
         doseltx <- origin_Curvedata[,"Signal",drop=TRUE]
         sdoseltx <- origin_Curvedata[,"Signal.Err",drop=TRUE]
         ###
-        arrowIndex <- which(sdoseltx>0.05 & sdoseltx/doseltx>0.01)
+        arrowIndex <- which(sdoseltx/doseltx>0.001)
         if (length(arrowIndex)>=1L) {
-            arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
-                   x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
-                   code=3, lwd=1, angle=90, length=0.05, col="black")
+            suppressWarnings(arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
+                x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
+                code=3, lwd=1, angle=90, length=0.05, col="black"))
         } # end if.
         ###
         x <- NULL
@@ -269,11 +262,11 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
         doseltx <- new_Curvedata[,"Signal",drop=TRUE]
         sdoseltx <- new_Curvedata[,"Signal.Err",drop=TRUE]
         ###
-        arrowIndex <- which(sdoseltx>0.05 & sdoseltx/doseltx>0.01)
+        arrowIndex <- which(sdoseltx/doseltx>0.001)
         if (length(arrowIndex)>=1L) {
-            arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
-                   x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
-                   code=3, lwd=1, angle=90, length=0.05, col="black")
+            suppressWarnings(arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
+                x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
+                code=3, lwd=1, angle=90, length=0.05, col="black"))
         } # end if.
         ###
         x <- NULL

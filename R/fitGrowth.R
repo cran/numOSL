@@ -4,7 +4,7 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
          trial=FALSE, plot=TRUE, agID=NULL) {
     UseMethod("fitGrowth")
 } #
-### 2017.01.13.
+### 2017.04.04.
 fitGrowth.default<-
 function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
          trial=FALSE, plot=TRUE, agID=NULL) {
@@ -195,7 +195,7 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
                           message=as.integer(message),PACKAGE="numOSL")
             ###
         } else if (mdl %in% c(0L,1L,2L,3L)) {
-            res<-.Fortran("fitGrowth",as.double(dose),as.double(doseltx),as.double(sdoseltx),
+            res<-.Fortran("fitGrowth_fort",as.double(dose),as.double(doseltx),as.double(sdoseltx),
                           as.integer(ndat),as.integer(n2),pars=as.double(pars),stdp=as.double(stdp),
                           as.integer(mdl),as.integer(uw),fvec1=as.double(fvec1),fmin=as.double(fmin),
                           message=as.integer(message),PACKAGE="numOSL")
@@ -250,11 +250,11 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
         ### 
         points(dose, doseltx, pch=21, cex=1.5, bg="black")
         ###
-        arrowIndex <- which(sdoseltx>0.05 & sdoseltx/doseltx>0.01)
+        arrowIndex <- which(sdoseltx/doseltx>0.001)
         if (length(arrowIndex)>=1L) {
-            arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
-                   x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
-                   code=3, lwd=1, angle=90, length=0.05, col="black")
+            suppressWarnings(arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
+                x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
+                code=3, lwd=1, angle=90, length=0.05, col="black"))
         } # end if.
         ###
         if (message==0L) { 
@@ -280,12 +280,6 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
                       from=0, type="l", add=TRUE, lwd=2, col="skyblue")
             } # end if.
             ###
-            arrowIndex <- which(sdoseltx>0.05 & sdoseltx/doseltx>0.01)
-            if (length(arrowIndex)>=1L) {
-                arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
-                       x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
-                       code=3, lwd=1, angle=90, length=0.05, col="black")
-            } # end if.
         } # end if.
         ###
         grid(col="pink3")

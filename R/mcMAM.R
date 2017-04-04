@@ -4,7 +4,7 @@ function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE,
          nsim=5e4, inis=list(), control.args=list()) {
     UseMethod("mcMAM")
 } #
-### 2014.09.19.
+### 2017.03.29.
 mcMAM.default<-
 function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE,
          nsim=5e4, inis=list(), control.args=list()) {
@@ -75,13 +75,21 @@ function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE,
     } # end if
     iflag<-0
     chains<-matrix(0,nrow=nsim,ncol=2L-ncomp)
-    routineName<-ifelse(ncomp==-1L,"mcMAM3","mcMAM4")
     ###
-    res<-.Fortran(routineName,as.integer(nED),as.integer(nsim),as.double(ed1), 
-                  as.double(sed1),as.double(addsigma),as.double(inis), 
-                  as.integer(iflog),as.integer(nstart),as.double(w), 
-                  as.double(m),chains=as.double(chains), 
-                  iflag=as.integer(iflag),PACKAGE="numOSL")
+    if (ncomp==-1L) {
+        res <- .Fortran("mcMAM3",as.integer(nED),as.integer(nsim),as.double(ed1), 
+                        as.double(sed1),as.double(addsigma),as.double(inis), 
+                        as.integer(iflog),as.integer(nstart),as.double(w), 
+                        as.double(m),chains=as.double(chains), 
+                        iflag=as.integer(iflag),PACKAGE="numOSL")
+    } else if (ncomp==-2L) {
+        res <- .Fortran("mcMAM4",as.integer(nED),as.integer(nsim),as.double(ed1), 
+                        as.double(sed1),as.double(addsigma),as.double(inis), 
+                        as.integer(iflog),as.integer(nstart),as.double(w), 
+                        as.double(m),chains=as.double(chains), 
+                        iflag=as.integer(iflag),PACKAGE="numOSL")
+    } # end if.
+    ###
     if (res$iflag!=0) {
         niter<-sum(res$chains[seq(nsim)]>0)
         stop(paste("Error: the simulation failed at the ", 

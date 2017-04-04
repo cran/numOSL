@@ -4,7 +4,7 @@ function(EDdata, ncomp=1, addsigma=0, iflog=TRUE,
          nsim=5e4, inis=list(), control.args=list()) {
     UseMethod("mcFMM")
 } #
-### 2014.09.20.
+### 2017.03.29.
 mcFMM.default<-
 function(EDdata, ncomp=1, addsigma=0, iflog=TRUE,
          nsim=5e4, inis=list(), control.args=list()) {
@@ -97,13 +97,32 @@ function(EDdata, ncomp=1, addsigma=0, iflog=TRUE,
     iflag<-0
     chains<-matrix(0,nrow=nsim,ncol=2L*ncomp)
     ###
-    routineName<-ifelse(ncomp==1L, "mcCAM", 
-                 paste("mcFMM",ncomp,sep=""))
-    res<-.Fortran(routineName,as.integer(nED),as.integer(nsim),as.double(ed1), 
-                  as.double(sed1),as.double(addsigma),as.double(inis),
-                  as.integer(iflog),as.integer(nstart),as.double(w),
-                  as.double(m),chains=as.double(chains), 
-                  iflag=as.integer(iflag),PACKAGE="numOSL") 
+    if (ncomp==1L) {
+        res <- .Fortran("mcCAM",as.integer(nED),as.integer(nsim),as.double(ed1), 
+                        as.double(sed1),as.double(addsigma),as.double(inis),
+                        as.integer(iflog),as.integer(nstart),as.double(w),
+                        as.double(m),chains=as.double(chains), 
+                        iflag=as.integer(iflag),PACKAGE="numOSL") 
+    } else if (ncomp==2L) {
+        res <- .Fortran("mcFMM2",as.integer(nED),as.integer(nsim),as.double(ed1), 
+                        as.double(sed1),as.double(addsigma),as.double(inis),
+                        as.integer(iflog),as.integer(nstart),as.double(w),
+                        as.double(m),chains=as.double(chains), 
+                        iflag=as.integer(iflag),PACKAGE="numOSL") 
+    } else if (ncomp==3L) {
+        res <- .Fortran("mcFMM3",as.integer(nED),as.integer(nsim),as.double(ed1), 
+                        as.double(sed1),as.double(addsigma),as.double(inis),
+                        as.integer(iflog),as.integer(nstart),as.double(w),
+                        as.double(m),chains=as.double(chains), 
+                        iflag=as.integer(iflag),PACKAGE="numOSL") 
+    } else if (ncomp==4L) {
+        res <- .Fortran("mcFMM4",as.integer(nED),as.integer(nsim),as.double(ed1), 
+                        as.double(sed1),as.double(addsigma),as.double(inis),
+                        as.integer(iflog),as.integer(nstart),as.double(w),
+                        as.double(m),chains=as.double(chains), 
+                        iflag=as.integer(iflag),PACKAGE="numOSL") 
+    } # end if.
+    ###
     if (res$iflag!=0) {
         niter<-sum(res$chains[seq(nsim)]>0)
         stop(paste("Error: the simulation failed at the ", 

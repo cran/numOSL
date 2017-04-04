@@ -2,18 +2,16 @@
 fastED <-
 function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
          control.args=list(), typ="cw", model="gok", origin=FALSE, 
-         nsim=1000, weight.decomp=FALSE, weight.fitGrowth=TRUE, 
-         trial=TRUE, outpdf=NULL, log="x", lwd=2,
-         test.dose=NULL, agID=NULL) {
+         errMethod="sp",nsim=500, weight.decomp=FALSE, weight.fitGrowth=TRUE, 
+         trial=TRUE, outpdf=NULL, log="x", lwd=2, test.dose=NULL, agID=NULL) {
     UseMethod("fastED")
 } ###
-### 2017.01.22.
+### 2017.03.31.
 fastED.default <-
 function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
          control.args=list(), typ="cw", model="gok", origin=FALSE, 
-         nsim=1000, weight.decomp=FALSE, weight.fitGrowth=TRUE, 
-         trial=TRUE, outpdf=NULL, log="x", lwd=2,
-         test.dose=NULL, agID=NULL) {
+         errMethod="sp",nsim=500, weight.decomp=FALSE, weight.fitGrowth=TRUE, 
+         trial=TRUE, outpdf=NULL, log="x", lwd=2, test.dose=NULL, agID=NULL) {
     ### Stop if not.
     stopifnot(ncol(Sigdata)>=5L, ncol(Sigdata)%%2L==1L,
               is.numeric(Redose), all(Redose>=0),
@@ -25,6 +23,7 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
               length(typ)==1L, typ=="cw",
               length(model)==1L, model %in% c("line","exp","lexp","dexp","gok"),
               length(origin)==1L, is.logical(origin),
+              length(errMethod)==1L, errMethod %in% c("sp","mc"),
               length(nsim)==1L, is.numeric(nsim), nsim>=50L, nsim<=3000L,
               length(weight.decomp)==1L, is.logical(weight.decomp),
               length(weight.fitGrowth)==1L, is.logical(weight.fitGrowth),
@@ -140,9 +139,9 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
     Nature_LxTx <- c(LxTx_vec[1L], seLxTx_vec[1L])
     ###
     res <- try(calED(Curvedata=Curvedata, Ltx=Nature_LxTx, model=model, origin=origin, 
-                     nsim=nsim, weight=weight.fitGrowth, trial=trial, plot=if_plot,
-                     TxTn=TxTn_vec, agID=agID, Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL,  
-                     FR=NULL, Tn=NULL), silent=TRUE)
+                     errMethod=errMethod, nsim=nsim, weight=weight.fitGrowth, trial=trial, 
+                     plot=if_plot, TxTn=TxTn_vec, agID=agID, Tn3BG=NULL, TnBG.ratio=NULL,   
+                     rseTn=NULL, FR=NULL, Tn=NULL), silent=TRUE)
     ###
     if (!is.null(outpdf)) dev.off() 
     ### 

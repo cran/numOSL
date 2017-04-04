@@ -1,5 +1,10 @@
-useDynLib(numOSL)
-exportPattern("^[^\\.]")
+useDynLib(numOSL, .registration=TRUE)
+
+export(analyseBINdata, as_analyseBIN, calDA, calED, calRcyRcp, 
+       calSARED, calSGCED, dbED, decomp, fastED, fitGrowth, 
+       loadBINdata, lsNORM, mcFMM, mcMAM, pickBINdata, 
+       pickSARdata, psRadialPlot, RadialPlotter, 
+       reportSAM, scaleSGCN)
 
 S3method(loadBINdata, default)
 S3method(pickBINdata, default)
@@ -24,11 +29,11 @@ S3method(as_analyseBIN, default)
 S3method(calRcyRcp, default)
 
 importFrom(graphics, abline, arrows, axTicks, axis, box,
-     curve, grid, hist, layout, legend, lines, mtext,
-     par, plot, points, polygon, rug, segments, text)
+           curve, grid, hist, layout, legend, lines, mtext,
+           par, plot, points, polygon, rug, segments, text)
 
 importFrom(stats, acf, approx, complete.cases, density, dnorm, runif,
-     kmeans, median, nlminb, optim, pnorm, quantile, rnorm, sd, var)
+           kmeans, median, nlminb, optim, pnorm, quantile, rnorm, sd, var)
 
 importFrom(utils, write.csv, View, edit, setTxtProgressBar, txtProgressBar)
 

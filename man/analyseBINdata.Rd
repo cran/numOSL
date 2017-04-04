@@ -11,7 +11,7 @@ analyseBINdata(obj_pickBIN, nfchn, nlchn, bg = "late",
                me = 2.0, distp = "p", kph = NULL, 
                kdc = NULL, dcr = NULL, FR.fchn = NULL, 
                FR.mchn = NULL, FR.lchn = NULL, 
-               signal.type="LxTx", outfile = NULL)
+               signal.type = "LxTx", outfile = NULL)
 }
 
 \arguments{

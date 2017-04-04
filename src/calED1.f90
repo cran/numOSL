@@ -1,6 +1,6 @@
 subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
-                  mcED,pars,stdp,uw,nsim,fvec1,fmin,&
-                  saturateDose,acceptRate,message)
+                  errMethod,mcED,pars,stdp,uw,nsim,fvec1,&
+                  fmin,saturateDose,acceptRate,message)
 !--------------------------------------------------------------------
 ! Subroutine calED1 is used for calculating  
 ! ED values and assess their standard errors.
@@ -12,6 +12,7 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
 !                n2:: input, integer, number of pars (>=1).
 !        inltx(1,2):: input, real values, natural Lx/Txs and errors.
 !      outDose(1,2):: output, real values, estimated EDs and errors.
+!         errMethod:: input, integer, 0=SP, 1=MC.
 !        mcED(nsim):: output, real values, simulated ED values.
 !          pars(n2):: output, real values, pars of growth curve.
 !          stdp(n2):: output, real values, std errors of pars.
@@ -26,9 +27,9 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
 !                     1=fail in DRC fitting,
 !                     2=natural OSL saturated,
 !                     3=fail in ED calculating,
-!                     4=fail in ED error estimation using MC.
+!                     4=fail in ED error estimation using SP (or MC).
 !--------------------------------------------------------------------
-! Author:: Peng Jun, 2017.01.13.
+! Author:: Peng Jun, 2017.04.01.
 !--------------------------------------------------------------------
 ! Dependence:: subroutine inipars;
 !              subroutine lmfit1; 
@@ -37,7 +38,7 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
 !--------------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ndat, n2, uw, nsim
+    integer(kind=4), intent(in):: ndat, n2, uw, nsim, errMethod
     real   (kind=8), intent(in):: dose(ndat), ltx(ndat),&
                                   sltx(ndat), inltx(1,2)
     real   (kind=8), intent(out):: outDose(1,2), mcED(nsim),&
@@ -50,9 +51,10 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
     integer(kind=4), parameter:: model=7
     real   (kind=8):: wght1(ndat), minValue, ran(2), outp(3),&
                       locp(4), cpars(n2), cstdp(n2), rcv(11),&
-                      cfvec1(ndat), cfmin, grad, maxDose, ifmin,& 
+                      cfvec1(ndat), cfmin, maxDose, ifmin,& 
                       sumdose, sumdose2, simltx(ndat), mcOSL(1), mcDose,& 
-                      Xm, Ym, aaa, bbb, ccc, ddd, inib(24), maxSig
+                      Xm, Ym, aaa, bbb, ccc, ddd, inib(24), limSig, derivative,&
+                      avgDev, spErr, spltx1, spltx2, spDose1, spDose2
     !
     outDose = -99.0
     mcED = -99.0
@@ -108,13 +110,6 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
             ! Check fit.
             if (info/=0) cycle loopB
             !
-            ! Check saturating level.
-            locp = 0.0
-            locp(1:n2) = cpars
-            grad = locp(1)*locp(2)*(1.0+locp(2)*locp(3)*maxDose)**&
-                   (-1.0/locp(3)-1.0)
-            if (grad<1.0D-07) cycle loopB
-            !
             if (cfmin<minValue) then
                 pars = cpars
                 stdp = cstdp
@@ -132,9 +127,7 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
     end if
     !
     !
-    ! Calculate equivalent dose. 
-    maxSig = inltx(1,1)
-    !
+    ! Calculate equivalent dose.
     locp = 0.0
     locp(1:n2) = pars
     !   
@@ -143,13 +136,14 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
     ccc = locp(3)
     ddd = locp(4)
     !
-    Xm = (1.0D-05)**(-ccc/(1.0+ccc))*(1.0-(1.0D-05)**(ccc/(1.0+ccc))*&
+    derivative = 1.0D-06
+    Xm = (derivative)**(-ccc/(1.0+ccc))*(1.0-(derivative)**(ccc/(1.0+ccc))*&
          (1.0/aaa/bbb)**(ccc/(1.0+ccc)))*(1.0/aaa/bbb)**(-ccc/(1.0+ccc))/bbb/ccc
     Ym = aaa*(1.0-(1.0+bbb*ccc*Xm)**(-1.0/ccc)) + ddd
     !
     saturateDose = Xm
     !
-    if (maxSig>=Ym) then
+    if (inltx(1,1)>=Ym) then
         message = 2
         return
     end if
@@ -157,81 +151,115 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
     call interpolate(-50.0D+00,saturateDose,inltx(1,1),pars,&
                      n2,model,outDose(1,1),ifmin)
     ! Check quality of interpolation.
-    if (ifmin>1.0D-02) then
+    if (ifmin>1.0D-03) then
         message = 3
         return
     end if
     !
     !
     ! Assess standard error of equivalent dose.
-    ! Monte Carlo simulation.
-    seed = 123456789
-    !
-    mcCount = 0
-    sumdose = 0.0
-    sumdose2 = 0.0
-    niter = 0
-    !
-    Innerloop: do
+    if (errMethod==0) then
         !
-        ! Record the number of iterations.
-        niter = niter + 1
-        if (niter>100*nsim) then
+        ! Simple transformation.
+        avgDev = sqrt(sum((ltx-fvec1)**2))/real(ndat)
+        spErr = sqrt(avgDev**2+(inltx(1,2))**2)
+        !
+        spltx1 = inltx(1,1) - spErr
+        spltx2 = inltx(1,1) + spErr
+        !
+        if (spltx2>=Ym) then
             message = 4
             return
         end if
         !
-        ! Simulate standardised regenerative OSLs.
-        do j=1, ndat
-            call r8vec_normal(1,ltx(j),sltx(j),seed,simltx(j))
-        end do
-        !
-        ! Fit random growth curve.
-        cpars = pars
-        call lmfit1(dose,simltx,wght1,ndat,cpars,&
-                    cstdp,n2,cfvec1,cfmin,info)
-        ! Check fit. 
-        if (info==1) cycle Innerloop
-        !
-        ! Check saturating level.
-        locp = 0.0
-        locp(1:n2) = cpars
-        grad = locp(1)*locp(2)*(1.0+locp(2)*locp(3)*maxDose)**&
-               (-1.0/locp(3)-1.0)
-        if (grad<1.0D-07) cycle Innerloop
-        !
-        ! Simulate natural standardised OSL.
-        call r8vec_normal(1,inltx(1,1),inltx(1,2),seed,mcOSL(1))
-        !
-        !
-        ! Calculate simulated equivalent dose.
-        call interpolate(-50.0D+00,saturateDose,mcOSL(1),cpars,&
-                         n2,model,mcDose,ifmin)
+        call interpolate(-50.0D+00,saturateDose,spltx1,pars,&
+                         n2,model,spDose1,ifmin)
         ! Check quality of interpolation.
-        if (ifmin>1.0D-02) cycle Innerloop
+        if (ifmin>1.0D-03) then
+            message = 4
+            return
+        end if
         !
-        if (abs(mcDose)>5.0*abs(outDose(1,1))) cycle Innerloop
+        call interpolate(-50.0D+00,saturateDose,spltx2,pars,&
+                         n2,model,spDose2,ifmin)
+        ! Check quality of interpolation.
+        if (ifmin>1.0D-03) then
+            message = 4
+            return
+        end if
         !
-        ! Record values.
-        mcCount = mcCount + 1
-        sumdose = sumdose + mcDose
-        sumdose2 = sumdose2 + mcDose**2
-        mcED(mcCount) = mcDose
+        outDose(1,2) = (spDose2-spDose1)/2.0
         !
-        if (mcCount==nsim) exit Innerloop
+    else if (errMethod==1) then
         !
-    end do Innerloop
-    !
-    !
-    outDose(1,2) = sqrt((real(nsim)*sumdose2-sumdose**2)/&
-                         real(nsim)/real(nsim-1))
-    !
-    if (outDose(1,2) .ne. outDose(1,2)) then
-        message = 4
-        return
-    end if 
-    !
-    acceptRate = real(nsim)/real(niter)*100.0
+        ! Monte Carlo simulation.
+        seed = 123456789
+        !
+        mcCount = 0
+        sumdose = 0.0
+        sumdose2 = 0.0
+        niter = 0
+        !
+        Innerloop: do
+            !
+            ! Record the number of iterations.
+            niter = niter + 1
+            if (niter>100*nsim) then
+                message = 4
+                return
+            end if
+            !
+            ! Simulate standardised regenerative OSLs.
+            do j=1, ndat
+                call r8vec_normal(1,ltx(j),sltx(j),seed,simltx(j))
+            end do
+            !
+            ! Fit random growth curve.
+            cpars = pars
+            call lmfit1(dose,simltx,wght1,ndat,cpars,&
+                        cstdp,n2,cfvec1,cfmin,info)
+            ! Check fit. 
+            if (info==1) cycle Innerloop
+            !
+            locp = 0.0
+            locp(1:n2) = cpars
+            !
+            ! Simulate natural standardised OSL.
+            call r8vec_normal(1,inltx(1,1),inltx(1,2),seed,mcOSL(1))
+            !
+            limSig = locp(1) + locp(4)
+            if (mcOSL(1)>0.999*limSig) cycle Innerloop
+            !
+            ! Calculate simulated equivalent dose.
+            call interpolate(-50.0D+00,saturateDose,mcOSL(1),cpars,&
+                             n2,model,mcDose,ifmin)
+            ! Check quality of interpolation.
+            if (ifmin>1.0D-03) cycle Innerloop
+            if (mcDose>0.999*saturateDose) cycle Innerloop
+            if (abs(mcDose)>5.0*abs(outDose(1,1))) cycle Innerloop
+            !
+            ! Record values.
+            mcCount = mcCount + 1
+            sumdose = sumdose + mcDose
+            sumdose2 = sumdose2 + mcDose**2
+            mcED(mcCount) = mcDose
+            !
+            if (mcCount==nsim) exit Innerloop
+            !
+        end do Innerloop
+        !
+        !
+        outDose(1,2) = sqrt((real(nsim)*sumdose2-sumdose**2)/&
+                             real(nsim)/real(nsim-1))
+        !
+        if (outDose(1,2) .ne. outDose(1,2)) then
+            message = 4
+            return
+        end if 
+        !
+        acceptRate = real(nsim)/real(niter)*100.0
+        !
+    end if
     !
     return
 end subroutine calED1
