@@ -10,7 +10,11 @@ Fitting growth curves using the Levenberg-Marquardt algorithm.
 \usage{
 fitGrowth(Curvedata, model = "gok", origin = FALSE, 
           weight = TRUE, trial = FALSE, plot = TRUE, 
-          agID = NULL)
+          agID = NULL, Tn = NULL, Tn3BG = NULL, 
+          TnBG.ratio = NULL, rseTn = NULL, FR = NULL, 
+          RecyclingRatio1 = NULL, RecyclingRatio2 = NULL, 
+          RecyclingRatio3 = NULL, Recuperation1 = NULL, 
+          Recuperation2 = NULL, LnTn.curve = NULL, TxTn = NULL)
 }
 
 \arguments{
@@ -29,6 +33,40 @@ sensitivity-corrected regenerative-dose signals, and associated standard errors)
 
   \item{agID}{\link{vector}(optional): a three-elemenet vector indicating aliquot (grain) ID, i.e.,\cr
 \code{agID[1]=NO}, \code{agID[2]=Position}, \code{agID[3]=Grain}}
+
+  \item{Tn}{\link{vector}(optional): a two-element vector containing value and\cr
+standard error of Tn} 
+
+  \item{Tn3BG}{\link{numeric}(optional): 0-1 value indicating if Tn is more than 3 sigma above BG,\cr
+1 indicates Tn>3_sigma_BG, 0 indicates Tn<=3_sigma_BG}
+
+  \item{TnBG.ratio}{\link{vector}(optional): a two-element vector containing value and\cr
+standard error of ratio of initial Tn signal to BG} 
+
+  \item{rseTn}{\link{numeric}(optional): relative standard error of Tn in percent}
+
+  \item{FR}{\link{vector}(optional): a two-element vector containing value and\cr
+standard error of fast ratio of Tn}  
+
+  \item{RecyclingRatio1}{\link{vector}(optional): a two-element vector containing value and\cr
+standard error of the first recycling ratio}
+
+  \item{RecyclingRatio2}{\link{vector}(optional): a two-element vector containing value and\cr
+standard error of the second recycling ratio}
+
+  \item{RecyclingRatio3}{\link{vector}(optional): a two-element vector containing value and\cr
+standard error of the third recycling ratio}
+
+  \item{Recuperation1}{\link{vector}(optional): a two-element vector containing value and\cr
+standard error of the first recuperation}
+
+  \item{Recuperation2}{\link{vector}(optional): a two-element vector containing value and\cr
+standard error of the second recuperation}
+
+  \item{LnTn.curve}{\link{list}(optional): decay curve data for Ln and Tn, it should contain four elements, 
+i.e., \code{names(LnTn.curve)=c("Ln.x","Ln.y","Tn.x","Tn.y")}}
+
+  \item{TxTn}{\link{vector}(optional): ratios of Tx to Tn for various SAR cycles}
 }
 
 \details{
@@ -87,7 +125,9 @@ Springer-Verlag: Berlin. 105-116.
 }
 
 \note{
-Argument \code{agID} has nothing to do with growth curve fitting.\cr\cr
+Arguments \code{agID}, \code{Tn},  \code{Tn3BG}, \code{TnBG.ratio}, \code{rseTn}, \code{FR},\cr 
+\code{RecyclingRatio1}, \code{RecyclingRatio2}, \code{RecyclingRatio3},\cr 
+\code{Recuperation1}, \code{Recuperation2}, \code{LnTn.curve}, \code{TxTn} have nothing to do with growth curve fitting.\cr\cr
 The model to be optimized should not be underdetermined. This means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, the procedure will return an error if any standard errors of parameters cannot be estimated by numerical difference-approximation.\cr\cr
 }
 
@@ -99,9 +139,9 @@ The model to be optimized should not be underdetermined. This means that the num
 
 \examples{
  ### Example 1:
- Curvedata<-cbind(c(0, 18, 36, 54, 72, 0, 18),               
-                  c(0.026, 1.55, 2.39, 3.46, 4.13, 0.023, 1.61),  
-                  c(0.005, 0.11, 0.27, 0.22, 0.20, 0.008, 0.24)) 
+ Curvedata <- cbind(c(0, 18, 36, 54, 72, 0, 18),               
+                    c(0.026, 1.55, 2.39, 3.46, 4.13, 0.023, 1.61),  
+                    c(0.005, 0.11, 0.27, 0.22, 0.20, 0.008, 0.24)) 
  fitGrowth(Curvedata, model="gok", origin=FALSE, plot=TRUE)
 
  ### Example 2 (not run):

@@ -6,7 +6,7 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
          signal.type="LxTx", outfile=NULL) {
     UseMethod("analyseBINdata")
 } #
-### 2017.03.27.
+### 2017.05.14.
 analyseBINdata.default <- 
 function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0, 
          distp="p", kph=NULL, kdc=NULL, dcr=NULL, 
@@ -30,7 +30,7 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
               is.null(outfile) || (length(outfile)==1L && is.character(outfile)))
     ###
     if (is.null(obj_pickBIN$agID)) {
-        stop("Error: set force.matrix=FALSE in function 'pickBINdata'!") 
+        stop("Error: set force.matrix=FALSE in function pickBINdata()!") 
     } # end if.
     ###
     if (distp=="op") {
@@ -172,10 +172,39 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
     NO <- obj_pickBIN$agID[,"NO",drop=TRUE]
     LxTx_list <- vector(length=length(NO), mode="list")
     ###
+    LnTn.curve <- list()
+    ###
     ###
     for (i in seq(NO)) {
         iRecord <- recordList[[i]]
         length_iRecord <- length(iRecord)
+        ###
+        ###
+        Ln_NPoints <- attr(iRecord[[1L]], "NPoints")
+        Ln_Low <- attr(iRecord[[1L]], "Low")
+        Ln_High <- attr(iRecord[[1L]], "High")
+        Ln_vstep <- (Ln_High-Ln_Low)/Ln_NPoints
+        ###
+        iLn_curve_x <- seq(from=Ln_vstep, to=Ln_High, by=Ln_vstep)                  
+        iLn_curve_y <- as.numeric(iRecord[[1L]])
+        ###
+        ###
+        if (length_iRecord>=2L) {
+            Tn_NPoints <- attr(iRecord[[2L]], "NPoints")
+            Tn_Low <- attr(iRecord[[2L]], "Low")
+            Tn_High <- attr(iRecord[[2L]], "High")
+            Tn_vstep <- (Tn_High-Tn_Low)/Tn_NPoints
+            ###
+            iTn_curve_x <- seq(from=Tn_vstep, to=Tn_High, by=Tn_vstep) 
+            iTn_curve_y <- as.numeric(iRecord[[2L]])
+        } else {
+            iTn_curve_x <- iTn_curve_y <- NA
+        } # end if.
+        ###
+        characterNO <- paste("NO", i, sep="")
+        LnTn.curve[[characterNO]] <- list("Ln.x"=iLn_curve_x, "Ln.y"=iLn_curve_y,
+                                          "Tn.x"=iTn_curve_x, "Tn.y"=iTn_curve_y)
+        ###
         ###
         i_matrix <- c()
         for (j in seq(length_iRecord)) {
@@ -198,9 +227,11 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
     ###
     Tn_vec <- seTn_vec <- c()
     ###
-    TxTn <- c()
+    TxTn <- list()
     ###
     agID <- c()
+    ###
+    accept_characterNO <- c()
     ###
     for (i in seq(NO)) {
         iLxTx <- LxTx_list[[i]]
@@ -220,7 +251,13 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
             cat(paste("[NO=",NO[i],",Position=",Position[i],",Grain=",Grain[i],
                       "]: only one Lx[Tx] (omitted)!\n",sep=""))
             ###
+        } else if (!(selectedIndex[1L]==1L && selectedIndex[2L]==2L)) {
+            cat(paste("[NO=",NO[i],",Position=",Position[i],",Grain=",Grain[i],
+                      "]: analysis failed!\n",sep=""))
         } else {
+            ###
+            accept_characterNO <- c(accept_characterNO, paste("NO", i, sep=""))
+            ###
             if (nr%%2L!=0L) {
                 cat(paste("[NO=",NO[i],",Position=",Position[i],",Grain=",Grain[i],
                           "]: unpaired Lx-Tx (omit the last Lx[Tx])!\n",sep="")) 
@@ -295,7 +332,8 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
             Tn_vec <- c(Tn_vec, netTx[1L])
             seTn_vec <- c(seTn_vec, abs(netTx[1L])*rse_netTx[1L])
             ###
-            TxTn <- rbind(TxTn, cbind(NO[i], netTx/netTx[1L]))
+            characterNO <- paste("NO", i, sep="")
+            TxTn[[characterNO]] <- netTx/netTx[1L]
             ###
             agID <- rbind(agID, c(NO[i], Position[i], Grain[i]))
             ###
@@ -328,6 +366,8 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
     ###
     if (nrow(SARdata)==0L) stop("Error: no SAR data can be returned!")
     ###
+    LnTn.curve <- LnTn.curve[accept_characterNO]
+    ###
     if (!is.null(outfile)) {
         rownames(ALLdata) <- NULL
         colnames(ALLdata) <- c("NO","Position","Grain",
@@ -355,17 +395,16 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
     rownames(Tn) <- NULL
     colnames(Tn) <- c("Tn", "seTn")
     ###
-    rownames(TxTn) <- NULL
-    colnames(TxTn) <- c("NO","TxTn")
-    ###
     rownames(agID) <- NULL
     colnames(agID) <- c("NO","Position","Grain")
     ###
     output <- list("SARdata"=SARdata,
                    "criteria"=criteria,
                    "Tn"=Tn,
+                   "LnTn.curve"=LnTn.curve,
                    "TxTn"=TxTn,
-                   "agID"=agID)
+                   "agID"=agID) 
+    ###
     class(output) <- "analyseBIN"
     ###
     invisible(output)

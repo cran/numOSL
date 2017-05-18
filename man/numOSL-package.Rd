@@ -9,8 +9,8 @@ Package for routine numeric optimization and data visualization in optically sti
 \tabular{ll}{
 Package: \tab numOSL\cr
 Type: \tab Package\cr
-Version: \tab 2.2\cr
-Date: \tab 2017-04-04\cr
+Version: \tab 2.3\cr
+Date: \tab 2017-05-18\cr
 License: \tab GPL-3\cr
 }
 }

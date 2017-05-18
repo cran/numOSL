@@ -19,7 +19,7 @@ pickSARdata(obj_analyseBIN, model = "gok", origin = FALSE,
 
 \arguments{
   \item{obj_analyseBIN}{\link{list}(\bold{required}): an object of S3 class "analyseBIN" produced by\cr 
-function \link{analyseBINdata}}
+function \link{analyseBINdata} or \link{as_analyseBIN}}
 
   \item{model}{\link{character}(with default): model used for growth curve fitting, see \link{fitGrowth} for available models}
 
@@ -71,7 +71,7 @@ to a CSV file named \code{"outfile"} and saved to the current work directory}
 
 \value{
   Return an invisible \link{list} that contains the following elements:
-  \item{LMpars}{a \link{list} containing optimized parameters of successfully fitted growth curves}
+  \item{LMpars}{a \link{list} containing optimized parameters of growth curves of selected SAR data sets}
   \item{SARdata}{a \link{data.frame} containing selected SAR data sets}
   \item{norm.SARdata}{a \link{data.frame} containing re-normalised SAR data sets,\cr
 it returns \code{NULL} if \code{norm.dose=NULL}}

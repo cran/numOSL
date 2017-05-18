@@ -43,9 +43,9 @@ values of the decay curves, i.e., \code{delay.off[1]=Delay},\code{delay.off[2]=O
 
   \item{SAR.Cycle}{\link{numeric}(optional): SAR cycle of the decay curve, Example: \code{SAR.Cycle="R1"}}
 
-  \item{outfile}{\link{character}(optional): if specified, decomposed signal values will be written to a CSV file named \code{"outfile"} and saved to the current work directory}
-
   \item{irr.dose}{\link{numeric}(optional): irradiation dose of the decay curve}
+
+  \item{outfile}{\link{character}(optional): if specified, decomposed signal values will be written to a CSV file named \code{"outfile"} and saved to the current work directory}
 
   \item{transf}{\link{logical}(with default): do not use (for backward compatibility purpose)}
 }

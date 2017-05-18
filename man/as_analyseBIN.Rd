@@ -24,10 +24,11 @@ as_analyseBIN(SARdata)
 Return an invisible \link{list} of S3 class object "analyseBIN" containing the following elements:
   \item{SARdata}{a \link{data.frame} containing SAR data sets}
 
-  \item{criteria}{values used as rejection criteria, values are set as: \code{Tn3BG=1}, \code{TnBG.ratio=99999},\cr
-\code{seTnBG.ratio=0}, \code{rseTn=0}, \code{FR=99999}, \code{seFR=0}}
+  \item{criteria}{values used as rejection criteria, here it is set equal to \code{NULL}}
 
-  \item{Tn}{values of Tn and associated standard errors, values are set as: \code{Tn=99999}, \code{seTn=0}}
+  \item{Tn}{values of Tn and associated standard errors, here it is set equal to \code{NULL}}
+
+  \item{LnTn.curve}{decay curves of Ln and Tn for different aliquots (grains), here it is set equal to \code{NULL}}
 
   \item{TxTn}{ratios of Tx to Tn for various SAR cycles, here it is set equal to \code{NULL}}
 
@@ -50,10 +51,8 @@ Return an invisible \link{list} of S3 class object "analyseBIN" containing the f
 }
 
 \note{
-S3 class object "analyseBIN" produced using function \link{analyseBINdata} contains five elements (i.e., \code{SARdata}, \code{criteria}, \code{Tn}, \code{TxTn}, \code{agID}).
-However, function \link{as_analyseBIN} uses only \code{SARdata} as input and other elements are lost. Assume that user-supplied \code{SARdata} are selected beforehand using rejection criteria such as 
-\code{Tn3BG}, \code{TnBG.ratio}, \code{rseTn}, \code{FR}, values in \code{criteria} are reset so as to ensure that result produced by function \link{as_analyseBIN} can pass those rejection criteria 
-if it is used as input of function \link{calSARED} or \link{pickSARdata}.
+Function \link{as_analyseBIN} transforms SAR data sets (see \link{SARdata}) into S3 class object "analyseBIN". 
+The returned elements such as \code{criteria}, \code{Tn}, \code{LnTn.curve}, and \code{TxTn} are set equal to \code{NULL}.
 }
 
 \examples{

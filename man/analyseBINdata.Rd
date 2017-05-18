@@ -45,11 +45,20 @@ Poisson distribution, \code{distp="op"} denotes Over Poisson distribution}
 
   \item{dcr}{\link{numeric}(optional): dark count rate}
 
-  \item{FR.fchn}{\link{vector}(optional): fast-component signal channels, Example: \code{FR.fchn=1:5}}
+  \item{FR.fchn}{\link{vector}(optional): fast-component signal channels, note that those channels are extracted
+internally from the "ON" channels,\cr
+i.e., \code{FR.fchn=((Delay+1):(Delay+On))[FR.fchn]}.\cr
+Example: \code{FR.fchn=1:5}}
 
-  \item{FR.mchn}{\link{vector}(optional): medium-component signal channels, Example: \code{FR.mchn=31:60}}
+  \item{FR.mchn}{\link{vector}(optional): medium-component signal channels, note that those channels are extracted 
+internally from the "ON" channels,\cr
+i.e., \code{FR.mchn=((Delay+1):(Delay+On))[FR.mchn]}.\cr
+Example: \code{FR.mchn=31:60}}
 
-  \item{FR.lchn}{\link{vector}(optional): background signal channels, Example: \code{FR.lchn=201:250}}
+  \item{FR.lchn}{\link{vector}(optional): background signal channels, note that those channels are extracted 
+internally from the "ON" channels,\cr
+i.e., \code{FR.lchn=((Delay+1):(Delay+On))[FR.lchn]}.\cr
+Example: \code{FR.lchn=201:250}}
 
   \item{signal.type}{\link{character}(with default): type of signal, \code{"LxTx"}, \code{"Lx"}, or \code{"Tx"}}
 
@@ -75,6 +84,8 @@ ratio of initial Tn signal to BG and associated standard error, relative standar
 \code{NA} is produced if the value can not be calculated. Note that rejection criteria are calculated but not applied}
 
   \item{Tn}{values of Tn and associated standard errors}
+
+  \item{LnTn.curve}{decay curves for Ln and Tn for different aliquots (grains)}
 
   \item{TxTn}{ratios of Tx to Tn for various SAR cycles}
 
@@ -125,7 +136,7 @@ Bluszcz A, Adamiec G, Heer AJ, 2015. Estimation of equivalent dose and its uncer
 
 Cunningham AC, Wallinga J, 2010. Selection of integration time intervals for quartz OSL decay curves. Quaternary Geochronology, 5(6): 657-666
 
-Duller GAT, 2016. Analyst (v4.31.9), User Mannual (\url{http://www.nutech.dtu.dk/english/Products-and-Services/Dosimetry/Radiation-Measurement-Instruments/TL_OSL_reader/Manuals}).
+Duller GAT, 2016. Analyst (v4.31.9), User Mannual.
 
 Durcan JA, Duller GAT, 2011. The fast ratio: A rapid measure for testing the dominance of the fast component in the initial OSL signal from quartz. Radiation Measurements, 46(10): 1065-1072.
 

@@ -3,48 +3,64 @@
 \alias{calSGCED.default}
 
 \title{
-Equivalent dose calculation using SGC or gSGC method
+SGC Equivalent dose calculation and selection
 }
 \description{
-Calculating equivalent doses according to the "standardised growth curve" (SGC) method suggested by Roberts and Duller (2004) or 
-the "global standardised growth curve" (gSGC) method suggested by Li et al. (2015).
+Calculating and selecting equivalent doses according to the "standardised growth curve" (SGC) method suggested 
+by Roberts and Duller (2004) or the "global standardised growth curve" (gSGC) method suggested by Li et al. (2015).
 }
 
 \usage{
-calSGCED(SGCdata, pars, model, origin, avgDev, method = "gSGC", 
-         errMethod = "sp", nsim = 500, outpdf = NULL)
+calSGCED(obj_analyseBIN, SGCpars, model, origin, avgDev, 
+         method = "SGC", SAR.Cycle = "N", errMethod = "sp", 
+         Tn.above.3BG = TRUE, TnBG.ratio.low = NULL, rseTn.up = NULL,
+         FR.low = NULL, rseED.up = NULL, use.se = TRUE, outpdf = NULL,
+         outfile = NULL)
 }
 
 \arguments{
-  \item{SGCdata}{\link{data.frame}(\bold{required}): standardised natural-dose signal and regenerative-dose signal data used for SGC equivalent dose calculation, it should contain five columns (i.e., \code{NO}, \code{SAR.Cycle}, \code{Dose}, \code{Signal}, and \code{Signal.Err}), see \link{SARdata} for details. If \code{method="SGC"}, only SAR cycle of "N" need be provided, if \code{method="gSGC"}, both
-SAR cycle of "N" and "R" need be supplied}
+   \item{obj_analyseBIN}{\link{list}(\bold{required}): an object of S3 class "analyseBIN" produced by\cr 
+function \link{analyseBINdata} or \link{as_analyseBIN}}
 
-  \item{pars}{\link{vector}(\bold{required}): optimized parameters of the SGC obtained using function \link{fitGrowth} or \link{lsNORM}}
+  \item{SGCpars}{\link{vector}(\bold{required}): optimized parameters of the SGC obtained using function \link{fitGrowth} or \link{lsNORM}}
 
-  \item{model}{\link{character}(\bold{required}): fitting model used for obtaining \code{pars}}
+  \item{model}{\link{character}(\bold{required}): fitting model used for obtaining \code{SGCpars}}
 
   \item{origin}{\link{logical}(\bold{required}): logical value indicating if established SGC passes the origin}
 
-  \item{avgDev}{\link{numeric}(\bold{required}): average deviation (i.e., average fit error) of the SGC obtained using function \link{fitGrowth} or \link{lsNORM}}
+  \item{avgDev}{\link{numeric}(\bold{required}): average deviation (i.e., average fit error) of the SGC obtained using function \link{fitGrowth} or \link{lsNORM}. This quantity stands for the uncertainty of established SGC when assessing the equivalent dose error using the simple transformaion method}
 
   \item{method}{\link{character}(with default): method used for equivalent dose calculation, i.e.,\cr 
-\code{method="SGC"} or \code{method="gSGC"}}
+\code{method="SGC"} (for the original SGC method) or \code{method="gSGC"} (for the improved SGC method)}
 
-  \item{errMethod}{\link{character}(with default): method used for equivalent dose error assessment. See function \link{calED} for details}
+  \item{SAR.Cycle}{\link{character}(with default): SAR cycles used for SGC equivalent dose calculation.\cr 
+Example: \code{SAR.Cycle=c("N","R3")}}
 
-  \item{nsim}{\link{numeric}(with default): desired number of randomly simulated equivalent dose obtained by Monte Carlo simulation}
+  \item{errMethod}{\link{character}(with default): method used for equivalent dose error assessment}
+
+   \item{Tn.above.3BG}{\link{logical}(with default): logical value indicating if aliquot (grain) with Tn below 3 sigma BG should be rejected}
+
+  \item{TnBG.ratio.low}{\link{numeric}(optional): lower limit on ratio of initial Tn signal to BG}
+
+  \item{rseTn.up}{\link{numeric}(optional): upper limit on relative standard error of Tn in percent}
+
+  \item{FR.low}{\link{numeric}(optional): lower limit on fast ratio of Tn}
+
+  \item{rseED.up}{\link{numeric}(optional): upper limit on the relative standard error of equivalent dose in percent}
+
+  \item{use.se}{\link{logical}(with default): logical value indicating if standard errors of values should be used during application of rejection criteria}
 
   \item{outpdf}{\link{character}(optional): if specified, results of SGC equivalent dose calculation will be written to a PDF file named \code{"outpdf"} and saved to the current work directory}
+
+  \item{outfile}{\link{character}(optional): if specified, SGC equivalent doses related quantities will be written to a CSV file named \code{"outfile"} and saved to the current work directory}
 }
 
 \value{
   Return an invisible \link{list} that contains the following elements:
-  \item{saturate.NO}{aliquot (grain) number saturated in standardised natural-dose signal}
-  \item{failED.NO}{aliquot (grain) number failed in equivalent dose calculation}
-  \item{failEDError.NO}{aliquot (grain) number failed in equivalent dose error assessment}
-  \item{scale.Ltx}{scaled standardised natural-dose signals and associated standard errors. Note that standardised natural-dose signals will remain un-scaled if \code{method="SGC"}} 
+  \item{scale.Ltx}{scaled standardised natural-dose signals and associated standard errors used for SGC equivalent dose calculation. Note that standardised natural-dose signals will remain un-scaled if \code{method="SGC"}} 
   \item{sgcED}{calculated SGC equivalent doses}
   \item{ConfInt}{68 percent (one sigma) and 95 percent (two sigma) confidence intervals of SGC equivalent doses}
+  \item{agID}{aliquot (grain) ID of calculated (selected) SGC equivalent doses}
 }
 
 \references{
@@ -60,29 +76,36 @@ Roberts HM, Duller GAT, 2004. Standardised growth curves for optical dating of s
   \link{scaleSGCN}; \link{calED}; \link{calSARED}
 }
 
-\note{
-Argument \code{avgDev} will affect estimated standard errors of SGC equivalent doses if the Simple Transformation method is applied. 
-However, modification of its values will not affect the standard errors of SGC equivalent doses if the Monte Carlo method is applied. 
-}
-
 \examples{
  data(SARdata)
  ### (1) gSGC ED calculation:
- gSGCdata <- SARdata[is.element(SARdata[,2], c("N","R3")),]
  ### gSGCpars were obtained using function "lsNORM".
  gSGCpars <- c(137.440874251, 0.007997863, 2.462035263, -0.321536177)
  avg.error2 <- 0.1111623
- res <- calSGCED(gSGCdata, gSGCpars, method="gSGC", 
-                 model="gok", origin=FALSE, avgDev=avg.error2)
+ res <- calSGCED(as_analyseBIN(SARdata), gSGCpars, method="gSGC", 
+                 model="gok", origin=FALSE, avgDev=avg.error2,
+                 SAR.Cycle=c("N","R3"))
  print(res$sgcED)
 
  ### (2) SGC ED calculation (not run): 
- # SGCdata <- SARdata[is.element(SARdata[,2], "N"),]
  ### SGCpars were obtained using function "fitGrowth".
  # SGCpars <- c(183.474322547,  0.007038048,  4.254287622, -0.337734151)
  # avg.error <- 0.3156259
- # calSGCED(SGCdata, SGCpars, method="SGC", model="gok", 
- #          origin=FALSE, avgDev=avg.error, outpdf="SGCED")
+ # calSGCED(as_analyseBIN(SARdata), SGCpars, method="SGC", model="gok", 
+ #          origin=FALSE, avgDev=avg.error, SAR.Cycle="N", outpdf="SGCED")
+
+ ### (3) gSGC ED calculation and signal-related 
+ ###     rejection criteria application (not run):
+ # data(BIN)
+ # res_pickBIN <-pickBINdata(BIN, LType="OSL")
+ # res_analyseBIN <- analyseBINdata(res_pickBIN, nfchn=4, nlchn=30)
+ # res_lsNORM <- lsNORM(res_analyseBIN$SARdata, model="gok", origin=FALSE)
+
+ # calSGCED(res_analyseBIN, SGCpars=res_lsNORM$LMpars2[,1], 
+ #         model="gok", origin=FALSE, avgDev=res_lsNORM$avg.error2,
+ #         method="gSGC", SAR.Cycle=c("N","R3"), Tn.above.3BG=TRUE, 
+ #         TnBG.ratio.low=4, rseTn.up=10, outpdf="foo", outfile="foo")
+
 
 }
 

@@ -13,9 +13,10 @@ Calculating an equivalent dose and assessing its standard error.
 \usage{
 calED(Curvedata, Ltx, model = "gok", origin = FALSE, 
       errMethod = "sp", nsim = 500, weight = TRUE,  
-      trial = FALSE, plot = TRUE, TxTn = NULL, agID = NULL, 
-      Tn3BG = NULL, TnBG.ratio = NULL, rseTn = NULL, 
-      FR = NULL, Tn = NULL)
+      trial = FALSE, plot = TRUE, agID = NULL, 
+      Tn = NULL, Tn3BG = NULL, TnBG.ratio = NULL, 
+      rseTn = NULL, FR = NULL, LnTn.curve = NULL, 
+      TxTn = NULL)
 }
 
 \arguments{
@@ -29,8 +30,8 @@ natural-dose signal and its error}
 
   \item{origin}{\link{logical}(with default): logical value indicating if the growth curve should be forced to pass the origin}
 
-  \item{errMethod}{\link{character}(with default): method used for equivalent dose error assessment. \code{"sp"} and \code{"mc"} denote
-error estimation using the Simple Transformation and Monte Carlo methods, respectively}
+  \item{errMethod}{\link{character}(with default): method used for equivalent dose error assessment.\cr
+\code{"sp"} and \code{"mc"} denote error estimation using the Simple Transformation and Monte Carlo methods, respectively}
 
   \item{nsim}{\link{integer}(with default): desired number of randomly simulated equivalent dose obtained by Monte Carlo simulation}
 
@@ -39,11 +40,12 @@ error estimation using the Simple Transformation and Monte Carlo methods, respec
   \item{trial}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using other models if the given model fails, see function \link{fitGrowth} for details}
 
   \item{plot}{\link{logical}(with default): logical value indicating if the results should be plotted}
-
-  \item{TxTn}{\link{vector}(optional): ratios of Tx to Tn for various SAR cycles}
  
   \item{agID}{\link{vector}(optional): a three-elemenet vector indicating aliquot (grain) ID, i.e.,\cr
 \code{agID[1]=NO}, \code{agID[2]=Position}, \code{agID[3]=Grain}}
+
+  \item{Tn}{\link{vector}(optional): a two-element vector containing value and\cr
+standard error of Tn}  
 
   \item{Tn3BG}{\link{numeric}(optional): 0-1 value indicating if Tn is more than 3 sigma above BG,\cr
 1 indicates Tn>3_sigma_BG, 0 indicates Tn<=3_sigma_BG}
@@ -56,8 +58,10 @@ standard error of ratio of initial Tn signal to BG}
   \item{FR}{\link{vector}(optional): a two-element vector containing value and\cr
 standard error of fast ratio of Tn}  
 
-  \item{Tn}{\link{vector}(optional): a two-element vector containing value and\cr
-standard error of Tn}  
+  \item{LnTn.curve}{\link{list}(optional): decay curve data for Ln and Tn, it should contain four elements,\cr 
+i.e., \code{names(LnTn.curve)=c("Ln.x","Ln.y","Tn.x","Tn.y")}}
+
+  \item{TxTn}{\link{vector}(optional): ratios of Tx to Tn for various SAR cycles}
 }
 
 \details{
@@ -92,7 +96,7 @@ and its standard error in percent}
 \references{
 Duller GAT, 2007. Assessing the error on equivalent dose estimates derived from single aliquot regenerative dose measurements. Ancient TL, 25(1): 15-24.
 
-Duller GAT, 2016. Analyst (v4.31.9), User Mannual (\url{http://www.nutech.dtu.dk/english/Products-and-Services/Dosimetry/Radiation-Measurement-Instruments/TL_OSL_reader/Manuals}).
+Duller GAT, 2016. Analyst (v4.31.9), User Mannual.
 
 Galbraith RF, Roberts RG, 2012. Statistical aspects of equivalent dose and error calculation and display in OSL dating: an overview and some recommendations. Quaternary Geochronology, 11: 1-27.
 }
@@ -104,7 +108,8 @@ Galbraith RF, Roberts RG, 2012. Statistical aspects of equivalent dose and error
 
 
 \note{
-Argument \code{TxTn}, \code{agID}, \code{Tn3BG}, \code{TnBG.ratio}, \code{rseTn}, \code{FR}, and \code{Tn} have nothing to do with equivalent dose calculation.\cr\cr
+Arguments \code{agID}, \code{Tn}, \code{Tn3BG}, \code{TnBG.ratio}, \code{rseTn}, \code{FR}, \code{LnTn.curve}, 
+and \code{TxTn} have nothing to do with equivalent dose calculation.\cr\cr
 Argument \code{Tn3BG} indicates if Tn (after background subtraction) is more than 3 sigma above BG, while argument \code{TnBG.ratio} denotes the ratio of Tn (no background subtraction) to BG.\cr\cr
 Function \link{calED} will return \code{message=3} (i.e.,\code{"Failed in equivalent dose calculation"}) if the equivalent dose to be calculated below -50 (Gy|s).\cr\cr
 68 percent (one sigma) and 95 percent (two sigma) confidence intervals of equivalent doses will be determined respectively using normal approximation and Monte Carlo simulation,\cr
@@ -114,10 +119,10 @@ Function \code{sgcED} in previous versions was bundled to function \link{calSGCE
 
 \examples{
   ### Example 1:
-  Curvedata<-cbind(c(0, 18, 36, 54, 72, 0, 18),               
-                   c(0.026, 1.55, 2.39, 3.46, 4.13, 0.023, 1.61),  
-                   c(0.005, 0.11, 0.27, 0.22, 0.20, 0.008, 0.24))                         
-  Ltx<-c(3.1,0.31)
+  Curvedata <- cbind(c(0, 18, 36, 54, 72, 0, 18),               
+                    c(0.026, 1.55, 2.39, 3.46, 4.13, 0.023, 1.61),  
+                    c(0.005, 0.11, 0.27, 0.22, 0.20, 0.008, 0.24))                         
+  Ltx <- c(3.1,0.31)
   calED(Curvedata, Ltx, model="exp", origin=FALSE)
   
   ### Example 2 (not run):

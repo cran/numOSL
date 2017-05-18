@@ -28,7 +28,8 @@ procedure, it should contain five columns (i.e., \code{NO}, \code{SAR.Cycle}, \c
   \item{natural.rm}{\link{logical}(with default): logical value indicating if the standardised natural-dose signal 
 should be removed from \code{SARdata}}
 
-  \item{norm.dose}{\link{numeric}(optional): regenerative-dose used for re-scaling established gSGC}
+  \item{norm.dose}{\link{numeric}(optional): regenerative-dose used for re-scaling established gSGC. 
+For example, if \code{norm.dose=100}, then the signal value for a dose value of 100 (Gy|s) will be re-scaled to unity}
 
   \item{maxiter}{\link{integer}(with default): allowed maximum number of iterations during the\cr
 LS-normalisation optimization process}

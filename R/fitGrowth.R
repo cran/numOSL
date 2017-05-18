@@ -1,13 +1,19 @@
 #####
-fitGrowth<-
+fitGrowth <-
 function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
-         trial=FALSE, plot=TRUE, agID=NULL) {
+         trial=FALSE, plot=TRUE, agID=NULL, Tn=NULL, Tn3BG=NULL, 
+         TnBG.ratio=NULL, rseTn=NULL, FR=NULL, RecyclingRatio1=NULL, 
+         RecyclingRatio2=NULL, RecyclingRatio3=NULL, Recuperation1=NULL, 
+         Recuperation2=NULL, LnTn.curve=NULL, TxTn=NULL) {
     UseMethod("fitGrowth")
 } #
-### 2017.04.04.
-fitGrowth.default<-
+### 2017.05.18.
+fitGrowth.default <-
 function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
-         trial=FALSE, plot=TRUE, agID=NULL) {
+         trial=FALSE, plot=TRUE, agID=NULL, Tn=NULL, Tn3BG=NULL, 
+         TnBG.ratio=NULL, rseTn=NULL, FR=NULL, RecyclingRatio1=NULL, 
+         RecyclingRatio2=NULL, RecyclingRatio3=NULL, Recuperation1=NULL, 
+         Recuperation2=NULL, LnTn.curve=NULL, TxTn=NULL) {
     ### Stop if not.
     stopifnot(ncol(Curvedata)==3L, nrow(Curvedata)>=1L,
               length(model)==1L, model %in% c("line","exp","lexp","dexp","gok"),
@@ -15,7 +21,19 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
               length(weight)==1L, is.logical(weight),
               length(trial)==1L, is.logical(trial),
               length(plot)==1L, is.logical(plot),
-              is.null(agID) || (length(agID)==3L && is.numeric(agID)))
+              is.null(agID) || (length(agID)==3L && is.numeric(agID)),
+              is.null(Tn) || (length(Tn)==2L && is.numeric(Tn)),
+              is.null(Tn3BG) || (length(Tn3BG)==1L && Tn3BG %in% c(0L,1L)),
+              is.null(TnBG.ratio) || (length(TnBG.ratio)==2L && is.numeric(TnBG.ratio)),
+              is.null(rseTn) || (length(rseTn)==1L && is.numeric(rseTn)),
+              is.null(FR) || (length(FR)==2L && is.numeric(FR)),
+              is.null(RecyclingRatio1) || (length(RecyclingRatio1)==2L && is.numeric(RecyclingRatio1)),
+              is.null(RecyclingRatio2) || (length(RecyclingRatio2)==2L && is.numeric(RecyclingRatio2)),
+              is.null(RecyclingRatio3) || (length(RecyclingRatio3)==2L && is.numeric(RecyclingRatio3)),
+              is.null(Recuperation1) || (length(Recuperation1)==2L && is.numeric(Recuperation1)),
+              is.null(Recuperation2) || (length(Recuperation2)==2L && is.numeric(Recuperation2)),
+              is.null(LnTn.curve) || is.list(LnTn.curve), 
+              is.null(TxTn) || is.numeric(TxTn))
     ###
     dose <- as.numeric(Curvedata[,1L,drop=TRUE])
     if (any(dose<0.0)) stop("Error: dose value in [Curvedata] should not less than zero!")
@@ -234,7 +252,7 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
     ###  
     ###-----------------------------------------------------------------
     if (plot==TRUE) {
-        layout(matrix(c(1L,1L,1L,1L,2L,2L),nrow=2L),respect=TRUE)
+        layout(matrix(c(1L,1L,2L,1L,1L,3L,4L,4L,4L),nrow=3L), respect=TRUE)
         par(mgp=c(2.5,1,0))
         ###      
         lowerX <- min(dose,0)*1.2
@@ -286,7 +304,49 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
         box(lwd=1)
         ###
         ###--------------------------------------------------------------
-        par(mar=c(8,0.5,8,1)+0.1)
+        par(mar=c(4,4,0.5,0.5)+0.1)
+        if (!is.null(LnTn.curve)) {
+            x_max <- max(max(LnTn.curve[["Ln.x"]]), max(LnTn.curve[["Tn.x"]]), na.rm=TRUE)
+            y_max <- max(max(LnTn.curve[["Ln.y"]]), max(LnTn.curve[["Tn.y"]]), na.rm=TRUE)
+            ###
+            plot(x=LnTn.curve[["Ln.x"]], y=LnTn.curve[["Ln.y"]], type="l", lwd=1.5, col="blue",
+                 main=NULL, xlim=c(0, x_max), ylim=c(0, y_max), xlab="Stimulation time (s)", 
+                 ylab="Photon counts", las=0, xaxt="n", cex.lab=1.5, cex.main=1.5, lab=c(7,7,9))
+            ###
+            if (length(LnTn.curve[["Tn.x"]])>1L) {
+                ### Both Tn.x and Tn.y are not equal to NA of length 1.
+                points(x=LnTn.curve[["Tn.x"]], y=LnTn.curve[["Tn.y"]], type="l", lwd=1.5, col="red")
+            } # end if.
+            ###
+            x_axis_location <- axTicks(side=1L)
+            axis(side=1L, at=x_axis_location, labels=as.character(x_axis_location))
+            legend("topright", legend=c("Ln decay curve", "Tn decay curve"), col=c("blue","red"), 
+                   lwd=1.5, yjust=2, ncol=1L, cex=1.0, bty="n") 
+        } else {
+            plot(x=1L, y=1.0, type="n", lwd=1.5,
+                 main=NULL, xlab="Stimulation time (s)", ylab="Photon counts", las=0, 
+                 xaxt="n", yaxt="n", cex.lab=1.5, cex.main=1.5, lab=c(7,7,9))
+            axis(side=1L, at=c(0.7, 1, 1.3), labels=c("x1", "x2", "x3"))
+            axis(side=2L, at=c(0.7, 1, 1.3), labels=c("y1", "y2", "y3"))
+        } # end if.
+        ###--------------------------------------------------------------
+        par(mar=c(4,4,0.5,0.5)+0.1)
+        if (!is.null(TxTn) && all(is.finite(TxTn))) {
+            plot(x=seq(length(TxTn)), y=TxTn, type="p", pch=21, bg="blue", cex=2.0, 
+                 main=NULL, xlab="SAR Cycle", ylab="Tx/Tn", las=0, xaxt="n", 
+                 ylim=c(0, max(TxTn)*1.5), cex.lab=1.5, cex.main=1.5, lab=c(7,7,9))
+            axis(side=1L, at=seq(length(TxTn)), labels=as.character(seq(length(TxTn))))
+            abline(h=1.0, lty="dashed", col="red", lwd=1.5)
+        } else {
+            plot(x=1L, y=1.0, type="n", pch=21, bg="blue", cex=2.0, 
+                 main=NULL, xlab="SAR Cycle", ylab="Tx/Tn", las=0, 
+                 xaxt="n", yaxt="n", cex.lab=1.5, cex.main=1.5, lab=c(7,7,9))
+            axis(side=1L, at=c(0.7, 1, 1.3), labels=c("x1", "x2", "x3"))
+            axis(side=2L, at=c(0.7, 1, 1.3), labels=c("y1", "y2", "y3"))
+            
+        } # end if.
+        ###--------------------------------------------------------------
+        par(mar=c(10,0.5,10,0.5)+0.1)
         par(mgp=c(1,1,0))
         plot(c(0,0), type="n", xaxt="n", yaxt="n", xlab="Summary", ylab="", cex.lab=1.5)
         ###
@@ -312,21 +372,46 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
                    "========================",
                    "Status: OK",
                    "========================",
+                   paste("Tn: ", if(!is.null(Tn)) paste(round(Tn[1L],2L), 
+                         " +/- ", round(Tn[2L],2L), sep="") else "NULL", sep=""),
+                   paste("Tn above 3 sigma BG: ", ifelse(!is.null(Tn3BG), as.logical(Tn3BG), "NULL"), sep=""),
+                   paste("Ratio of Tn to BG: ", if(!is.null(TnBG.ratio)) paste(round(TnBG.ratio[1L],2L), 
+                         " +/- ", round(TnBG.ratio[2L],2L), sep="") else "NULL", sep=""),
+                   paste("RSE of Tn: ", ifelse(!is.null(rseTn), round(rseTn,2L), "NULL"), " (%)",sep=""), 
+                   paste("Fast ratio of Tn: ", if(!is.null(FR)) paste(round(FR[1L],2L), 
+                         " +/- ", round(FR[2L],2L), sep="") else "NULL", sep=""),
+                   "========================",
+                   paste("Recycling ratio 1: ", if(!is.null(RecyclingRatio1)) paste(round(RecyclingRatio1[1L],2L), 
+                         " +/- ", round(RecyclingRatio1[2L],2L), sep="") else "NULL", sep=""),
+                   paste("Recycling ratio 2: ", if(!is.null(RecyclingRatio2)) paste(round(RecyclingRatio2[1L],2L), 
+                         " +/- ", round(RecyclingRatio2[2L],2L), sep="") else "NULL", sep=""), 
+                   paste("Recycling ratio 3: ", if(!is.null(RecyclingRatio3)) paste(round(RecyclingRatio3[1L],2L), 
+                         " +/- ", round(RecyclingRatio3[2L],2L), sep="") else "NULL", sep=""),
+                   "========================",
+                   paste("Recuperation 1: ", if(!is.null(Recuperation1)) paste(round(Recuperation1[1L],2L), 
+                         " +/- ", round(Recuperation1[2L],2L), " (%)", sep="") else "NULL (%)", sep=""),
+                   paste("Recuperation 2: ", if(!is.null(Recuperation2)) paste(round(Recuperation2[1L],2L), 
+                         " +/- ", round(Recuperation2[2L],2L), " (%)", sep="") else "NULL (%)", sep=""), 
+                   "========================",
                    paste("Fit model: ", paste(character_model_vec, collapse="-"), sep=""),
                    paste("Pass origin: ", origin, sep=""),
                    paste("Weighted fit: ", weight, sep=""),
-                   "========================",
-                   paste("a=", signif(pars[1L],2L), " +/- ", signif(se_pars[1L],2L), sep=""),
-                   paste("b=", ifelse(length(pars)>=2L, paste(signif(pars[2L],2L)," +/- ",signif(se_pars[2L],2L),sep=""), "NULL"), sep=""),
-                   paste("c=", ifelse(length(pars)>=3L, paste(signif(pars[3L],2L)," +/- ",signif(se_pars[3L],2L),sep=""), "NULL"), sep=""),
-                   paste("d=", ifelse(length(pars)>=4L, paste(signif(pars[4L],2L)," +/- ",signif(se_pars[4L],2L),sep=""), "NULL"), sep=""),
-                   paste("e=", ifelse(length(pars)>=5L, paste(signif(pars[5L],2L)," +/- ",signif(se_pars[5L],2L),sep=""), "NULL"), sep=""),
-                   "========================",
                    paste("Minimized value: ", round(min_obj,2L),sep=""),
                    paste("Average error in fit: ", round(avg_fit_error,2L),sep=""),
                    paste("Reduced Chi-Square: ", round(RCS,2L), sep=""),
-                   paste("Figure Of Merit: ", round(FOM,2L)," (%)", sep="")),                    
+                   paste("Figure Of Merit: ", round(FOM,2L)," (%)", sep=""),
+                   "========================",
+                   paste("a=", signif(pars[1L],2L), " +/- ", signif(se_pars[1L],2L), sep=""),
+                   paste("b=", ifelse(length(pars)>=2L, paste(signif(pars[2L],2L),
+                         " +/- ",signif(se_pars[2L],2L),sep=""), "NULL"), sep=""),
+                   paste("c=", ifelse(length(pars)>=3L, paste(signif(pars[3L],2L),
+                         " +/- ",signif(se_pars[3L],2L),sep=""), "NULL"), sep=""),
+                   paste("d=", ifelse(length(pars)>=4L, paste(signif(pars[4L],2L),
+                         " +/- ",signif(se_pars[4L],2L),sep=""), "NULL"), sep=""),
+                   paste("e=", ifelse(length(pars)>=5L, paste(signif(pars[5L],2L),
+                         " +/- ",signif(se_pars[5L],2L),sep=""), "NULL"), sep="")),                  
                    yjust=2, ncol=1L, cex=1.0, bty="n")
+            ###
         } else if (message==1L) {
             ### message=1L: Growth curve fitting failed.
             legend("center", 
@@ -334,10 +419,42 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
                    "========================",
                    "Status: model fit failed",
                    "========================",
+                   paste("Tn: ", if(!is.null(Tn)) paste(round(Tn[1L],2L), 
+                         " +/- ", round(Tn[2L],2L), sep="") else "NULL", sep=""),
+                   paste("Tn above 3 sigma BG: ", ifelse(!is.null(Tn3BG), as.logical(Tn3BG), "NULL"), sep=""),
+                   paste("Ratio of Tn to BG: ", if(!is.null(TnBG.ratio)) paste(round(TnBG.ratio[1L],2L), 
+                         " +/- ", round(TnBG.ratio[2L],2L), sep="") else "NULL", sep=""),
+                   paste("RSE of Tn: ", ifelse(!is.null(rseTn), round(rseTn,2L), "NULL"), " (%)",sep=""), 
+                   paste("Fast ratio of Tn: ", if(!is.null(FR)) paste(round(FR[1L],2L), 
+                         " +/- ", round(FR[2L],2L), sep="") else "NULL", sep=""),
+                   "========================",
+                   paste("Recycling ratio 1: ", if(!is.null(RecyclingRatio1)) paste(round(RecyclingRatio1[1L],2L), 
+                         " +/- ", round(RecyclingRatio1[2L],2L), sep="") else "NULL", sep=""),
+                   paste("Recycling ratio 2: ", if(!is.null(RecyclingRatio2)) paste(round(RecyclingRatio2[1L],2L), 
+                         " +/- ", round(RecyclingRatio2[2L],2L), sep="") else "NULL", sep=""), 
+                   paste("Recycling ratio 3: ", if(!is.null(RecyclingRatio3)) paste(round(RecyclingRatio3[1L],2L), 
+                         " +/- ", round(RecyclingRatio3[2L],2L), sep="") else "NULL", sep=""),
+                   "========================",
+                   paste("Recuperation 1: ", if(!is.null(Recuperation1)) paste(round(Recuperation1[1L],2L), 
+                         " +/- ", round(Recuperation1[2L],2L), " (%)", sep="") else "NULL (%)", sep=""),
+                   paste("Recuperation 2: ", if(!is.null(Recuperation2)) paste(round(Recuperation2[1L],2L), 
+                         " +/- ", round(Recuperation2[2L],2L), " (%)", sep="") else "NULL (%)", sep=""), 
+                   "========================",
                    paste("Fit model: ", paste(character_model_vec, collapse="-"), sep=""),
                    paste("Pass origin: ", origin, sep=""),
-                   paste("Weighted fit: ", weight, sep="")),                  
+                   paste("Weighted fit: ", weight, sep=""),
+                   "Minimized value: NULL",
+                   "Average error in fit: NULL",
+                   "Reduced Chi-Square: NULL",
+                   "Figure Of Merit: NULL (%)",
+                   "========================",
+                   "a=NULL",
+                   "b=NULL",
+                   "c=NULL",
+                   "d=NULL",
+                   "e=NULL"),           
                    yjust=2, ncol=1L, cex=1.0, bty="n")
+            ###
         } # end if.
         ###
         on.exit(par(mar=c(5,4,4,2)+0.1,

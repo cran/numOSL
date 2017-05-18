@@ -23,7 +23,7 @@ calSARED(obj_analyseBIN, model = "gok", origin = FALSE,
 
 \arguments{
   \item{obj_analyseBIN}{\link{list}(\bold{required}): an object of S3 class "analyseBIN" produced by\cr 
-function \link{analyseBINdata}}
+function \link{analyseBINdata} or \link{as_analyseBIN}}
 
   \item{model}{\link{character}(with default): model used for growth curve fitting, see \link{fitGrowth} for available models}
 
@@ -37,7 +37,7 @@ function \link{analyseBINdata}}
 
    \item{trial}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using other models if the given model fails, see function \link{fitGrowth} for details}
 
-   \item{Tn.above.3BG}{\link{logical}(with default): logical value indicating if aliquot (grain) with Tn below 3 sigma BG should be rejected}
+  \item{Tn.above.3BG}{\link{logical}(with default): logical value indicating if aliquot (grain) with Tn below 3 sigma BG should be rejected}
 
   \item{TnBG.ratio.low}{\link{numeric}(optional): lower limit on ratio of initial Tn signal to BG}
 
@@ -78,19 +78,28 @@ to a CSV file named \code{"outfile"} and saved to the current work directory}
 
 \value{
 Return an invisible \link{list} that contains the following elements:
-  \item{LMpars}{a \link{list} containing optimized parameters for successfully fitted growth curves}
+  \item{LMpars}{a \link{list} containing optimized parameters of growth curves of calculated (selected) SAR equivalent doses}
+  \item{Tn}{values and standard errors of Tn of calculated (selected) SAR equivalent doses}
+  \item{Ltx}{sensitivity-corrected natural-dose signals and associated standard errors used for SAR equivalent dose calculation} 
   \item{sarED}{calculated (selected) SAR equivalent doses and associated standard errors}
   \item{ConfInt}{68 percent (one sigma) and 95 percent (two sigma) confidence intervals of SAR equivalent doses}
-  \item{Tn}{values and standard errors of Tn of calculated (selected) SAR equivalent doses}
   \item{agID}{aliquot (grain) ID of calculated (selected) SAR equivalent doses}
 }
 
 \references{
-Duller GAT, 2016. Analyst (v4.31.9), User Mannual (\url{http://www.nutech.dtu.dk/english/Products-and-Services/Dosimetry/Radiation-Measurement-Instruments/TL_OSL_reader/Manuals}).
+Duller GAT, 2016. Analyst (v4.31.9), User Mannual.
 
 Murray AS, Wintle AG, 2000. Luminescence dating of quartz using improved single-aliquot regenerative-dose protocol. Radiation Measurements, 32(1): 57-73.
 
 Wintle AG, Murray AS, 2006. A review of quartz optically stimulated luminescence characteristics and their relevance in single-aliquot regeneration dating protocols. Radiation Measurements, 41(4): 369-391.
+}
+
+\note{
+Rejection criteria used to select reliable SAR equivalent dose estimates can be catergorized into three groups:\cr
+\bold{(1)} signal-related criteria, such as \code{Tn.above.3BG}, \code{TnBG.ratio.low}, \code{rseTn.up}, and \code{FR.low};\cr
+\bold{(2)} growth-curve-related criteria, such as \code{rcy1.range}, \code{rcy2.range}, \code{rcy3.range}, \code{rcp1.up},\cr 
+\code{rcp2.up}, \code{fom.up}, and \code{rcs.up};\cr
+\bold{(3)} equivalent-dose-related criteria, such as \code{calED.method} and \code{rseED.up}.
 }
 
 \seealso{
@@ -104,7 +113,7 @@ Wintle AG, Murray AS, 2006. A review of quartz optically stimulated luminescence
                              LType="OSL", view=FALSE)
   obj_analyseBIN <- analyseBINdata(obj_pickBIN, nfchn=3, nlchn=20) 
   res_SARED <- calSARED(obj_analyseBIN, model="exp", origin=FALSE)
-  # plot(res_SARED$sarED[,1], res_SARED$Tn[,1], xlab="ED (Gy|s)", ylab="Tn")
+  # plot(res_SARED$Tn[,1], res_SARED$sarED[,1], xlab="Tn", ylab="ED (Gy|s)")
 }
 
 \keyword{growth curve}

@@ -6,7 +6,7 @@
 BIN data set selection
 }
 \description{
-Extracting data sets from a loaded BIN file. 
+Extracting data sets from a loaded BIN (BINX) file. 
 }
 \usage{
 pickBINdata(obj_loadBIN, Position = NULL, Grain = NULL, Run = NULL, 
@@ -85,7 +85,7 @@ Return an invisible \link{list} of S3 class object \code{"pickBIN"} containing t
 }
 
 \references{
-Duller GAT, 2016. Analyst (v4.31.9), User Mannual (\url{http://www.nutech.dtu.dk/english/Products-and-Services/Dosimetry/Radiation-Measurement-Instruments/TL_OSL_reader/Manuals}).
+Duller GAT, 2016. Analyst (v4.31.9), User Mannual.
 }
 
 \seealso{

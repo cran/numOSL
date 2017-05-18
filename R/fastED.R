@@ -6,7 +6,7 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
          trial=TRUE, outpdf=NULL, log="x", lwd=2, test.dose=NULL, agID=NULL) {
     UseMethod("fastED")
 } ###
-### 2017.03.31.
+### 2017.05.15.
 fastED.default <-
 function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
          control.args=list(), typ="cw", model="gok", origin=FALSE, 
@@ -61,6 +61,9 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
     } else {
         if_plot <- FALSE
     } # end if.
+    ###
+    LnTn.curve <- list()
+    ###
     ###-------------------------------------------------------------------------------
     res <- try(decomp(Sigdata[,c(1L,2L),drop=FALSE], delay.off=delay.off, ncomp=ncomp, 
                       constant=constant, typ=typ, control.args=args, weight=weight.decomp, 
@@ -75,6 +78,8 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
         if (class(res)=="try-error")  print(attr(res,"condition"))
         stop("Error: fail in natural (1st) decay curve fitting!")
     } # end if.
+    LnTn.curve[["Ln.x"]] <- res$comp.sig[,"Time",drop=TRUE]
+    LnTn.curve[["Ln.y"]] <- res$comp.sig[,"Comp.1",drop=TRUE]
     ###--------------------------------------------------------------------------------
     res <- try(decomp(Sigdata[,c(1L,3L),drop=FALSE], delay.off=delay.off, ncomp=ncomp, 
                       constant=constant, typ=typ, control.args=args, weight=weight.decomp, 
@@ -89,6 +94,8 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
         if (class(res)=="try-error")  print(attr(res,"condition"))
         stop("Error: fail in natural test dose (2st) decay curve fitting!")
     } # end if.
+    LnTn.curve[["Tn.x"]] <- res$comp.sig[,"Time",drop=TRUE]
+    LnTn.curve[["Tn.y"]] <- res$comp.sig[,"Comp.1",drop=TRUE]
     ###--------------------------------------------------------------------------------
     ###
     for (i in 4L:ncol(Sigdata)) {
@@ -140,12 +147,15 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
     ###
     res <- try(calED(Curvedata=Curvedata, Ltx=Nature_LxTx, model=model, origin=origin, 
                      errMethod=errMethod, nsim=nsim, weight=weight.fitGrowth, trial=trial, 
-                     plot=if_plot, TxTn=TxTn_vec, agID=agID, Tn3BG=NULL, TnBG.ratio=NULL,   
-                     rseTn=NULL, FR=NULL, Tn=NULL), silent=TRUE)
+                     plot=if_plot, agID=agID, Tn=NULL, Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL,     
+                     FR=NULL, LnTn.curve=LnTn.curve, TxTn=TxTn_vec), silent=TRUE)
     ###
     if (!is.null(outpdf)) dev.off() 
     ### 
-    if (class(res)=="try-error")  stop("Error: data points is not enough for growth curve fitting")
+    if (class(res)=="try-error") {
+        print(attr(res, "condition"))
+        stop("Error: fast-component equivalent dose calculation fails!")
+    } # end if.
     ###
     output <- list("decomp.pars"=decomp_pars,
                    "Curvedata"=Curvedata, 

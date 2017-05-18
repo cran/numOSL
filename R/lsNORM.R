@@ -1,11 +1,11 @@
 #####
-lsNORM<- 
+lsNORM <- 
 function(SARdata, model="gok", origin=FALSE, weight=TRUE, 
          natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
     UseMethod("lsNORM")
 } ###	
-### 2017.04.04.
-lsNORM.default<- 
+### 2017.05.16.
+lsNORM.default <- 
 function(SARdata, model="gok", origin=FALSE, weight=TRUE, 
          natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
     ### Stop if not.
@@ -85,16 +85,18 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
     ax <- 1.0e-05
     bx <- 1.0e+05
     ###
-    ###
+    ###----------------------------------------------------------------
     cat("LS-normalisation is in progress, please wait, ...\n")
+    ###
     repeat {  
         old_rsd <- sd(vary_Curvedata[,"Signal",drop=TRUE])/
                  mean(vary_Curvedata[,"Signal",drop=TRUE])
         ###
-        res1 <- try(fitGrowth(Curvedata=vary_Curvedata, 
-                              model=model, origin=origin, weight=weight, 
-                              trial=FALSE, plot=FALSE, agID=NULL),
-                              silent=TRUE)
+        res1 <- try(fitGrowth(Curvedata=vary_Curvedata, model=model, origin=origin, weight=weight, 
+                              trial=FALSE, plot=FALSE, agID=NULL, Tn=NULL, Tn3BG=NULL, 
+                              TnBG.ratio=NULL, rseTn=NULL, FR=NULL, RecyclingRatio1=NULL, 
+                              RecyclingRatio2=NULL, RecyclingRatio3=NULL, Recuperation1=NULL, 
+                              Recuperation2=NULL, LnTn.curve=NULL, TxTn=NULL), silent=TRUE)
         ###
         if (class(res1)=="try-error" || res1$message==1L) {
             if (class(res1)=="try-error") print(attr(res1,"condition"))
@@ -102,26 +104,6 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
         } # end if.
         ###
         pars <- res1$LMpars[,1L,drop=TRUE]
-        ###
-        if (!is.null(norm.dose)) {
-            cst <- ifelse(origin==TRUE, 0, pars[length(pars)])
-            if (model=="line") {
-                norm.signal <- pars[1L]*norm.dose+cst
-            } else if(model=="exp") {
-                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+cst
-            } else if(model=="lexp")  {
-                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
-                               pars[3L]*norm.dose+cst
-            } else if(model=="dexp") {
-                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
-                               pars[3L]*(1.0-exp(-pars[4L]*norm.dose))+cst
-            } else if(model=="gok") {
-                norm.signal <- pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*norm.dose)^(-1.0/pars[3L]))+cst
-            } # end if.
-        } else {
-            norm.signal <- 1.0
-        } # end if.
-        ###
         ###
         for (i in seq(n)) {
             iIndex <- which(vary_SARdata[,"NO",drop=TRUE]==NO[i] &
@@ -137,7 +119,7 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
             ###
             iIndex <- which(vary_SARdata[,"NO",drop=TRUE]==NO[i])
             vary_SARdata[iIndex, c("Signal","Signal.Err")] <- 
-            vary_SARdata[iIndex, c("Signal","Signal.Err")]*res2$SF/norm.signal
+            vary_SARdata[iIndex, c("Signal","Signal.Err")]*res2$SF
         } # end for. 
         ###
         ###
@@ -162,47 +144,121 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
         if (iter==maxiter) break 
         if (abs(new_rsd-old_rsd)<=tol) break
     } # end repeat.
+    ###----------------------------------------------------------------
     ###
+    LMpars2 <- res1$LMpars
+    value2 <- res1$value
+    avg.error2 <- res1$avg.error
+    RCS2 <- res1$RCS
+    FOM2 <- res1$FOM
+    ###
+    if (!is.null(norm.dose)) {
+        ###
+        pars <- res1$LMpars[,1L,drop=TRUE]
+        se_pars <- res1$LMpars[,2L,drop=TRUE]
+        ###
+        if (model=="line") {
+            ###
+            if (origin==TRUE) {
+                norm.signal <- pars[1L]*norm.dose
+                pars[1L] <- pars[1L]/norm.signal
+                se_pars[1L] <- se_pars[1L]/norm.signal
+            } else {
+                norm.signal <- pars[1L]*norm.dose+pars[2L]
+                pars[c(1L,2L)] <- pars[c(1L,2L)]/norm.signal
+                se_pars[c(1L,2L)] <- se_pars[c(1L,2L)]/norm.signal
+            } # end if.
+            ###
+        } else if (model=="exp") {
+            ###
+            if (origin==TRUE) {
+                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))
+                pars[1L] <- pars[1L]/norm.signal
+                se_pars[1L] <- se_pars[1L]/norm.signal
+            } else {
+                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+pars[3L]
+                pars[c(1L,3L)] <- pars[c(1L,3L)]/norm.signal
+                se_pars[c(1L,3L)] <- se_pars[c(1L,3L)]/norm.signal
+            } # end if.
+            ###
+        } else if (model=="lexp")  {
+            ###
+            if (origin==TRUE) {
+                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
+                               pars[3L]*norm.dose
+                pars[c(1L,3L)] <- pars[c(1L,3L)]/norm.signal
+                se_pars[c(1L,3L)] <- se_pars[c(1L,3L)]/norm.signal
+            } else {
+                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
+                               pars[3L]*norm.dose+pars[4L]
+                pars[c(1L,3L,4L)] <- pars[c(1L,3L,4L)]/norm.signal
+                se_pars[c(1L,3L,4L)] <- se_pars[c(1L,3L,4L)]/norm.signal
+            } # end if.
+            ###
+        } else if(model=="dexp") {
+            ###
+            if (origin==TRUE) {
+                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
+                               pars[3L]*(1.0-exp(-pars[4L]*norm.dose))
+                pars[c(1L,3L)] <- pars[c(1L,3L)]/norm.signal
+                se_pars[c(1L,3L)] <- se_pars[c(1L,3L)]/norm.signal
+            } else {
+                norm.signal <- pars[1L]*(1.0-exp(-pars[2L]*norm.dose))+
+                               pars[3L]*(1.0-exp(-pars[4L]*norm.dose))+pars[5L]
+                pars[c(1L,3L,5L)] <- pars[c(1L,3L,5L)]/norm.signal
+                se_pars[c(1L,3L,5L)] <- se_pars[c(1L,3L,5L)]/norm.signal
+            } # end if.
+            ###
+        } else if(model=="gok") {
+            ###
+            if (origin==TRUE) {
+                norm.signal <- pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*norm.dose)^(-1.0/pars[3L]))
+                pars[1L] <- pars[1L]/norm.signal
+                se_pars[1L] <- se_pars[1L]/norm.signal
+            } else {
+                norm.signal <- pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*norm.dose)^(-1.0/pars[3L]))+pars[4L]
+                pars[c(1L,4L)] <- pars[c(1L,4L)]/norm.signal
+                se_pars[c(1L,4L)] <- se_pars[c(1L,4L)]/norm.signal
+            } # end if.
+            ###
+        } # end if.
+        ###
+        vary_SARdata[, c("Signal","Signal.Err")] <- 
+        vary_SARdata[, c("Signal","Signal.Err")]/norm.signal
+        ###
+        vary_Curvedata <- vary_SARdata[vary_SARdata[,"SAR.Cycle",drop=TRUE]!="N",
+                                       c("Dose","Signal","Signal.Err"),drop=FALSE]
+        ###
+        LMpars2 <- cbind(pars, se_pars)
+        colnames(LMpars2) <- c("Pars", "sePars")
+        ###
+        avg.error2 <- res1$avg.error/norm.signal
+        attr(avg.error2, "names") <- NULL
+    } # end if.
     ###
     new_SARdata <- vary_SARdata
     new_Curvedata <- vary_Curvedata
     ###
-    SFs <- vector(length=n)
+    ###
+    sf_vec <- vector(length=n)
     for (i in seq(n)) {
         iIndex <- which(new_SARdata[,"NO",drop=TRUE]==NO[i]) 
-        SFs[i] <- new_SARdata[iIndex,"Signal"][1L]/
-               origin_SARdata[iIndex,"Signal"][1L]
+        sf_vec[i] <- new_SARdata[iIndex,"Signal"][1L]/
+                     origin_SARdata[iIndex,"Signal"][1L]
     } # end if.
-    ###
-    ### Fit the scaled growth curve.
-    res3 <- try(fitGrowth(Curvedata=new_Curvedata, 
-                          model=model, origin=origin, weight=weight, 
-                          trial=FALSE, plot=FALSE, agID=NULL),
-                          silent=TRUE)
-    ###
-    if (class(res3)=="try-error" || res3$message==1L) {
-        if (class(res3)=="try-error") print(attr(res3,"condition"))
-        stop("Error: growth curve fitting failed!")
-    } # end if.
-    ###
-    LMpars2 <- res3$LMpars
-    value2 <- res3$value
-    avg.error2 <- res3$avg.error
-    RCS2 <- res3$RCS
-    FOM2 <- res3$FOM
+    ###   
     ###
     output <- list("norm.SARdata"=new_SARdata,
-                   "sf"=SFs, "iter"=iter,
+                   "sf"=sf_vec, "iter"=iter,
                    "LMpars1"=LMpars1, "value1"=value1,
                    "avg.error1"=avg.error1, "RCS1"=RCS1, "FOM1"=FOM1,
                    "LMpars2"=LMpars2, "value2"=value2,
                    "avg.error2"=avg.error2, "RCS2"=RCS2, "FOM2"=FOM2)
     ###
+    ###
     if (plot==TRUE) {
-        layout(matrix(c(1L,1L,1L,2L,2L,2L,
-                        1L,1L,1L,2L,2L,2L,
-                        3L,3L,3L,4L,4L,4L),nrow=6L), 
-                        respect=FALSE)
+        layout(matrix(c(1L,1L,1L,2L,2L,2L,1L,1L,1L,2L,2L,2L,
+               3L,3L,3L,4L,4L,4L),nrow=6L), respect=FALSE)
         par(mgp=c(2.5,1,0)) 
         ### 
         ### The first plot.
@@ -212,7 +268,7 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
         ylim <- c(min(origin_Curvedata[,"Signal",drop=TRUE],0)*1.1, 
                   max(origin_Curvedata[,"Signal",drop=TRUE])*1.1)
         ###
-        plot(origin_Curvedata[,c("Dose","Signal")], type="p", pch=21, bg="black", cex=1.3,
+        plot(origin_Curvedata[,c("Dose","Signal")], type="p", pch=23, bg="red", cex=1.5,
              ylim=ylim, xlab="Regenerative dose (Gy|s)", ylab="Standardised OSL", 
              las=0, xaxs="r", yaxs="i", cex.lab=1.5, cex.axis=1.5) 
         legend("topleft", legend="A", yjust=2, ncol=1, cex=1.5, bty="o")
@@ -223,9 +279,10 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
         ###
         arrowIndex <- which(sdoseltx/doseltx>0.001)
         if (length(arrowIndex)>=1L) {
-            suppressWarnings(arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
+            suppressWarnings(arrows(x0=dose[arrowIndex], 
+                y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
                 x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
-                code=3, lwd=1, angle=90, length=0.05, col="black"))
+                code=3, lwd=1, angle=90, length=0.05, col="gray30"))
         } # end if.
         ###
         x <- NULL
@@ -248,12 +305,13 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
             curve(pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*x)^(-1.0/pars[3L]))+cst, 
                   type="l", add=TRUE, lwd=2, col="skyblue")
         } # end if.
+        ###
         ###------------------------------------------------------------------------------
         ### The second plot.
         par(mar=c(4,4,0.5,0.5)+0.1)
         ylim <- c(min(new_Curvedata[,"Signal",drop=TRUE],0)*1.1, 
                   max(new_Curvedata[,"Signal",drop=TRUE])*1.1)
-        plot(new_Curvedata[,c("Dose","Signal")], type="p", pch=21, bg="black", cex=1.3,
+        plot(new_Curvedata[,c("Dose","Signal")], type="p", pch=23, bg="blue", cex=1.5,
              ylim=ylim, xlab="Regenerative dose (Gy|s)", ylab="Normalised standardised OSL", 
              las=0, xaxs="r", yaxs="i", cex.lab=1.5, cex.axis=1.5) 
         legend("topleft", legend="B", yjust=2, ncol=1, cex=1.5, bty="o")
@@ -264,9 +322,10 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
         ###
         arrowIndex <- which(sdoseltx/doseltx>0.001)
         if (length(arrowIndex)>=1L) {
-            suppressWarnings(arrows(x0=dose[arrowIndex], y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
+            suppressWarnings(arrows(x0=dose[arrowIndex], 
+                y0=doseltx[arrowIndex]-sdoseltx[arrowIndex]/2.0, 
                 x1=dose[arrowIndex], y1=doseltx[arrowIndex]+sdoseltx[arrowIndex]/2.0,
-                code=3, lwd=1, angle=90, length=0.05, col="black"))
+                code=3, lwd=1, angle=90, length=0.05, col="gray30"))
         } # end if.
         ###
         x <- NULL
@@ -289,6 +348,7 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
             curve(pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*x)^(-1.0/pars[3L]))+cst, 
                   type="l", add=TRUE, lwd=2, col="skyblue")
         } # end if.
+        ###
         ###--------------------------------------------------------------------------
         ### The thrid plot.
         par(mar=c(4,0.5,2,0.5)+0.1)
@@ -304,17 +364,20 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
                paste("Fit model: ", model, sep=""),
                paste("Pass origin: ", origin, sep=""),
                paste("Weighted fit: ", weight, sep=""),
-               "======================",
-               paste("a=", signif(pars[1L],2L), " +/- ", signif(se_pars[1L],2L), sep=""),
-               paste("b=", ifelse(length(pars)>=2L, paste(signif(pars[2L],2L)," +/- ",signif(se_pars[2L],2L),sep=""), "NULL"), sep=""),
-               paste("c=", ifelse(length(pars)>=3L, paste(signif(pars[3L],2L)," +/- ",signif(se_pars[3L],2L),sep=""), "NULL"), sep=""),
-               paste("d=", ifelse(length(pars)>=4L, paste(signif(pars[4L],2L)," +/- ",signif(se_pars[4L],2L),sep=""), "NULL"), sep=""),
-               paste("e=", ifelse(length(pars)>=5L, paste(signif(pars[5L],2L)," +/- ",signif(se_pars[5L],2L),sep=""), "NULL"), sep=""),
-               "======================",
                paste("Minimized value: ", round(value1,2L), sep=""),
                paste("Average error in fit: ", round(avg.error1,2L), sep=""),
                paste("Reduced Chi-Square: ", round(RCS1,2L), sep=""),
-               paste("Figure Of Merit: ", round(FOM1,2L)," (%)", sep="")),  
+               paste("Figure Of Merit: ", round(FOM1,2L)," (%)", sep=""),
+               "======================",
+               paste("a=", signif(pars[1L],2L), " +/- ", signif(se_pars[1L],2L), sep=""),
+               paste("b=", ifelse(length(pars)>=2L, paste(signif(pars[2L],2L),
+                     " +/- ",signif(se_pars[2L],2L),sep=""), "NULL"), sep=""),
+               paste("c=", ifelse(length(pars)>=3L, paste(signif(pars[3L],2L),
+                     " +/- ",signif(se_pars[3L],2L),sep=""), "NULL"), sep=""),
+               paste("d=", ifelse(length(pars)>=4L, paste(signif(pars[4L],2L),
+                     " +/- ",signif(se_pars[4L],2L),sep=""), "NULL"), sep=""),
+               paste("e=", ifelse(length(pars)>=5L, paste(signif(pars[5L],2L),
+                     " +/- ",signif(se_pars[5L],2L),sep=""), "NULL"), sep="")),  
                yjust=2, ncol=1, cex=1.2, bty="n")
         box(lwd=1L)
         ###
@@ -332,17 +395,20 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
                paste("Fit model: ", model, sep=""),
                paste("Pass origin: ", origin, sep=""),
                paste("Weighted fit: ", weight, sep=""),
-               "======================",
-               paste("a=", signif(pars[1L],2L), " +/- ", signif(se_pars[1L],2L), sep=""),
-               paste("b=", ifelse(length(pars)>=2L, paste(signif(pars[2L],2L)," +/- ",signif(se_pars[2L],2L),sep=""), "NULL"), sep=""),
-               paste("c=", ifelse(length(pars)>=3L, paste(signif(pars[3L],2L)," +/- ",signif(se_pars[3L],2L),sep=""), "NULL"), sep=""),
-               paste("d=", ifelse(length(pars)>=4L, paste(signif(pars[4L],2L)," +/- ",signif(se_pars[4L],2L),sep=""), "NULL"), sep=""),
-               paste("e=", ifelse(length(pars)>=5L, paste(signif(pars[5L],2L)," +/- ",signif(se_pars[5L],2L),sep=""), "NULL"), sep=""),
-               "======================",
                paste("Minimized value: ", round(value2,2L), sep=""),
                paste("Average error in fit: ", round(avg.error2,2L), sep=""),
                paste("Reduced Chi-Square: ", round(RCS2,2L), sep=""),
-               paste("Figure Of Merit: ", round(FOM2,2L)," (%)", sep="")),  
+               paste("Figure Of Merit: ", round(FOM2,2L)," (%)", sep=""),
+               "======================",
+               paste("a=", signif(pars[1L],2L), " +/- ", signif(se_pars[1L],2L), sep=""),
+               paste("b=", ifelse(length(pars)>=2L, paste(signif(pars[2L],2L),
+                     " +/- ",signif(se_pars[2L],2L),sep=""), "NULL"), sep=""),
+               paste("c=", ifelse(length(pars)>=3L, paste(signif(pars[3L],2L),
+                     " +/- ",signif(se_pars[3L],2L),sep=""), "NULL"), sep=""),
+               paste("d=", ifelse(length(pars)>=4L, paste(signif(pars[4L],2L),
+                     " +/- ",signif(se_pars[4L],2L),sep=""), "NULL"), sep=""),
+               paste("e=", ifelse(length(pars)>=5L, paste(signif(pars[5L],2L),
+                     " +/- ",signif(se_pars[5L],2L),sep=""), "NULL"), sep="")),
                yjust=2, ncol=1, cex=1.2, bty="n")
         box(lwd=1L)
         ###

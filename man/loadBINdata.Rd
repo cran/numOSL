@@ -73,7 +73,7 @@ Return an invisible \link{list} of S3 class object \code{"loadBIN"} containing t
 }
 
 \references{
-Duller GAT, 2016. Analyst (v4.31.9), User Mannual (\url{http://www.nutech.dtu.dk/english/Products-and-Services/Dosimetry/Radiation-Measurement-Instruments/TL_OSL_reader/Manuals}).
+Duller GAT, 2016. Analyst (v4.31.9), User Mannual.
 }
 
 \note{
