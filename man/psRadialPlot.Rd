@@ -8,9 +8,10 @@ Pseudo radial plot drawing
 Drawing a pseudo (simplified) radial plot.
 }
 \usage{
-psRadialPlot(EDdata, addsigma = 0, dose = NULL, zmin = NULL, 
-             zmax = NULL, ntick = 6, digits = 2, pcolor = "blue", 
-             psize = 1, rg = 2, zlabel = "De (Gy)")
+psRadialPlot(EDdata, addsigma = 0, dose = NULL, 
+             zmin = NULL, zmax = NULL, ntick = 6, 
+             digits = 2, pcolor = "blue", psize = 1, 
+             rg = 2, zlabel = "De (Gy)")
 }
 
 \arguments{

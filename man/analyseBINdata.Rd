@@ -81,7 +81,7 @@ Return an invisible \link{list} of S3 class object "analyseBIN" containing the f
 
   \item{criteria}{values used as rejection criteria (0-1 values indicating if Tn is more than 3 sigma above BG or not, 
 ratio of initial Tn signal to BG and associated standard error, relative standard error of Tn in percent, fast ratio of Tn and associated standard error), 
-\code{NA} is produced if the value can not be calculated. Note that rejection criteria are calculated but not applied}
+\code{NA} is produced if the value can not be calculated. Note that in this function rejection criteria are calculated but not applied}
 
   \item{Tn}{values of Tn and associated standard errors}
 

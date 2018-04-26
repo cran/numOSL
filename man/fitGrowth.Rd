@@ -10,11 +10,12 @@ Fitting growth curves using the Levenberg-Marquardt algorithm.
 \usage{
 fitGrowth(Curvedata, model = "gok", origin = FALSE, 
           weight = TRUE, trial = FALSE, plot = TRUE, 
-          agID = NULL, Tn = NULL, Tn3BG = NULL, 
-          TnBG.ratio = NULL, rseTn = NULL, FR = NULL, 
-          RecyclingRatio1 = NULL, RecyclingRatio2 = NULL, 
-          RecyclingRatio3 = NULL, Recuperation1 = NULL, 
-          Recuperation2 = NULL, LnTn.curve = NULL, TxTn = NULL)
+          nofit.rgd = NULL, agID = NULL, Tn = NULL, 
+          Tn3BG = NULL, TnBG.ratio = NULL, rseTn = NULL, 
+          FR = NULL, RecyclingRatio1 = NULL, 
+          RecyclingRatio2 = NULL, RecyclingRatio3 = NULL, 
+          Recuperation1 = NULL, Recuperation2 = NULL, 
+          LnTn.curve = NULL, TxTn = NULL)
 }
 
 \arguments{
@@ -30,6 +31,9 @@ sensitivity-corrected regenerative-dose signals, and associated standard errors)
   \item{trial}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using other models if the given model fails, see details}
 
   \item{plot}{\link{logical}(with default): logical value indicating if the results should be plotted}
+
+   \item{nofit.rgd}{\link{integer}(optional): regenerative doses that will not be used during the fitting. 
+For example, if \code{nofit.rgd=c(5,6)} then both the fifth and sixth regenerative doses will not be used during growth curve fitting}
 
   \item{agID}{\link{vector}(optional): a three-elemenet vector indicating aliquot (grain) ID, i.e.,\cr
 \code{agID[1]=NO}, \code{agID[2]=Position}, \code{agID[3]=Grain}}
@@ -105,7 +109,8 @@ then a 4-parameter \code{"gok"} model will be fitted instead.
 
 \value{
 Return a \link{list} that contains the following elements:
-  \item{message}{return 0 if fit succeeds, else 1}
+  \item{message}{return 0 if the fit succeeds, else 1}
+  \item{fitIDX}{Indices of dose points used in growth curve fitting}
   \item{LMpars}{optimized parameters for the growth curve}
   \item{value}{minimized objective for the growth curve}
   \item{avg.error}{average fit error for the growth curve}
@@ -127,7 +132,7 @@ Springer-Verlag: Berlin. 105-116.
 \note{
 Arguments \code{agID}, \code{Tn},  \code{Tn3BG}, \code{TnBG.ratio}, \code{rseTn}, \code{FR},\cr 
 \code{RecyclingRatio1}, \code{RecyclingRatio2}, \code{RecyclingRatio3},\cr 
-\code{Recuperation1}, \code{Recuperation2}, \code{LnTn.curve}, \code{TxTn} have nothing to do with growth curve fitting.\cr\cr
+\code{Recuperation1}, \code{Recuperation2}, \code{LnTn.curve}, \code{TxTn} have nothing to do with growth curve fitting. They are used only for plotting purpose.\cr\cr
 The model to be optimized should not be underdetermined. This means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, the procedure will return an error if any standard errors of parameters cannot be estimated by numerical difference-approximation.\cr\cr
 }
 

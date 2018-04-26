@@ -1,9 +1,16 @@
 Package: numOSL
 Type: Package
 Title: Numeric Routines for Optically Stimulated Luminescence Dating
-Version: 2.3
-Date: 2017-05-18
-Author: Jun Peng [aut, cre], Bo Li [aut], Jorge More [ctb], Burton Garbow [ctb], Kenneth Hillstrom [ctb], John Burkardt [ctb], Paul Gilbert [ctb], Ravi Varadhan [ctb]
+Version: 2.4
+Date: 2018-04-26
+Author: Jun Peng [aut, cre],
+  Bo Li [aut],
+  Jorge More [ctb],
+  Burton Garbow [ctb],
+  Kenneth Hillstrom [ctb],
+  John Burkardt [ctb],
+  Paul Gilbert [ctb],
+  Ravi Varadhan [ctb]
 Maintainer: Jun Peng <pengjun10@mails.ucas.ac.cn>
 Authors@R: c(person("Jun", "Peng", role = c("aut","cre"), email="pengjun10@mails.ucas.ac.cn"),
   person("Bo", "Li", role = "aut"),
@@ -20,7 +27,7 @@ License: GPL-3
 Depends: R (>= 2.15.3)
 Imports: graphics, stats, utils, grDevices
 URL: https://CRAN.R-project.org/package=numOSL
-Packaged: 2017-05-18 10:15:39 UTC; pengjun
+Packaged: 2018-04-26 01:00:57 UTC; pengjun
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2017-05-18 10:26:01 UTC
+Date/Publication: 2018-04-26 03:23:19 UTC

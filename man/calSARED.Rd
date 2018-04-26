@@ -12,13 +12,13 @@ Calculating and selecting a series of equivalent doses in a batch mode according
 
 \usage{
 calSARED(obj_analyseBIN, model = "gok", origin = FALSE, 
-         errMethod = "sp", nsim = 500, weight = TRUE,  
-         trial = TRUE, Tn.above.3BG = TRUE, TnBG.ratio.low = NULL, 
-         rseTn.up = NULL, FR.low = NULL, rcy1.range = NULL, 
-         rcy2.range = NULL, rcy3.range = NULL, rcp1.up = NULL, 
-         rcp2.up = NULL, fom.up = NULL, rcs.up = NULL,
-         calED.method = NULL, rseED.up = NULL, use.se = TRUE, 
-         outpdf = NULL, outfile = NULL) 
+         errMethod = "sp", nsim = 500, weight = TRUE, 
+         trial = TRUE, nofit.rgd = NULL, Tn.above.3BG = TRUE, 
+         TnBG.ratio.low = NULL, rseTn.up = NULL, FR.low = NULL, 
+         rcy1.range = NULL, rcy2.range = NULL, rcy3.range = NULL, 
+         rcp1.up = NULL, rcp2.up = NULL, fom.up = NULL, 
+         rcs.up = NULL, calED.method = NULL, rseED.up = NULL, 
+         use.se = TRUE, outpdf = NULL, outfile = NULL) 
 }
 
 \arguments{
@@ -35,7 +35,10 @@ function \link{analyseBINdata} or \link{as_analyseBIN}}
 
   \item{weight}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using a weighted procedure, see function \link{fitGrowth} for details}
 
-   \item{trial}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using other models if the given model fails, see function \link{fitGrowth} for details}
+  \item{trial}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using other models if the given model fails, see function \link{fitGrowth} for details}
+
+  \item{nofit.rgd}{\link{integer}(optional): regenerative doses that will not be used during the fitting. 
+For example, if \code{nofit.rgd=6} then the sixth regenerative dose will not be used during growth curve fitting}
 
   \item{Tn.above.3BG}{\link{logical}(with default): logical value indicating if aliquot (grain) with Tn below 3 sigma BG should be rejected}
 
@@ -84,6 +87,7 @@ Return an invisible \link{list} that contains the following elements:
   \item{sarED}{calculated (selected) SAR equivalent doses and associated standard errors}
   \item{ConfInt}{68 percent (one sigma) and 95 percent (two sigma) confidence intervals of SAR equivalent doses}
   \item{agID}{aliquot (grain) ID of calculated (selected) SAR equivalent doses}
+  \item{summary.info}{a summary of the SAR equivalent dose calculation}
 }
 
 \references{
@@ -113,9 +117,10 @@ Rejection criteria used to select reliable SAR equivalent dose estimates can be 
                              LType="OSL", view=FALSE)
   obj_analyseBIN <- analyseBINdata(obj_pickBIN, nfchn=3, nlchn=20) 
   res_SARED <- calSARED(obj_analyseBIN, model="exp", origin=FALSE)
-  # plot(res_SARED$Tn[,1], res_SARED$sarED[,1], xlab="Tn", ylab="ED (Gy|s)")
+  # plot(res_SARED$Tn[,1], res_SARED$sarED[,1], xlab="Tn", ylab="ED (<Gy>|<s>)")
 }
 
 \keyword{growth curve}
 \keyword{equivalent dose}
 \keyword{data extraction}
+\keyword{batch analysis}

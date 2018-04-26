@@ -6,23 +6,23 @@
 SGC Equivalent dose calculation and selection
 }
 \description{
-Calculating and selecting equivalent doses according to the "standardised growth curve" (SGC) method suggested 
-by Roberts and Duller (2004) or the "global standardised growth curve" (gSGC) method suggested by Li et al. (2015).
+Calculating and selecting equivalent doses in a batch model according to the "standardised growth curve" (SGC) method suggested 
+by Roberts and Duller (2004) or the "global standardised growth curve" (gSGC) method suggested by Li et al. (2015, 2016).
 }
 
 \usage{
 calSGCED(obj_analyseBIN, SGCpars, model, origin, avgDev, 
          method = "SGC", SAR.Cycle = "N", errMethod = "sp", 
-         Tn.above.3BG = TRUE, TnBG.ratio.low = NULL, rseTn.up = NULL,
-         FR.low = NULL, rseED.up = NULL, use.se = TRUE, outpdf = NULL,
-         outfile = NULL)
+         Tn.above.3BG = TRUE, TnBG.ratio.low = NULL, 
+         rseTn.up = NULL, FR.low = NULL, rseED.up = NULL, 
+         use.se = TRUE, outpdf = NULL, outfile = NULL)
 }
 
 \arguments{
    \item{obj_analyseBIN}{\link{list}(\bold{required}): an object of S3 class "analyseBIN" produced by\cr 
 function \link{analyseBINdata} or \link{as_analyseBIN}}
 
-  \item{SGCpars}{\link{vector}(\bold{required}): optimized parameters of the SGC obtained using function \link{fitGrowth} or \link{lsNORM}}
+  \item{SGCpars}{\link{vector}(\bold{required}): optimized parameters of the SGC obtained using function \link{lsNORM} (or \link{fitGrowth})}
 
   \item{model}{\link{character}(\bold{required}): fitting model used for obtaining \code{SGCpars}}
 
@@ -61,6 +61,7 @@ Example: \code{SAR.Cycle=c("N","R3")}}
   \item{sgcED}{calculated SGC equivalent doses}
   \item{ConfInt}{68 percent (one sigma) and 95 percent (two sigma) confidence intervals of SGC equivalent doses}
   \item{agID}{aliquot (grain) ID of calculated (selected) SGC equivalent doses}
+  \item{summary.info}{a summary of the SGC equivalent dose calculation}
 }
 
 \references{
@@ -112,3 +113,4 @@ Roberts HM, Duller GAT, 2004. Standardised growth curves for optical dating of s
 \keyword{growth curve}
 \keyword{LS-normalisation}
 \keyword{equivalent dose}
+\keyword{batch analysis}

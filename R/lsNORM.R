@@ -1,12 +1,12 @@
 #####
 lsNORM <- 
-function(SARdata, model="gok", origin=FALSE, weight=TRUE, 
+function(SARdata, model="gok", origin=FALSE, weight=FALSE, 
          natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
     UseMethod("lsNORM")
 } ###	
-### 2017.05.16.
+### 2018.04.23.
 lsNORM.default <- 
-function(SARdata, model="gok", origin=FALSE, weight=TRUE, 
+function(SARdata, model="gok", origin=FALSE, weight=FALSE, 
          natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
     ### Stop if not.
     stopifnot(ncol(SARdata)==5L, nrow(SARdata)>=5L,
@@ -93,7 +93,7 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
                  mean(vary_Curvedata[,"Signal",drop=TRUE])
         ###
         res1 <- try(fitGrowth(Curvedata=vary_Curvedata, model=model, origin=origin, weight=weight, 
-                              trial=FALSE, plot=FALSE, agID=NULL, Tn=NULL, Tn3BG=NULL, 
+                              trial=FALSE, plot=FALSE, nofit.rgd=NULL, agID=NULL, Tn=NULL, Tn3BG=NULL, 
                               TnBG.ratio=NULL, rseTn=NULL, FR=NULL, RecyclingRatio1=NULL, 
                               RecyclingRatio2=NULL, RecyclingRatio3=NULL, Recuperation1=NULL, 
                               Recuperation2=NULL, LnTn.curve=NULL, TxTn=NULL), silent=TRUE)
@@ -269,7 +269,7 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
                   max(origin_Curvedata[,"Signal",drop=TRUE])*1.1)
         ###
         plot(origin_Curvedata[,c("Dose","Signal")], type="p", pch=23, bg="red", cex=1.5,
-             ylim=ylim, xlab="Regenerative dose (Gy|s)", ylab="Standardised OSL", 
+             ylim=ylim, xlab="Regenerative dose (<Gy>|<s>)", ylab="Standardised OSL", 
              las=0, xaxs="r", yaxs="i", cex.lab=1.5, cex.axis=1.5) 
         legend("topleft", legend="A", yjust=2, ncol=1, cex=1.5, bty="o")
         ###
@@ -312,7 +312,7 @@ function(SARdata, model="gok", origin=FALSE, weight=TRUE,
         ylim <- c(min(new_Curvedata[,"Signal",drop=TRUE],0)*1.1, 
                   max(new_Curvedata[,"Signal",drop=TRUE])*1.1)
         plot(new_Curvedata[,c("Dose","Signal")], type="p", pch=23, bg="blue", cex=1.5,
-             ylim=ylim, xlab="Regenerative dose (Gy|s)", ylab="Normalised standardised OSL", 
+             ylim=ylim, xlab="Regenerative dose (<Gy>|<s>)", ylab="Normalised standardised OSL", 
              las=0, xaxs="r", yaxs="i", cex.lab=1.5, cex.axis=1.5) 
         legend("topleft", legend="B", yjust=2, ncol=1, cex=1.5, bty="o")
         ###

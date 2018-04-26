@@ -4,7 +4,7 @@ function(EDdata, addsigma=0, dose=NULL, zmin=NULL, zmax=NULL, ntick=6,
          digits=2, pcolor="blue", psize=1, rg=2, zlabel="De (Gy)") {
     UseMethod("psRadialPlot")
 } #
-### 2015.05.03.
+### 2018.04.21.
 psRadialPlot.default <- 
 function(EDdata, addsigma=0, dose=NULL, zmin=NULL, zmax=NULL, ntick=6, 
          digits=2, pcolor="blue", psize=1, rg=2, zlabel="De (Gy)") {
@@ -99,7 +99,7 @@ function(EDdata, addsigma=0, dose=NULL, zmin=NULL, zmax=NULL, ntick=6,
     ###
     if (!is.null(dose))  {
         ### Plot polygons.
-        for (i in seq(dose)) {      
+        for (i in seq(length(dose))) {      
             y1 <- (log(dose[i])-centralDose)*maxPrecision
             if (rg %in% c(1L, 2L))  {
                 polygon(x=rep(c(minPrecision, maxPrecision), each=2L),
@@ -109,7 +109,7 @@ function(EDdata, addsigma=0, dose=NULL, zmin=NULL, zmax=NULL, ntick=6,
         } # end for.
         ###
         ### Plot lines.
-        for (i in seq(dose)) {      
+        for (i in seq(length(dose))) {      
             y1 <- (log(dose[i])-centralDose)*maxPrecision
             lines(c(minPrecision, maxPrecision), c(0.0, y1), lwd=1.0)
             if (rg %in% c(1L, 2L))  {

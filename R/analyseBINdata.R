@@ -6,7 +6,7 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
          signal.type="LxTx", outfile=NULL) {
     UseMethod("analyseBINdata")
 } #
-### 2017.05.14.
+### 2018.04.21.
 analyseBINdata.default <- 
 function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0, 
          distp="p", kph=NULL, kdc=NULL, dcr=NULL, 
@@ -181,22 +181,32 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
         ###
         ###
         Ln_NPoints <- attr(iRecord[[1L]], "NPoints")
-        Ln_Low <- attr(iRecord[[1L]], "Low")
-        Ln_High <- attr(iRecord[[1L]], "High")
-        Ln_vstep <- (Ln_High-Ln_Low)/Ln_NPoints
         ###
-        iLn_curve_x <- seq(from=Ln_vstep, to=Ln_High, by=Ln_vstep)                  
-        iLn_curve_y <- as.numeric(iRecord[[1L]])
+        if (Ln_NPoints>0L) {
+            Ln_Low <- attr(iRecord[[1L]], "Low")
+            Ln_High <- attr(iRecord[[1L]], "High")
+            Ln_vstep <- (Ln_High-Ln_Low)/Ln_NPoints
+            ###
+            iLn_curve_x <- seq(from=Ln_vstep, to=Ln_High, by=Ln_vstep)                  
+            iLn_curve_y <- as.numeric(iRecord[[1L]])
+        } else {
+            iLn_curve_x <- iLn_curve_y <- NA
+        } # end if.
         ###
         ###
         if (length_iRecord>=2L) {
             Tn_NPoints <- attr(iRecord[[2L]], "NPoints")
-            Tn_Low <- attr(iRecord[[2L]], "Low")
-            Tn_High <- attr(iRecord[[2L]], "High")
-            Tn_vstep <- (Tn_High-Tn_Low)/Tn_NPoints
             ###
-            iTn_curve_x <- seq(from=Tn_vstep, to=Tn_High, by=Tn_vstep) 
-            iTn_curve_y <- as.numeric(iRecord[[2L]])
+            if (Tn_NPoints>0L) {
+                Tn_Low <- attr(iRecord[[2L]], "Low")
+                Tn_High <- attr(iRecord[[2L]], "High")
+                Tn_vstep <- (Tn_High-Tn_Low)/Tn_NPoints
+                ###
+                iTn_curve_x <- seq(from=Tn_vstep, to=Tn_High, by=Tn_vstep) 
+                iTn_curve_y <- as.numeric(iRecord[[2L]])
+            } else {
+                iTn_curve_x <- iTn_curve_y <- NA
+            } # end if.
         } else {
             iTn_curve_x <- iTn_curve_y <- NA
         } # end if.

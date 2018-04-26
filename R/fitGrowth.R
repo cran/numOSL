@@ -1,17 +1,17 @@
 #####
 fitGrowth <-
 function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
-         trial=FALSE, plot=TRUE, agID=NULL, Tn=NULL, Tn3BG=NULL, 
-         TnBG.ratio=NULL, rseTn=NULL, FR=NULL, RecyclingRatio1=NULL, 
+         trial=FALSE, plot=TRUE, nofit.rgd=NULL, agID=NULL, Tn=NULL,  
+         Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL, FR=NULL, RecyclingRatio1=NULL, 
          RecyclingRatio2=NULL, RecyclingRatio3=NULL, Recuperation1=NULL, 
          Recuperation2=NULL, LnTn.curve=NULL, TxTn=NULL) {
     UseMethod("fitGrowth")
 } #
-### 2017.05.18.
+### 2018.04.23.
 fitGrowth.default <-
 function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
-         trial=FALSE, plot=TRUE, agID=NULL, Tn=NULL, Tn3BG=NULL, 
-         TnBG.ratio=NULL, rseTn=NULL, FR=NULL, RecyclingRatio1=NULL, 
+         trial=FALSE, plot=TRUE, nofit.rgd=NULL, agID=NULL, Tn=NULL,  
+         Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL, FR=NULL, RecyclingRatio1=NULL, 
          RecyclingRatio2=NULL, RecyclingRatio3=NULL, Recuperation1=NULL, 
          Recuperation2=NULL, LnTn.curve=NULL, TxTn=NULL) {
     ### Stop if not.
@@ -21,17 +21,18 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
               length(weight)==1L, is.logical(weight),
               length(trial)==1L, is.logical(trial),
               length(plot)==1L, is.logical(plot),
+              is.null(nofit.rgd) || is.numeric(nofit.rgd),
               is.null(agID) || (length(agID)==3L && is.numeric(agID)),
               is.null(Tn) || (length(Tn)==2L && is.numeric(Tn)),
               is.null(Tn3BG) || (length(Tn3BG)==1L && Tn3BG %in% c(0L,1L)),
               is.null(TnBG.ratio) || (length(TnBG.ratio)==2L && is.numeric(TnBG.ratio)),
               is.null(rseTn) || (length(rseTn)==1L && is.numeric(rseTn)),
               is.null(FR) || (length(FR)==2L && is.numeric(FR)),
-              is.null(RecyclingRatio1) || (length(RecyclingRatio1)==2L && is.numeric(RecyclingRatio1)),
-              is.null(RecyclingRatio2) || (length(RecyclingRatio2)==2L && is.numeric(RecyclingRatio2)),
-              is.null(RecyclingRatio3) || (length(RecyclingRatio3)==2L && is.numeric(RecyclingRatio3)),
-              is.null(Recuperation1) || (length(Recuperation1)==2L && is.numeric(Recuperation1)),
-              is.null(Recuperation2) || (length(Recuperation2)==2L && is.numeric(Recuperation2)),
+              is.null(RecyclingRatio1) || length(RecyclingRatio1)==2L,
+              is.null(RecyclingRatio2) || length(RecyclingRatio2)==2L,
+              is.null(RecyclingRatio3) || length(RecyclingRatio3)==2L,
+              is.null(Recuperation1) || length(Recuperation1)==2L,
+              is.null(Recuperation2) || length(Recuperation2)==2L,
               is.null(LnTn.curve) || is.list(LnTn.curve), 
               is.null(TxTn) || is.numeric(TxTn))
     ###
@@ -43,7 +44,26 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
     sdoseltx <- as.numeric(Curvedata[,3L,drop=TRUE])
     if (any(sdoseltx<=0.0)) stop("Error: standard error of signal in [Curvedata] should larger than zero!")
     ###
-    ndat <- nrow(Curvedata)
+
+    ###
+    NCD <- seq(nrow(Curvedata))
+    ###
+    if (is.null(nofit.rgd)) {
+        Curvedata1 <- Curvedata
+        fitIDX <- NCD
+    } else {
+         Curvedata1 <- Curvedata[-nofit.rgd,,drop=FALSE]
+         fitIDX <- NCD[-nofit.rgd]
+    } # end if.
+    ###    
+
+    ###
+    ndat <- nrow(Curvedata1)
+    dose1 <- as.numeric(Curvedata1[,1L,drop=TRUE])
+    doseltx1 <- as.numeric(Curvedata1[,2L,drop=TRUE])
+    sdoseltx1 <- as.numeric(Curvedata1[,3L,drop=TRUE])
+
+    ###
     if (model=="line") {
         require_npars <- 1L+!origin
     } else if (model=="exp") {
@@ -207,13 +227,13 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
         pars <- stdp <- vector(length=n2)
         ###
         if (mdl==7L) {
-            res<-.Fortran("fitGOK",as.double(dose),as.double(doseltx),as.double(sdoseltx),
+            res<-.Fortran("fitGOK",as.double(dose1),as.double(doseltx1),as.double(sdoseltx1),
                           as.integer(ndat),as.integer(n2),pars=as.double(pars),stdp=as.double(stdp),
                           as.integer(uw),fvec1=as.double(fvec1),fmin=as.double(fmin),
                           message=as.integer(message),PACKAGE="numOSL")
             ###
         } else if (mdl %in% c(0L,1L,2L,3L)) {
-            res<-.Fortran("fitGrowth_fort",as.double(dose),as.double(doseltx),as.double(sdoseltx),
+            res<-.Fortran("fitGrowth_fort",as.double(dose1),as.double(doseltx1),as.double(sdoseltx1),
                           as.integer(ndat),as.integer(n2),pars=as.double(pars),stdp=as.double(stdp),
                           as.integer(mdl),as.integer(uw),fvec1=as.double(fvec1),fmin=as.double(fmin),
                           message=as.integer(message),PACKAGE="numOSL")
@@ -226,16 +246,16 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
     ###
     if (message==0L) {
         min_obj <- res$fmin
-        avg_fit_error <- sqrt(sum((doseltx-res$fvec1)^2L))/ndat
-        FOM <- 100.0*sum(abs(doseltx-res$fvec1))/sum(res$fvec1)
-        if ((ndat-n2-1L)>0L) RCS <- res$fmin/(ndat-n2-1L) else RCS <- NA
+        avg_fit_error <- sqrt(sum((doseltx1-res$fvec1)^2L))/ndat
+        FOM <- 100.0*sum(abs(doseltx1-res$fvec1))/sum(res$fvec1)
+        if ((ndat-n2)>0L) RCS <- res$fmin/(ndat-n2) else RCS <- NA
         ###
         LMpars <- cbind(res$pars,res$stdp)
         colnames(LMpars) <- c("Pars","sePars")
         rownames(LMpars) <- (c("a","b","c","d","e"))[seq(n2)]
     } else {
         min_obj <- avg_fit_error <- FOM <- RCS <- NA
-        LMpars <- NULL
+        LMpars <- NA
     } # end if.
     ###
     if (mdl==0L) {
@@ -261,7 +281,7 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
         upperY <- max(doseltx)*1.2
         ###
         par(mar=c(4,4,2,0.5)+0.1)
-        plot(NA, NA, main=NULL, xlab="Regenerative dose (Gy|s)", 
+        plot(NA, NA, main=NULL, xlab="Regenerative dose (<Gy>|<s>)", 
              ylab="Sensitivity-corrected OSL",
              las=0, cex.lab=1.5, cex.main=1.5, xlim=c(lowerX,upperX),
              ylim=c(lowerY,upperY), xaxs="i", yaxs="i", lab=c(7,7,9))
@@ -305,13 +325,14 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
         ###
         ###--------------------------------------------------------------
         par(mar=c(4,4,0.5,0.5)+0.1)
-        if (!is.null(LnTn.curve)) {
+        if (!is.null(LnTn.curve) && length(LnTn.curve[["Ln.x"]])>1L) {
+            ###
             x_max <- max(max(LnTn.curve[["Ln.x"]]), max(LnTn.curve[["Tn.x"]]), na.rm=TRUE)
             y_max <- max(max(LnTn.curve[["Ln.y"]]), max(LnTn.curve[["Tn.y"]]), na.rm=TRUE)
             ###
             plot(x=LnTn.curve[["Ln.x"]], y=LnTn.curve[["Ln.y"]], type="l", lwd=1.5, col="blue",
-                 main=NULL, xlim=c(0, x_max), ylim=c(0, y_max), xlab="Stimulation time (s)", 
-                 ylab="Photon counts", las=0, xaxt="n", cex.lab=1.5, cex.main=1.5, lab=c(7,7,9))
+                main=NULL, xlim=c(0, x_max), ylim=c(0, y_max), xlab="Stimulation time (s)", 
+                ylab="Photon counts", las=0, xaxt="n", cex.lab=1.5, cex.main=1.5, lab=c(7,7,9))
             ###
             if (length(LnTn.curve[["Tn.x"]])>1L) {
                 ### Both Tn.x and Tn.y are not equal to NA of length 1.
@@ -464,6 +485,7 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
     ###---------------------------------------------------------------
     ###
     output<-list("message"=message,
+                 "fitIDX"=fitIDX,
                  "LMpars"=LMpars, 
                  "value"=min_obj,
                  "avg.error"=avg_fit_error,

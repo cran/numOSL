@@ -9,8 +9,9 @@ Regenerative-dose signal optimization using the LS-normalisation procedure
 Optimizing standardised regenerative-dose signals according to the least-squares normalisation (LS-normalisation) procedure using an iterative scaling and fitting procedure proposed by Li et al. (2016).
 }
 \usage{
-lsNORM(SARdata, model = "gok", origin = FALSE, weight = TRUE,
-       natural.rm = TRUE, norm.dose = NULL, maxiter = 10, 
+lsNORM(SARdata, model = "gok", origin = FALSE, 
+       weight = FALSE, natural.rm = TRUE, 
+       norm.dose = NULL, maxiter = 10, 
        plot = TRUE)
 }
 

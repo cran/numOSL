@@ -1,16 +1,16 @@
 #####
-pickSARdata<-
-function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, 
-         trial=TRUE, Tn.above.3BG=TRUE, TnBG.ratio.low=NULL, rseTn.up=NULL,
+pickSARdata <-
+function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, trial=TRUE, 
+         nofit.rgd=NULL, Tn.above.3BG=TRUE, TnBG.ratio.low=NULL, rseTn.up=NULL,
          FR.low=NULL, rcy1.range=NULL, rcy2.range=NULL, rcy3.range=NULL, 
          rcp1.up=NULL, rcp2.up=NULL, fom.up=NULL, rcs.up=NULL, 
          use.se=TRUE, norm.dose=NULL, outpdf=NULL, outfile=NULL) {
     UseMethod("pickSARdata")
 } #
-### 2017.05.17.
-pickSARdata.default<-
-function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, 
-         trial=TRUE, Tn.above.3BG=TRUE, TnBG.ratio.low=NULL, rseTn.up=NULL,
+### 2018.04.26.
+pickSARdata.default <-
+function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, trial=TRUE, 
+         nofit.rgd=NULL, Tn.above.3BG=TRUE, TnBG.ratio.low=NULL, rseTn.up=NULL,
          FR.low=NULL, rcy1.range=NULL, rcy2.range=NULL, rcy3.range=NULL, 
          rcp1.up=NULL, rcp2.up=NULL, fom.up=NULL, rcs.up=NULL, 
          use.se=TRUE, norm.dose=NULL, outpdf=NULL, outfile=NULL) {
@@ -21,6 +21,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
               length(origin)==1L, is.logical(origin),
               length(weight)==1L, is.logical(weight),
               length(trial)==1L, is.logical(trial),
+              is.null(nofit.rgd) || is.numeric(nofit.rgd),
               length(Tn.above.3BG)==1L, is.logical(Tn.above.3BG),
               is.null(TnBG.ratio.low) || (length(TnBG.ratio.low)==1L && is.numeric(TnBG.ratio.low)),
               is.null(rseTn.up) || (length(rseTn.up)==1L && is.numeric(rseTn.up)),
@@ -89,10 +90,12 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
 
     
     ### Apply signal related rejection criteria. 
-    ###------------------------------------------------------------------
+    ###*************************************************************************************************
     if (is_forced_object==FALSE) { 
 
-        ### No se consideration.
+        ###
+        ###-----------------------------------------------------------
+        ### Tn above 3sigma BG: no se consideration.
         if (Tn.above.3BG==TRUE) {
             all_value <- criteria[,"Tn3BG",drop=TRUE]
             ###
@@ -118,9 +121,12 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } else {
             Tn3BG_reject <- NULL
         } # end if.
+        ###-----------------------------------------------------------
         ###
 
-        ### Have se consideration.
+        ###
+        ###-----------------------------------------------------------
+        ### Ratio of Tn to BG: have se consideration.
         if (!is.null(TnBG.ratio.low)) {
             all_value <- criteria[,"TnBG.ratio",drop=TRUE]
             ###
@@ -151,9 +157,12 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } else {
             TnBG.ratio_reject <- NULL
         } # end if.
+        ###-----------------------------------------------------------
         ###
 
-        ### No se consideration.
+        ###
+        ###-----------------------------------------------------------
+        ### Relative standard error of Tn: no se consideration.
         if (!is.null(rseTn.up)) {
             all_value <- criteria[,"rseTn",drop=TRUE]
             ###
@@ -179,9 +188,12 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } else {
             rseTn_reject <- NULL
         } # end if.
+        ###-----------------------------------------------------------
         ###
 
-        ### Have se consideration.
+        ###
+        ###-----------------------------------------------------------
+        ### Fast ratio: have se consideration.
         if (!is.null(FR.low)) {
             all_value <- criteria[,"FR",drop=TRUE]
             ###
@@ -212,17 +224,18 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } else {
             FR_reject <- NULL
         } # end if.
+        ###-----------------------------------------------------------
         ###
-
     } else {
         if ((Tn.above.3BG==TRUE) || (!is.null(TnBG.ratio.low)) ||
             (!is.null(rseTn.up)) || (!is.null(FR.low))) {
             cat("Note: signal-related rejection criteria cannot be applied!\n")
         } # end if.
     } # end if.
+    ###*************************************************************************************************
     ###
-    ###----------------------------------------------------------------------------------------------
 
+    ###
     ### Re-write NO, Position, and Grain.
     NO <- agID[,"NO",drop=TRUE]
     Position <- agID[,"Position",drop=TRUE]
@@ -259,22 +272,23 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     ###
 
     ### Apply growth curve related rejection criteria (1).
-    ###---------------------------------------------------------------------------------------------
+    ###**********************************************************************************************************************
 
-    ### Have se consideration. 
+    ###
+    ###---------------------------------------------------------------------------------------------
+    ### The first recycling ratio: have se consideration. 
     if (!is.null(rcy1.range)) {
         all_value <- RcyRcp_mat[,"RecyclingRatio1",drop=TRUE]
         ### 
         if (use.se==FALSE) {
-            select_index <- which(all_value>rcy1.range[1L] & all_value<rcy1.range[2L])
+            select_index <- which((all_value>rcy1.range[1L] & all_value<rcy1.range[2L]) | is.na(all_value))
         } else {
             all_se_value <- RcyRcp_mat[,"seRecyclingRatio1",drop=TRUE]
-            select_index <- which((all_value-sigma*all_se_value<rcy1.range[1L] & 
-                                   all_value+sigma*all_se_value>rcy1.range[2L]) |
-                                  (all_value-sigma*all_se_value>rcy1.range[1L] & 
-                                   all_value-sigma*all_se_value<rcy1.range[2L]) |
-                                  (all_value+sigma*all_se_value>rcy1.range[1L] & 
-                                   all_value+sigma*all_se_value<rcy1.range[2L]))
+            select_index <- which((all_value-sigma*all_se_value<rcy1.range[1L] & all_value+sigma*all_se_value>rcy1.range[2L]) |
+                                  (all_value-sigma*all_se_value>rcy1.range[1L] & all_value+sigma*all_se_value<rcy1.range[2L]) |
+                                  (all_value-sigma*all_se_value>rcy1.range[1L] & all_value-sigma*all_se_value<rcy1.range[2L]) |
+                                  (all_value+sigma*all_se_value>rcy1.range[1L] & all_value+sigma*all_se_value<rcy1.range[2L]) |
+                                  is.na(all_value))
         } # end if.
         ###
         if (length(select_index)==0L) {
@@ -300,22 +314,24 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     } else {
         rcy1_reject <- NULL
     } # end if.
+    ###---------------------------------------------------------------------------------------------
     ###
 
-    ### Have se consideration.
+    ###
+    ###---------------------------------------------------------------------------------------------
+    ### The second recycling ratio: have se consideration.
     if (!is.null(rcy2.range)) {
         all_value <- RcyRcp_mat[,"RecyclingRatio2",drop=TRUE]
         ###
         if (use.se==FALSE) {
-            select_index <- which(all_value>rcy2.range[1L] & all_value<rcy2.range[2L])
+            select_index <- which((all_value>rcy2.range[1L] & all_value<rcy2.range[2L]) | is.na(all_value))
         } else {
             all_se_value <- RcyRcp_mat[,"seRecyclingRatio2",drop=TRUE]
-            select_index <- which((all_value-sigma*all_se_value<rcy2.range[1L] & 
-                                   all_value+sigma*all_se_value>rcy2.range[2L]) |
-                                  (all_value-sigma*all_se_value>rcy2.range[1L] & 
-                                   all_value-sigma*all_se_value<rcy2.range[2L]) |
-                                  (all_value+sigma*all_se_value>rcy2.range[1L] & 
-                                   all_value+sigma*all_se_value<rcy2.range[2L]))
+            select_index <- which((all_value-sigma*all_se_value<rcy2.range[1L] & all_value+sigma*all_se_value>rcy2.range[2L]) |
+                                  (all_value-sigma*all_se_value>rcy2.range[1L] & all_value+sigma*all_se_value<rcy2.range[2L]) |
+                                  (all_value-sigma*all_se_value>rcy2.range[1L] & all_value-sigma*all_se_value<rcy2.range[2L]) |
+                                  (all_value+sigma*all_se_value>rcy2.range[1L] & all_value+sigma*all_se_value<rcy2.range[2L]) |
+                                  is.na(all_value))
         } # end if.
         ###
         if (length(select_index)==0L) {
@@ -341,22 +357,24 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     } else {
         rcy2_reject <- NULL
     } # end if.
+    ###---------------------------------------------------------------------------------------------
     ###
 
-    ### Have se consideration.
+    ###
+    ###---------------------------------------------------------------------------------------------
+    ### The third recycling ratio: have se consideration.
     if (!is.null(rcy3.range)) {
         all_value <- RcyRcp_mat[,"RecyclingRatio3",drop=TRUE]
         ###
         if (use.se==FALSE) {
-            select_index <- which(all_value>rcy3.range[1L] & all_value<rcy3.range[2L])
+            select_index <- which((all_value>rcy3.range[1L] & all_value<rcy3.range[2L]) | is.na(all_value))
         } else {
             all_se_value <- RcyRcp_mat[,"seRecyclingRatio3",drop=TRUE]
-            select_index <- which((all_value-sigma*all_se_value<rcy3.range[1L] & 
-                                   all_value+sigma*all_se_value>rcy3.range[2L]) |
-                                  (all_value-sigma*all_se_value>rcy3.range[1L] & 
-                                   all_value-sigma*all_se_value<rcy3.range[2L]) |
-                                  (all_value+sigma*all_se_value>rcy3.range[1L] & 
-                                   all_value+sigma*all_se_value<rcy3.range[2L]))
+            select_index <- which((all_value-sigma*all_se_value<rcy3.range[1L] & all_value+sigma*all_se_value>rcy3.range[2L]) |
+                                  (all_value-sigma*all_se_value>rcy3.range[1L] & all_value+sigma*all_se_value<rcy3.range[2L]) |
+                                  (all_value-sigma*all_se_value>rcy3.range[1L] & all_value-sigma*all_se_value<rcy3.range[2L]) |
+                                  (all_value+sigma*all_se_value>rcy3.range[1L] & all_value+sigma*all_se_value<rcy3.range[2L]) |
+                                  is.na(all_value))
         } # end if.
         ###
         if (length(select_index)==0L) {
@@ -382,17 +400,24 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     } else {
         rcy3_reject <- NULL
     } # end if.
+    ###---------------------------------------------------------------------------------------------
     ###
 
-    ### Have se consideration.
+    ###
+    ###---------------------------------------------------------------------------------------------
+    ### The first recuperation: Have se consideration.
     if (!is.null(rcp1.up)) {
         all_value <- RcyRcp_mat[,"Recuperation1",drop=TRUE]
         ###
         if (use.se==FALSE) {
-            select_index <- which(abs(all_value)<rcp1.up)
+            select_index <- which((all_value> -rcp1.up & all_value<rcp1.up) | is.na(all_value))
         } else {
             all_se_value <- RcyRcp_mat[,"seRecuperation1",drop=TRUE]
-            select_index <- which(abs(all_value)-sigma*all_se_value<rcp1.up)
+            select_index <- which((all_value-sigma*all_se_value< -rcp1.up & all_value+sigma*all_se_value>rcp1.up) |
+                                  (all_value-sigma*all_se_value> -rcp1.up & all_value+sigma*all_se_value<rcp1.up) |
+                                  (all_value-sigma*all_se_value> -rcp1.up & all_value-sigma*all_se_value<rcp1.up) |
+                                  (all_value+sigma*all_se_value> -rcp1.up & all_value+sigma*all_se_value<rcp1.up) |
+                                  is.na(all_value))
         } # end if.
         ###
         if (length(select_index)==0L) {
@@ -417,17 +442,23 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     } else {
         rcp1_reject <- NULL
     } # end if.
-    ###
+    ###---------------------------------------------------------------------------------------------
 
-    ### Have se consideration.
+    ###
+    ###---------------------------------------------------------------------------------------------
+    ### The second recuperation: have se consideration.
     if (!is.null(rcp2.up)) {
         all_value <- RcyRcp_mat[,"Recuperation2",drop=TRUE]
         ###
         if (use.se==FALSE) {
-            select_index <- which(abs(all_value)<rcp2.up)
+            select_index <- which((all_value> -rcp2.up & all_value<rcp2.up) | is.na(all_value))
         } else {
             all_se_value <- RcyRcp_mat[,"seRecuperation2",drop=TRUE]
-            select_index <- which(abs(all_value)-sigma*all_se_value<rcp2.up)
+            select_index <- which((all_value-sigma*all_se_value< -rcp2.up & all_value+sigma*all_se_value>rcp2.up) |
+                                  (all_value-sigma*all_se_value> -rcp2.up & all_value+sigma*all_se_value<rcp2.up) |
+                                  (all_value-sigma*all_se_value> -rcp2.up & all_value-sigma*all_se_value<rcp2.up) |
+                                  (all_value+sigma*all_se_value> -rcp2.up & all_value+sigma*all_se_value<rcp2.up) |
+                                  is.na(all_value))
         } # end if.
         ###
         if (length(select_index)==0L) {
@@ -453,6 +484,9 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         rcp2_reject <- NULL
     } # end if.
     ###------------------------------------------------------------------------------------
+    ###
+    ###**********************************************************************************************************************
+    ###
 
     ### Re-write NO, Position, and Grain.
     NO <- agID[,"NO",drop=TRUE]
@@ -468,7 +502,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     } # end for.
     ###
     ###
-    fitOK_NO <- fitOK_Position <- fitOK_Grain <-  
+    passNO <- passPosition <- passGrain <-  
     Tn_vec <- seTn_vec <- Tn3BG_vec <- TnBG.ratio_vec <- 
     seTnBG.ratio_vec <- rseTn_vec <- FR_vec <- seFR_vec <- 
     RecyclingRatio1_vec <- seRecyclingRatio1_vec <- 
@@ -476,11 +510,12 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     RecyclingRatio3_vec <- seRecyclingRatio3_vec <-
     Recuperation1_vec <- seRecuperation1_vec <-
     Recuperation2_vec <- seRecuperation2_vec <- 
-    FOM_vec <- RCS_vec <- tryError_ID <- failFit_ID <- c()
+    tryError_ID <- failFit_ID <- FOM_vec <- RCS_vec <- c()
     ###
     LMpars <- list()
     ###
     norm.SARdata <- c()
+    SARdata1 <- c()
     ###
     if (!is.null(outpdf)) {
         pdf(paste(outpdf, ".pdf", sep=""))
@@ -494,6 +529,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         cat("Growth curve fitting is in progress, please wait, ...\n")
     } # end if.
     ###-------------------------------------------------------------------
+    ###
     for (i in seq(n)) {
         if (n>=5L) setTxtProgressBar(pb, i)
         ###
@@ -523,9 +559,26 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         fitGrowth_LnTn.curve <- if (!is.null(LnTn.curve)) LnTn.curve[[i]] else NULL
         fitGrowth_TxTn <- if (!is.null(TxTn)) TxTn[[i]] else NULL
         ###
-        res <- try(fitGrowth(Curvedata=DataR, model=model, origin=origin, 
+        ### Force the fitting to pass the origin if zero regeneraive-dose is not available.
+        if (is.null(nofit.rgd)) {
+            rgdddo <- DataR[,"Dose",drop=TRUE]
+        } else {
+            rgdddo <- DataR[-nofit.rgd,"Dose",drop=TRUE]
+        } # end if.
+        ###
+        zeroDose_index <- which(abs(rgdddo)<=.Machine$double.eps^0.5)
+        ###
+        if (length(zeroDose_index)==0L && origin==FALSE) {
+            origin1 <- TRUE 
+            cat(paste("[NO=",NO[i],",Position=",Position[i],",Grain=",Grain[i],
+                "]: no zero regenerative-dose can be used and the growth curve is forced to pass the origin!\n", sep=""))
+        } else {
+            origin1 <- origin
+        } # end if.
+        ###
+        res <- try(fitGrowth(Curvedata=DataR, model=model, origin=origin1, 
                              weight=weight, trial=trial, plot=if_plot, 
-                             agID=agID[i,,drop=TRUE], Tn=fitGrowth_Tn, 
+                             nofit.rgd=nofit.rgd, agID=agID[i,,drop=TRUE], Tn=fitGrowth_Tn, 
                              Tn3BG=fitGrowth_Tn3BG, TnBG.ratio=fitGrowth_TnBG.ratio, 
                              rseTn=fitGrowth_rseTn, FR=fitGrowth_FR, 
                              RecyclingRatio1=fitGrowth_RecyclingRatio1, 
@@ -542,9 +595,9 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
              print(attr(res, "condition"))
         } else {
             if (res$message==0L) {
-                fitOK_NO <- c(fitOK_NO, NO[i])
-                fitOK_Position <- c(fitOK_Position, Position[i])
-                fitOK_Grain <- c(fitOK_Grain, Grain[i])
+                passNO <- c(passNO, NO[i])
+                passPosition <- c(passPosition, Position[i])
+                passGrain <- c(passGrain, Grain[i])
                 ###
                 Tn_vec <- c(Tn_vec, if(!is.null(Tn)) Tn[i,"Tn",drop=TRUE] else NA)
                 seTn_vec <- c(seTn_vec, if(!is.null(Tn)) Tn[i,"seTn",drop=TRUE] else NA)
@@ -580,9 +633,18 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
                 characterNO <- paste("NO", NO[i], sep="")
                 LMpars[[characterNO]] <- res$LMpars
                 ###
+                ###
+                dlsyc <- DataList[[i]][,"SAR.Cycle",drop=TRUE]
+                dddxxx1 <- DataList[[i]][dlsyc=="N",,drop=FALSE]
+                dddxxx2 <- DataList[[i]][dlsyc!="N",,drop=FALSE]
+                ###
+                ith_SARdata1 <- rbind(dddxxx1, dddxxx2[res$fitIDX,,drop=FALSE])
+                ###
+                SARdata1 <- rbind(SARdata1, ith_SARdata1)
+                ###
                 if (!is.null(norm.dose)) {
                     pars <-  res$LMpars[,1L,drop=TRUE]
-                    cst <- ifelse(origin==TRUE, 0, pars[length(pars)])
+                    cst <- ifelse(origin1==TRUE, 0, pars[length(pars)])
                     if (model=="line") {
                         norm.signal <- pars[1L]*norm.dose+cst
                     } else if(model=="exp") {
@@ -596,9 +658,12 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
                     } else if(model=="gok") {
                         norm.signal <- pars[1L]*(1.0-(1.0+pars[2L]*pars[3L]*norm.dose)^(-1.0/pars[3L]))+cst
                     } # end if.
-                    ith_norm.SARdata <- DataList[[i]]
+                    ###
+                    ith_norm.SARdata <- ith_SARdata1
+                    ###
                     ith_norm.SARdata[,c("Signal","Signal.Err")] <- 
-                    ith_norm.SARdata[,c("Signal","Signal.Err"),drop=FALSE]/norm.signal
+                        ith_norm.SARdata[,c("Signal","Signal.Err"),drop=FALSE]/norm.signal
+                    ###
                     norm.SARdata <- rbind(norm.SARdata, ith_norm.SARdata)
                 } # end if.
                 ###
@@ -613,10 +678,46 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
     ###
     if (!is.null(outpdf)) dev.off()
     ###
-    ###==========================================================================
-    if (!is.null(fitOK_NO)) {
+
+    ###
+    ###-------------------------------------------------------------------------------
+    ### Fliter on improper arguments.
+    action_character <- c(action_character, 
+        "Function fitGrowth(): improper input argument")
+    ###
+    if (!is.null(tryError_ID)) {
+        reject_N <- nrow(tryError_ID)
+        step_reject_N <- c(step_reject_N, reject_N)
+        tryError_reject <- apply(tryError_ID, MARGIN=1L, NPG)
+    } else {
+        step_reject_N <- c(step_reject_N, 0L)
+        tryError_reject <- NULL
+    } # end if.
+    ###-------------------------------------------------------------------------------
+    ###
+
+    ###
+    ###-------------------------------------------------------------------------------
+    ### Fliter on growth curve fitting fails.
+    action_character <- c(action_character, 
+        "Function fitGrowth(): failed in growth curve fitting")
+    ###
+    if (!is.null(failFit_ID)) {
+        reject_N <- nrow(failFit_ID)
+        step_reject_N <- c(step_reject_N, reject_N)
+        failFit_reject <- apply(failFit_ID, MARGIN=1L, NPG)
+    } else {
+        step_reject_N <- c(step_reject_N, 0L)
+        failFit_reject <- NULL
+    } # end if.
+    ###-------------------------------------------------------------------------------
+    ###
+
+    ###
+    ###
+    if (!is.null(passNO)) {
         ###
-        SARdata.table <- data.frame("NO"=fitOK_NO, "Position"=fitOK_Position, "Grain"=fitOK_Grain,
+        SARdata.table <- data.frame("NO"=passNO, "Position"=passPosition, "Grain"=passGrain,
                          "Tn"=Tn_vec, "seTn"=seTn_vec, "Tn3BG"=Tn3BG_vec, "TnBG.ratio"=TnBG.ratio_vec, 
                          "seTnBG.ratio"=seTnBG.ratio_vec, "rseTn"=rseTn_vec, "FR"=FR_vec, "seFR"=seFR_vec,
                          "RecyclingRatio1"=RecyclingRatio1_vec, "seRecyclingRatio1"=seRecyclingRatio1_vec, 
@@ -624,15 +725,17 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
                          "RecyclingRatio3"=RecyclingRatio3_vec, "seRecyclingRatio3"=seRecyclingRatio3_vec,
                          "Recuperation1"=Recuperation1_vec, "seRecuperation1"=seRecuperation1_vec,
                          "Recuperation2"=Recuperation2_vec, "seRecuperation2"=seRecuperation2_vec,
-                         "FOM"=FOM_vec, "RCS"=RCS_vec, 
-                         stringsAsFactors=FALSE)
+                         "FOM"=FOM_vec, "RCS"=RCS_vec, stringsAsFactors=FALSE)
         ###
-        agID <- cbind("NO"=fitOK_NO, "Position"=fitOK_Position, "Grain"=fitOK_Grain)
+        agID <- cbind("NO"=passNO, "Position"=passPosition, "Grain"=passGrain)
+        ###
+
         ###
         ### Apply growth curve related rejection criteria (2).
+        ###*****************************************************************************************
+        ###
         ###---------------------------------------------------------------------------------
-
-        ### No se consideration.
+        ### Figure-of-merit: no se consideration.
         if (!is.null(fom.up)) {
             all_value <- SARdata.table[,"FOM",drop=TRUE]
             ###
@@ -655,13 +758,16 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         } else {
             fom_reject <- NULL
         } # end if.
+        ###---------------------------------------------------------------------------------
         ###
 
-        ### No se consideration.
+        ###
+        ###---------------------------------------------------------------------------------
+        ### Reduced chi-square: no se consideration.
         if (!is.null(rcs.up)) {
             all_value <- SARdata.table[,"RCS",drop=TRUE]
             ###
-            select_index <- which(abs(all_value)<rcs.up)
+            select_index <- which(abs(all_value)<rcs.up | is.na(all_value))
             ###
             if (length(select_index)==0L) {
                 stop("Error: no acceptable SAR data if [rcs.up] is applied!")
@@ -681,32 +787,41 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
             rcs_reject <- NULL
         } # end if.
         ###------------------------------------------------------------------------------------
+        ###
+        ###*****************************************************************************************
+        ###
 
         ###
         if (!is.null(outfile)) write.csv(SARdata.table, file=paste(outfile,".csv",sep=""))
         ###
         select_NO <- agID[,"NO",drop=TRUE]
-        SARdata <- SARdata[SARdata[,"NO",drop=TRUE] %in% select_NO,,drop=FALSE]
+        ###
+        SARdata1 <- SARdata1[SARdata1[,"NO",drop=TRUE] %in% select_NO,,drop=FALSE]
         ###
         if (!is.null(norm.SARdata)) {
             norm.SARdata <- norm.SARdata[norm.SARdata[,"NO",drop=TRUE] %in% select_NO,,drop=FALSE]
         } ### end if. 
         ###
         output <- list("LMpars"=LMpars,
-                       "SARdata"=SARdata,
+                       "SARdata"=SARdata1,
                        "norm.SARdata"=norm.SARdata,
                        "agID"=agID)
     } # end if.
-    ###==========================================================================
+    ###
     ### 
-    ###------------------------------------------------------------
+
+    ###
+    ###-----------------------------------------------------------------------------
     if (is_forced_object==FALSE) {
+        ###
         if (length(Tn3BG_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
             print(Tn3BG_reject)
             cat("\n")
         } # end if.
+        ###
+
         ###
         if (length(TnBG.ratio_reject)>0L) {
             cat("\n")
@@ -715,6 +830,8 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
             cat("\n")
         } # end if.
         ###
+
+        ###
         if (length(rseTn_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [rseTn]:\n")
@@ -722,14 +839,19 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
             cat("\n")
         } # end if.
         ### 
+
+        ###
         if (length(FR_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [FR]:\n")
             print(FR_reject)
             cat("\n")
         } # end if.
+        ###
     } # end if.
-    ###------------------------------------------------------------
+    ###-----------------------------------------------------------------------------
+
+    ###-----------------------------------------------------------------------------
     ###
     if (length(rcy1_reject)>0L) {
         cat("\n")
@@ -738,12 +860,16 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         cat("\n")
     } # end if.
     ###
+
+    ###
     if (length(rcy2_reject)>0L) {
         cat("\n")
         cat("Rejection criterion: aliquot (grain) ID rejected use [rcy2]:\n")
         print(rcy2_reject)
         cat("\n")
     } # end if.
+    ###
+
     ###
     if (length(rcy3_reject)>0L) {
         cat("\n")
@@ -752,12 +878,16 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         cat("\n")
     } # end if.
     ###
+
+    ###
     if (length(rcp1_reject)>0L) {
         cat("\n")
         cat("Rejection criterion: aliquot (grain) ID rejected use [rcp1]:\n")
         print(rcp1_reject)
         cat("\n")
     } # end if.
+    ###
+
     ###
     if (length(rcp2_reject)>0L) {
         cat("\n")
@@ -766,8 +896,31 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
         cat("\n")
     } # end if.
     ###
-    ###------------------------------------------------------------
-    if (!is.null(fitOK_NO)) {
+    ###-----------------------------------------------------------------------------
+    ###
+
+    ###
+    ###-----------------------------------------------------------------------------
+    ###
+    if (!is.null(tryError_ID)) {
+        cat("\n")
+        cat("Function fitGrowth(): aliquot (grain) ID with improper input argument:\n")
+        print(tryError_reject)
+        cat("\n")
+    } # end if.
+    ###
+
+    ###
+    if (!is.null(failFit_ID)) {
+        cat("\n")
+        cat("Function fitGrowth(): aliquot (grain) ID failed in growth curve fitting:\n")
+        print(failFit_reject)
+        cat("\n")
+    } # end if.
+    ###
+
+    if (!is.null(passNO)) {
+        ###
         if (length(fom_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [fom]:\n")
@@ -775,45 +928,33 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE,
             cat("\n")
         } # end if.
         ###
+
+        ###
         if (length(rcs_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [rcs]:\n")
             print(rcs_reject)
             cat("\n")
         } # end if.
+        ###
     } # end if.
-    ###------------------------------------------------------------
-    ###
-    if (!is.null(tryError_ID)) {
-        cat("\n")
-        cat("Function fitGrowth(): aliquot (grain) ID with improper input argument:\n")
-        print(apply(tryError_ID, MARGIN=1L, NPG))
-        cat("\n")
-    } # end if.
-    ###
-    if (!is.null(failFit_ID)) {
-        cat("\n")
-        cat("Function fitGrowth(): aliquot (grain) ID failed in growth curve fitting:\n")
-        print(apply(failFit_ID, MARGIN=1L, NPG))
-        cat("\n")
-    } # end if.
+    ###-----------------------------------------------------------------------------
+   
     ###
     action_character <- c(action_character, 
-                          "Function fitGrowth(): improper input argument",
-                          "Function fitGrowth(): failed in growth curve fitting",
                           "Total number of rejected aliquots (grains)",
                           "Total number of accepted aliquots (grains)")
     ###
     step_reject_N <- c(step_reject_N, 
-                       ifelse(is.null(tryError_ID), 0L, nrow(tryError_ID)),
-                       ifelse(is.null(failFit_ID), 0L, nrow(failFit_ID)),
-                       ifelse(is.null(fitOK_NO), nag, nag-nrow(agID)),
-                       ifelse(is.null(fitOK_NO), 0L, nrow(agID)))
+                       ifelse(is.null(passNO), nag, nag-nrow(agID)),
+                       ifelse(is.null(passNO), 0L, nrow(agID)))
     ###
     summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
     print(summary_info)
     ###
-    if (!is.null(fitOK_NO)) {
+    output$summary.info <- summary_info
+    ###
+    if (!is.null(passNO)) {
         return(invisible(output))
     } else {
         return(invisible(NULL))

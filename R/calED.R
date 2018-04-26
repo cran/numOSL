@@ -1,17 +1,17 @@
 #####
 calED <-
 function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp", 
-         nsim=500, weight=TRUE, trial=FALSE, plot=TRUE, agID=NULL, 
-         Tn=NULL, Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL, FR=NULL, 
-         LnTn.curve=NULL, TxTn=NULL) {
+         nsim=500, weight=TRUE, trial=FALSE, plot=TRUE, nofit.rgd=NULL, 
+         agID=NULL, Tn=NULL, Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL,  
+         FR=NULL, LnTn.curve=NULL, TxTn=NULL) {
     UseMethod("calED")
 } ###
-### 2017.05.18. 
+### 2018.04.23. 
 calED.default <-
 function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp", 
-         nsim=500, weight=TRUE, trial=FALSE, plot=TRUE, agID=NULL, 
-         Tn=NULL, Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL, FR=NULL, 
-         LnTn.curve=NULL, TxTn=NULL) {
+         nsim=500, weight=TRUE, trial=FALSE, plot=TRUE, nofit.rgd=NULL, 
+         agID=NULL, Tn=NULL, Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL, 
+         FR=NULL, LnTn.curve=NULL, TxTn=NULL) {
     ### Stop if not.
     stopifnot(ncol(Curvedata)==3L, nrow(Curvedata)>=1L,
               length(Ltx)==2L, is.numeric(Ltx),
@@ -22,6 +22,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
               length(weight)==1L, is.logical(weight), 
               length(trial)==1L, is.logical(trial),
               length(plot)==1L, is.logical(plot),
+              is.null(nofit.rgd) || is.numeric(nofit.rgd),
               is.null(agID) || (length(agID)==3L && is.numeric(agID)),
               is.null(Tn) || (length(Tn)==2L && is.numeric(Tn)),
               is.null(Tn3BG) || (length(Tn3BG)==1L && Tn3BG %in% c(0L,1L)),
@@ -43,7 +44,26 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
         stop("Error: standard error of signal in [Curvedata] should larger than zero!")
     } # end if.
     ###
-    ndat <- nrow(Curvedata)
+
+    ###
+    NCD <- seq(nrow(Curvedata))
+    ###
+    if (is.null(nofit.rgd)) {
+        Curvedata1 <- Curvedata
+        fitIDX <- NCD
+    } else {
+        Curvedata1 <- Curvedata[-nofit.rgd,,drop=FALSE]
+        fitIDX <- NCD[-nofit.rgd]
+    } # end if.
+    ###    
+
+    ###
+    ndat <- nrow(Curvedata1)
+    dose1 <- as.numeric(Curvedata1[,1L,drop=TRUE])
+    doseltx1 <- as.numeric(Curvedata1[,2L,drop=TRUE])
+    sedoseltx1 <- as.numeric(Curvedata1[,3L,drop=TRUE])
+
+    ###
     if (model=="line") {
         require_npars <- 1L+!origin
     } else if (model=="exp") {
@@ -216,14 +236,14 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
         pars <- stdp <- vector(length=n2)
         ###
         if (mdl==7L) {
-            res <- .Fortran("calED1",as.double(dose),as.double(doseltx),as.double(sedoseltx),
+            res <- .Fortran("calED1",as.double(dose1),as.double(doseltx1),as.double(sedoseltx1),
                        as.integer(ndat),as.integer(n2),as.double(inltx),outDose=as.double(outDose),
                        as.integer(eemm),mcED=as.double(mcED),pars=as.double(pars),stdp=as.double(stdp),
                        as.integer(uw),as.integer(nsim),fvec1=as.double(fvec1),fmin=as.double(fmin),
                        saturateDose=as.double(saturateDose),acceptRate=as.double(acceptRate),
                        message=as.integer(message),PACKAGE="numOSL")
         } else if (mdl %in% c(0L,1L,2L,3L)) {
-            res <- .Fortran("calED_fort",as.double(dose),as.double(doseltx),as.double(sedoseltx),
+            res <- .Fortran("calED_fort",as.double(dose1),as.double(doseltx1),as.double(sedoseltx1),
                        as.integer(ndat),as.integer(n2),as.double(inltx),outDose=as.double(outDose),
                        as.integer(eemm),mcED=as.double(mcED),pars=as.double(pars),stdp=as.double(stdp),
                        as.integer(mdl),as.integer(uw),as.integer(nsim),fvec1=as.double(fvec1),
@@ -253,22 +273,22 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
         } # end if.
         names(ConfInt) <- c("lower68", "upper68", "lower95", "upper95")
     } else {
-        ConfInt <- NULL
+        ConfInt <- NA
     } # end if.
     ###
     ###
     if (message!=1L) {
         min_obj <- res$fmin
-        avg_fit_error <- sqrt(sum((doseltx-res$fvec1)^2L))/ndat
-        FOM <- 100.0*sum(abs(doseltx-res$fvec1))/sum(res$fvec1)
-        if ((ndat-n2-1L)>0L) RCS <- res$fmin/(ndat-n2-1L) else RCS <- NA
+        avg_fit_error <- sqrt(sum((doseltx1-res$fvec1)^2L))/ndat
+        FOM <- 100.0*sum(abs(doseltx1-res$fvec1))/sum(res$fvec1)
+        if ((ndat-n2)>0L) RCS <- res$fmin/(ndat-n2) else RCS <- NA
         ###
         LMpars <- cbind(res$pars,res$stdp)
         colnames(LMpars) <- c("Pars","sePars")
         rownames(LMpars) <- (c("a","b","c","d","e"))[seq(n2)]
     } else {
         min_obj <- avg_fit_error <- FOM <- RCS <- NA
-        LMpars <- NULL
+        LMpars <- NA
     } # end if.
     ###
     res_calRcyRcp <- calRcyRcp(Curvedata, Ltx)
@@ -353,7 +373,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
         } # end if.
         ###
         par(mar=c(4,4,2,0.5)+0.1)
-        plot(NA, NA, main=NULL, xlab="Regenerative dose (Gy|s)", 
+        plot(NA, NA, main=NULL, xlab="Regenerative dose (<Gy>|<s>)", 
              ylab="Sensitivity-corrected OSL",
              las=0, cex.lab=1.5, cex.main=1.5, xlim=c(lowerX,upperX),
              ylim=c(lowerY,upperY), xaxs="i", yaxs="i", lab=c(7,7,9))
@@ -423,7 +443,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
         ###
         ###-------------------------------------------------------------------------------------- 
         par(mar=c(4,4,0.5,0.5)+0.1)
-        if (!is.null(LnTn.curve)) {
+        if (!is.null(LnTn.curve) && length(LnTn.curve[["Ln.x"]])>1L) {
             x_max <- max(max(LnTn.curve[["Ln.x"]]), max(LnTn.curve[["Tn.x"]]), na.rm=TRUE)
             y_max <- max(max(LnTn.curve[["Ln.y"]]), max(LnTn.curve[["Tn.y"]]), na.rm=TRUE)
             ###
@@ -523,7 +543,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
                    paste("calED method: ",calED_method, sep=""),
                    paste("MC acceptance-rate: ", ifelse(errMethod=="sp", "NULL",
                          round(acceptRate,2L)), " (%)", sep=""),
-                   paste("ED: ",round(ED,2L), " +/- ",round(seED,2L)," (Gy|s)",sep=""),
+                   paste("ED: ",round(ED,2L), " +/- ",round(seED,2L)," (<Gy>|<s>)",sep=""),
                    paste("RSE of ED: ",round(seED/abs(ED)*100.0,2L)," (%)",sep=""),
                    paste("95% interval: [",round(ConfInt[3L],2L),", ",round(ConfInt[4L],2L),"]", sep=""), 
                    paste("68% interval: [",round(ConfInt[1L],2L),", ",round(ConfInt[2L],2L),"]", sep="")),                    
@@ -566,7 +586,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
                    "=========================",
                    paste("calED method: ",calED_method, sep=""),
                    "MC acceptance-rate: NULL (%)",
-                   paste("ED: ",NA, " +/- ",NA," (Gy|s)",sep=""),
+                   paste("ED: ",NA, " +/- ",NA," (<Gy>|<s>)",sep=""),
                    "RSE of ED: NA (%)",
                    "95% interval: [NA, NA]", 
                    "68% interval: [NA, NA]"),                      
@@ -609,7 +629,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
                    "=========================",
                    paste("calED method: ",calED_method, sep=""),
                    "MC acceptance-rate: NULL (%)",
-                   paste("ED: ",Inf, " +/- ",NA," (Gy|s)",sep=""),
+                   paste("ED: ",Inf, " +/- ",NA," (<Gy>|<s>)",sep=""),
                    "RSE of ED: NA (%)",
                    "95% interval: [-Inf, +Inf]", 
                    "68% interval: [-Inf, +Inf]"),                                
@@ -652,7 +672,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
                   "=========================",
                   paste("calED method: ",calED_method, sep=""),
                   "MC acceptance-rate: NULL (%)",
-                  paste("ED: ",NA, " +/- ",NA," (Gy|s)",sep=""),
+                  paste("ED: ",NA, " +/- ",NA," (<Gy>|<s>)",sep=""),
                   "RSE of ED: NA (%)",
                   "95% interval: [NA, NA]", 
                   "68% interval: [NA, NA]"),                               
@@ -697,7 +717,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
                   "=========================", 
                   paste("calED method: ",calED_method, sep=""),
                   "MC acceptance-rate: <1 (%)",         
-                  paste("ED: ",round(ED,2L), " +/- ",NA," (Gy|s)",sep=""),
+                  paste("ED: ",round(ED,2L), " +/- ",NA," (<Gy>|<s>)",sep=""),
                   "RSE of ED: NA (%)",
                   "95% interval: [NA, NA]", 
                   "68% interval: [NA, NA]"),                          
@@ -711,6 +731,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
     ###--------------------------------------------------------------------------------------
     ###
     output<-list("message"=message,
+                 "fitIDX"=fitIDX,
                  "LMpars"=LMpars, 
                  "value"=min_obj,
                  "avg.error"=avg_fit_error,

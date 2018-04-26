@@ -10,11 +10,11 @@ a combination of differential evolution and Levenberg-Marquardt algorithm sugges
 }
 
 \usage{
-decomp(Sigdata, delay.off = c(0,0), ncomp = 2, constant = TRUE, 
-       typ = "cw", control.args = list(), weight = FALSE, 
-       plot = TRUE, log = "x", lwd = 2, curve.no = NULL, 
-       SAR.Cycle = NULL, irr.dose = NULL, outfile = NULL, 
-       transf = TRUE)
+decomp(Sigdata, delay.off = c(0,0), ncomp = 2, 
+       constant = TRUE, typ = "cw", control.args = list(), 
+       weight = FALSE, plot = TRUE, log = "x", lwd = 2, 
+       curve.no = NULL, SAR.Cycle = NULL, irr.dose = NULL, 
+       outfile = NULL, transf = TRUE)
 }
 
 \arguments{
@@ -114,7 +114,7 @@ Geochronometria, 41(4): 334-341.
 
 
 \note{
-Arguments \code{curve.no}, \code{SAR.Cycle}, and \code{irr.dose} have nothing to do with decay curve fitting.\cr\cr
+Arguments \code{curve.no}, \code{SAR.Cycle}, and \code{irr.dose} have nothing to do with decay curve fitting. They are used only for plotting purpose.\cr\cr
 The model to be optimized should not be underdetermined. This means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, this routine will return an error if any standard errors of parameters cannot be estimated by numerical difference-approximation. Function \code{decompc} in previous versions was bundled to function \link{decomp}.\cr\cr
 We would like to thank Professor Andrzej Bluszcz who helps us a lot during the programming of this function. Dr Jeong-Heon Choi is thanked for providing published data sets to test this routine.
 }

@@ -8,10 +8,10 @@ Annual dose rate (age) calculation
 Calculating the annual dose rate and burial age.
 }
 \usage{
-calDA(dose, minGrainSize, maxGrainSize, Ucontent, Thcontent, Kcontent, 
-      Wct, depth, altitude, latitude, longitude, bulkDensity = 2.5, 
-      alphaValue = 0.03, nsim = 10000, rdcf = 0.05, rba = 0.05, 
-      plot = TRUE)
+calDA(dose, minGrainSize, maxGrainSize, Ucontent, Thcontent, 
+      Kcontent, Wct, depth, altitude, latitude, longitude, 
+      bulkDensity = 2.5, alphaValue = 0.03, nsim = 10000, 
+      rdcf = 0.05, rba = 0.05, plot = TRUE)
 }
 
 \arguments{

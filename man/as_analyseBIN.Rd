@@ -3,11 +3,11 @@
 \alias{as_analyseBIN.default}
 
 \title{
-Transfom data sets into S3 class object "analyseBIN"
+Transfom SAR data sets into S3 class object "analyseBIN"
 }
 
 \description{
-Transfom data sets into S3 class object "analyseBIN"
+Transfom SAR data sets into S3 class object "analyseBIN".
 }
 
 \usage{

@@ -6,15 +6,17 @@
 SAR data set selection
 }
 \description{
-Selecting SAR data sets (growth curves) according to specified rejection criteria.
+Selecting SAR data sets (growth curves) in a batch model according to specified rejection criteria.
 }
 \usage{
 pickSARdata(obj_analyseBIN, model = "gok", origin = FALSE, 
-            weight = TRUE, trial = TRUE, Tn.above.3BG = TRUE, 
-            TnBG.ratio.low = NULL, rseTn.up = NULL, FR.low = NULL, 
-            rcy1.range = NULL, rcy2.range = NULL, rcy3.range = NULL, 
-            rcp1.up = NULL, rcp2.up = NULL, fom.up = NULL, rcs.up = NULL,  
-            use.se = TRUE, norm.dose = NULL, outpdf = NULL, outfile = NULL)
+            weight = TRUE, trial = TRUE, nofit.rgd = NULL, 
+            Tn.above.3BG = TRUE, TnBG.ratio.low = NULL, 
+            rseTn.up = NULL, FR.low = NULL, rcy1.range = NULL, 
+            rcy2.range = NULL, rcy3.range = NULL, 
+            rcp1.up = NULL, rcp2.up = NULL, fom.up = NULL, 
+            rcs.up = NULL, use.se = TRUE, norm.dose = NULL, 
+            outpdf = NULL, outfile = NULL)
 }
 
 \arguments{
@@ -29,6 +31,9 @@ function \link{analyseBINdata} or \link{as_analyseBIN}}
 see function \link{fitGrowth} for details}
 
   \item{trial}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using other models if the given model fails, see function \link{fitGrowth} for details}
+
+   \item{nofit.rgd}{\link{integer}(optional): regenerative doses that will not be used during the fitting. 
+For example, if \code{nofit.rgd=2} then the second regenerative dose will not be used during growth curve fitting}
 
   \item{Tn.above.3BG}{\link{logical}(with default): logical value indicating if aliquot (grain) with Tn below 3 sigma BG should be rejected}
 
@@ -76,6 +81,7 @@ to a CSV file named \code{"outfile"} and saved to the current work directory}
   \item{norm.SARdata}{a \link{data.frame} containing re-normalised SAR data sets,\cr
 it returns \code{NULL} if \code{norm.dose=NULL}}
   \item{agID}{aliquot or grain ID (i.e., \code{c("NO","Position","Grain")}) of selected SAR data}
+  \item{summary.info}{a summary of the SAR data selection}
 }
 
 \seealso{
@@ -94,3 +100,4 @@ it returns \code{NULL} if \code{norm.dose=NULL}}
 
 \keyword{growth curve}
 \keyword{data extraction}
+\keyword{batch analysis}

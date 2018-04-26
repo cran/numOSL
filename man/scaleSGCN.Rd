@@ -7,13 +7,14 @@ Natural-dose signal re-scaling
 }
 
 \description{
-Re-scaling Sensitivity-corrected natural-dose signals according to the "global standardised growth curve" (gSGC) method 
-suggested by Li et al. (2015).
+Re-scaling sensitivity-corrected natural-dose signals according to the "global standardised growth curve" (gSGC) method 
+suggested by Li et al. (2015, 2016).
 }
 
 \usage{
-scaleSGCN(obj_analyseBIN, SGCpars, model, origin, SAR.Cycle, 
-          Tn.above.3BG = TRUE, TnBG.ratio.low = NULL, rseTn.up = NULL, 
+scaleSGCN(obj_analyseBIN, SGCpars, model, origin, 
+          SAR.Cycle, Tn.above.3BG = TRUE, 
+          TnBG.ratio.low = NULL, rseTn.up = NULL, 
           FR.low = NULL, use.se = TRUE, outfile = NULL)
 }
 
@@ -27,7 +28,7 @@ function \link{analyseBINdata} or \link{as_analyseBIN}}
 
   \item{origin}{\link{logical}(\bold{required}): logical value indicating if established SGC passes the origin}
 
-  \item{SAR.Cycle}{\link{character}(with default): a two-element character vector containing SAR cycles used for 
+  \item{SAR.Cycle}{\link{character}(\bold{required}): a two-element character vector containing SAR cycles used for 
 natural-dose signal re-scaling. Example: \code{SAR.Cycle=c("N","R3")}}
 
    \item{Tn.above.3BG}{\link{logical}(with default): logical value indicating if aliquot (grain) with Tn below 3 sigma BG should be rejected}

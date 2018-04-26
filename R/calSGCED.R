@@ -6,7 +6,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
          use.se=TRUE, outpdf=NULL, outfile=NULL) {
     UseMethod("calSGCED")
 } ###
-### 2017.05.18. 
+### 2018.04.26. 
 calSGCED.default <-
 function(obj_analyseBIN, SGCpars, model, origin, avgDev, 
          method="SGC", SAR.Cycle="N", errMethod="sp", Tn.above.3BG=TRUE, 
@@ -118,9 +118,12 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
                         (is.null(LnTn.curve)) && (is.null(TxTn))
     ###
     ### Apply signal related rejection criteria. 
-    ###------------------------------------------------------------------
+    ###******************************************************************************************
+    ###
     if (is_forced_object==FALSE) { 
-        ### No se consideration.
+        ###
+        ###-------------------------------------------------------------------------
+        ### Tn above 3sigma BG: no se consideration.
         if (Tn.above.3BG==TRUE) {
             all_value <- criteria[,"Tn3BG",drop=TRUE]
             ###
@@ -145,9 +148,12 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
         } else {
             Tn3BG_reject <- NULL
         } # end if.
+        ###-------------------------------------------------------------------------
         ###
 
-        ### Have se consideration.
+        ###
+        ###-------------------------------------------------------------------------
+        ### Ratio of Tn to BG: Have se consideration.
         if (!is.null(TnBG.ratio.low)) {
             all_value <- criteria[,"TnBG.ratio",drop=TRUE]
             ###
@@ -177,9 +183,12 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
         } else {
             TnBG.ratio_reject <- NULL
         } # end if.
+        ###-------------------------------------------------------------------------
         ###
 
-        ### No se consideration.
+        ###
+        ###-------------------------------------------------------------------------
+        ### Relative standard error of Tn: no se consideration.
         if (!is.null(rseTn.up)) {
             all_value <- criteria[,"rseTn",drop=TRUE]
             ###
@@ -204,9 +213,12 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
         } else {
             rseTn_reject <- NULL
         } # end if.
+        ###-------------------------------------------------------------------------
         ###
 
-        ### Have se consideration.
+        ###
+        ###-------------------------------------------------------------------------
+        ### Fast ratio: have se consideration.
         if (!is.null(FR.low)) {
             all_value <- criteria[,"FR",drop=TRUE]
             ###
@@ -243,8 +255,12 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
             cat("Note: signal-related rejection criteria cannot be applied!\n")
         } # end if.
     } # end if.
-    ###---------------------------------------------------------------------
+    ###-------------------------------------------------------------------------
+    ###
+    ###******************************************************************************************
+    ###
 
+    ###
     ###
     cst <- ifelse(origin==TRUE, 0, SGCpars[length(SGCpars)])
     fcn <- function(x) {
@@ -342,7 +358,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
     ###
 
     ### 
-    acceptNO <- acceptPosition <- acceptGrain <-  
+    passNO <- passPosition <- passGrain <-  
     Tn_vec <- seTn_vec <- Tn3BG_vec <- TnBG.ratio_vec <- 
     seTnBG.ratio_vec <- rseTn_vec <- FR_vec <- seFR_vec <- 
     ScaleLtx_vec <- seScaleLtx_vec <- ED_vec <- seED_vec <- rseED_vec <- 
@@ -353,6 +369,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
     ###
     ###
     nsim <- 600L
+    ###
     ###
     for (i in seq(n)) {     
         LxTx_seLxTx <- ScaledNaturalSignal[i,,drop=FALSE]
@@ -375,9 +392,9 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
         if (message==0L) {
             ###
             ### Both SGC ED calculation and error assessment succeed.
-            acceptNO <- c(acceptNO, NO[i])
-            acceptPosition <- c(acceptPosition, Position[i])
-            acceptGrain <- c(acceptGrain, Grain[i])
+            passNO <- c(passNO, NO[i])
+            passPosition <- c(passPosition, Position[i])
+            passGrain <- c(passGrain, Grain[i])
             ###
             Tn_vec <- c(Tn_vec, if(!is.null(Tn)) Tn[i,"Tn",drop=TRUE] else NA)
             seTn_vec <- c(seTn_vec, if(!is.null(Tn)) Tn[i,"seTn",drop=TRUE] else NA)
@@ -425,7 +442,9 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
             ###
         } # end if.
         ###
-        ###===================================================================================
+
+        ###
+        ###
         if (!is.null(outpdf)) {
             layout(matrix(c(1L,1L,2L,1L,1L,2L,3L,3L,3L),nrow=3L), respect=TRUE)
             par(mgp=c(2.5,1,0))
@@ -444,7 +463,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
             ###
             par(mar=c(4,4,2,0.5)+0.1)
             plot(NA, NA, main=NULL, xlim=c(lowerX, upperX),  
-                 ylim=c(lowerY, upperY), xlab="Regenerative dose (Gy|s)", 
+                 ylim=c(lowerY, upperY), xlab="Regenerative dose (<Gy>|<s>)", 
                  ylab=ifelse(method=="gSGC","Normalised standardised OSL","Standardised OSL"),
                  las=0, cex.lab=1.25, cex.main=1.05, xaxs="i", yaxs="i")
             x <- NULL
@@ -496,7 +515,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
             box(lwd=1)
             ###-------------------------------------------------------------------------------------- 
             par(mar=c(4,4,0.5,0.5)+0.1)
-            if (!is.null(LnTn.curve)) {
+            if (!is.null(LnTn.curve) && length(LnTn.curve[[i]][["Ln.x"]])>1L) {
                 x_max <- max(max(LnTn.curve[[i]][["Ln.x"]]), max(LnTn.curve[[i]][["Tn.x"]]), na.rm=TRUE)
                 y_max <- max(max(LnTn.curve[[i]][["Ln.y"]]), max(LnTn.curve[[i]][["Tn.y"]]), na.rm=TRUE)
                 ###
@@ -553,7 +572,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
                        paste("Fit model: ", model, sep=""),
                        paste("Pass origin: ", origin, sep=""),
                        "========================",
-                       paste("ED: ",round(res$outDose[1L],2L), " +/- ",round(res$outDose[2L],2L)," (Gy|s)",sep=""), 
+                       paste("ED: ",round(res$outDose[1L],2L), " +/- ",round(res$outDose[2L],2L)," (<Gy>|<s>)",sep=""), 
                        paste("RSE of ED: ",round(res$outDose[2L]/abs(res$outDose[1L])*100.0,2L), " (%)",sep=""),
                        paste("95% interval: [",round(i_ConfInt[3L],2L),", ",round(i_ConfInt[4L],2L),"]", sep=""), 
                        paste("68% interval: [",round(i_ConfInt[1L],2L),", ",round(i_ConfInt[2L],2L),"]", sep=""),
@@ -582,7 +601,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
                        paste("Fit model: ", model, sep=""),
                        paste("Pass origin: ", origin, sep=""),
                        "========================",
-                       paste("ED: ",Inf, " +/- ",NA," (Gy|s)",sep=""), 
+                       paste("ED: ",Inf, " +/- ",NA," (<Gy>|<s>)",sep=""), 
                        "RSE of ED: NA (%)",  
                        "95% interval: [-Inf, +Inf]", 
                        "68% interval: [-Inf, +Inf]",  
@@ -611,7 +630,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
                        paste("Fit model: ", model, sep=""),
                        paste("Pass origin: ", origin, sep=""), 
                        "========================",               
-                       paste("ED: ",NA, " +/- ",NA," (Gy|s)",sep=""), 
+                       paste("ED: ",NA, " +/- ",NA," (<Gy>|<s>)",sep=""), 
                        "RSE of ED: NA (%)", 
                        "95% interval: [NA, NA]", 
                        "68% interval: [NA, NA]",   
@@ -640,7 +659,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
                        paste("Fit model: ", model, sep=""),
                        paste("Pass origin: ", origin, sep=""),
                        "========================",
-                       paste("ED: ",round(res$outDose[1L],2L), "+/-",NA," (Gy|s)",sep=""), 
+                       paste("ED: ",round(res$outDose[1L],2L), "+/-",NA," (<Gy>|<s>)",sep=""), 
                        "RSE of ED: NA (%)", 
                        "95% interval: [NA, NA]", 
                        "68% interval: [NA, NA]",   
@@ -649,15 +668,71 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
             } # end if.
             ###
         } # end if.
-        ###===================================================================================
+        ###
         ###
     } # end for.
     ###
     ###
+
+    ###
     if (!is.null(outpdf)) dev.off()
     ###
-    if (!is.null(acceptNO)) {
-        SGCED.table <- data.frame("NO"=acceptNO, "Position"=acceptPosition, "Grain"=acceptGrain,
+
+    ###
+    ###-------------------------------------------------------------------------------
+    ### Fliter on saturated natural signals.
+    action_character <- c(action_character, 
+        "Function calSGCED(): saturated in Ln/Tn")
+    ###
+    if (!is.null(saturate_ID)) {
+        reject_N <- nrow(saturate_ID)
+        step_reject_N <- c(step_reject_N, reject_N)
+        saturate_reject <- apply(saturate_ID, MARGIN=1L, NPG)
+    } else {
+        step_reject_N <- c(step_reject_N, 0L)
+        saturate_reject <- NULL
+    } # end if.
+    ###-------------------------------------------------------------------------------
+    ###
+
+    ###
+    ###-------------------------------------------------------------------------------
+    ### Fliter on ED calculation fails.
+    action_character <- c(action_character, 
+        "Function calSGCED(): failed in ED calculation")
+    ###
+    if (!is.null(failED_ID)) {
+        reject_N <- nrow(failED_ID)
+        step_reject_N <- c(step_reject_N, reject_N)
+        failED_reject <- apply(failED_ID, MARGIN=1L, NPG)
+    } else {
+        step_reject_N <- c(step_reject_N, 0L)
+        failED_reject <- NULL
+    } # end if.
+    ###-------------------------------------------------------------------------------
+    ###
+
+    ###
+    ###-------------------------------------------------------------------------------
+    ### Fliter on ED error estimation fails.
+    action_character <- c(action_character, 
+        "Function calSGCED(): failed in ED error estimation")
+    ###
+    if (!is.null(failEDError_ID)) {
+        reject_N <- nrow(failEDError_ID)
+        step_reject_N <- c(step_reject_N, reject_N)
+        failEDError_reject <- apply(failEDError_ID, MARGIN=1L, NPG)
+    } else {
+        step_reject_N <- c(step_reject_N, 0L)
+        failEDError_reject <- NULL
+    } # end if.
+    ###-------------------------------------------------------------------------------
+    ###
+
+    ###
+    ###*****************************************************************************************************
+    if (!is.null(passNO)) {
+        SGCED.table <- data.frame("NO"=passNO, "Position"=passPosition, "Grain"=passGrain,
                        "Tn"=Tn_vec, "seTn"=seTn_vec, "Tn3BG"=Tn3BG_vec, "TnBG.ratio"=TnBG.ratio_vec, 
                        "seTnBG.ratio"=seTnBG.ratio_vec, "rseTn"=rseTn_vec, "FR"=FR_vec, "seFR"=seFR_vec, 
                        "ScaleLtx"=ScaleLtx_vec, "seScaleLtx"=seScaleLtx_vec,
@@ -666,11 +741,12 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
                        "lower95"=lower95_vec, "upper95"=upper95_vec,
                        stringsAsFactors=FALSE)
         ###
-        agID <- cbind("NO"=acceptNO, "Position"=acceptPosition, "Grain"=acceptGrain)
+        agID <- cbind("NO"=passNO, "Position"=passPosition, "Grain"=passGrain)
         ###
 
         ###
-        ### No se consideration.
+        ###-------------------------------------------------------------------------------
+        ### Relative standard error of ED: no se consideration.
         if (!is.null(rseED.up)) {
             all_value <- SGCED.table[,"rseED",drop=TRUE]
             ###
@@ -692,7 +768,9 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
         } else {
             rseED_reject <- NULL
         } # end if.
+        ###-------------------------------------------------------------------------------
         ###
+
         ###
         if (!is.null(outfile)) write.csv(SGCED.table, file=paste(outfile,".csv",sep=""))
         ###
@@ -710,15 +788,21 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
                        "ConfInt"=ConfInt,
                        "agID"=agID)
     } # end if.
+    ###*****************************************************************************************************
     ###
-    ###------------------------------------------------------
+
+    ###
+    ###-----------------------------------------------------------------------------------------
     if (is_forced_object==FALSE) { 
+        ###
         if (length(Tn3BG_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
             print(Tn3BG_reject)
             cat("\n")
         } # end if.
+        ###
+
         ###
         if (length(TnBG.ratio_reject)>0L) {
             cat("\n")
@@ -727,6 +811,8 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
             cat("\n")
         } # end if.
         ###
+
+        ###
         if (length(rseTn_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [rseTn]:\n")
@@ -734,6 +820,8 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
             cat("\n")
         } # end if.
         ### 
+
+        ###
         if (length(FR_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [FR]:\n")
@@ -742,59 +830,67 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
         } # end if.
         ###
     } # end if.
-    ###------------------------------------------------------
+    ###-----------------------------------------------------------------------------------------
     ###
-    ###------------------------------------------------------
-    if (!is.null(acceptNO)) {
+
+    ###
+    ###-----------------------------------------------------------------------------
+    if (!is.null(saturate_ID)) {
+        cat("\n")
+        cat("Function calSGCED(): aliquot (grain) ID saturated in Ln/Tn:\n")
+        print(saturate_reject)
+        cat("\n")
+    } # end if.
+    ###
+
+    ###
+    if (!is.null(failED_ID)) {
+        cat("\n")
+        cat("Function calSGCED(): aliquot (grain) ID failed in ED calculation:\n")
+        print(failED_reject)
+        cat("\n")
+    } # end if.
+    ###
+
+    ###
+    if (!is.null(failEDError_ID)) {
+        cat("\n")
+        cat("Function calSGCED(): aliquot (grain) ID failed in ED error estimation:\n")
+        print(failEDError_reject)
+        cat("\n")
+    } # end if.
+    ###-----------------------------------------------------------------------------
+    ###
+
+    ###
+    ###-----------------------------------------------------------------------------
+    if (!is.null(passNO)) {
+        ###
         if (length(rseED_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [rseED]:\n")
             print(rseED_reject)
             cat("\n")
         } # end if.
+        ###
     } # end if.
-    ###--------------------------------------------------------
+    ###-----------------------------------------------------------------------------
     ###
-    if (!is.null(saturate_ID)) {
-        cat("\n")
-        cat("Aliquot (grain) ID saturated in Ln/Tn:\n")
-        print(apply(saturate_ID, MARGIN=1L, NPG))
-        cat("\n")
-    } # end if.
-    ###
-    if (!is.null(failED_ID)) {
-        cat("\n")
-        cat("Aliquot (grain) ID failed in ED calculation:\n")
-        print(apply(failED_ID, MARGIN=1L, NPG))
-        cat("\n")
-    } # end if.
-    ###
-    ###
-    if (!is.null(failEDError_ID)) {
-        cat("\n")
-        cat("Aliquot (grain) ID failed in ED error estimation:\n")
-        print(apply(failEDError_ID, MARGIN=1L, NPG))
-        cat("\n")
-    } # end if.
-    ###
+   
     action_character <- c(action_character,
-                          "Saturated in Ln/Tn",
-                          "Failed in ED calculation",
-                          "Failed in ED error estimation",
                           "Total number of rejected aliquots (grains)",
                           "Total number of accepted aliquots (grains)")
     ###
     step_reject_N <- c(step_reject_N,
-                       ifelse(is.null(saturate_ID), 0L, nrow(saturate_ID)),
-                       ifelse(is.null(failED_ID), 0L, nrow(failED_ID)),
-                       ifelse(is.null(failEDError_ID), 0L, nrow(failEDError_ID)),
-                       ifelse(is.null(acceptNO), nag, nag-nrow(agID)), 
-                       ifelse(is.null(acceptNO), 0L, nrow(agID)))
+                       ifelse(is.null(passNO), nag, nag-nrow(agID)), 
+                       ifelse(is.null(passNO), 0L, nrow(agID)))
     ###
     summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
     print(summary_info)
     ###
-    if (!is.null(acceptNO)) {
+    output$summary.info <- summary_info
+    ###
+    if (!is.null(passNO)) {
         return(invisible(output))
     } else {
         return(invisible(NULL))

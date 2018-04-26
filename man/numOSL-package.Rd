@@ -9,15 +9,15 @@ Package for routine numeric optimization and data visualization in optically sti
 \tabular{ll}{
 Package: \tab numOSL\cr
 Type: \tab Package\cr
-Version: \tab 2.3\cr
-Date: \tab 2017-05-18\cr
+Version: \tab 2.4\cr
+Date: \tab 2018-04-26\cr
 License: \tab GPL-3\cr
 }
 }
 \author{
 \tabular{ll}{
-Jun Peng \tab University of Chinese Academy of Sciences, Beijing, China \cr
-Bo Li \tab University of Wollongong, Wollongong, Australia
+Jun Peng \tab Hunan University of Science and Technology (HNUST), Xiangtan, China \cr
+Bo Li \tab University of Wollongong (UOW), Wollongong, Australia
 }
 
 \bold{Package maintainer}\cr
@@ -32,11 +32,15 @@ R package tgcd
 }
 \references{
 Peng J, Dong ZB, Han FQ, Long H, Liu XJ, 2013. R package numOSL: numeric routines for optically stimulated luminescence dating. Ancient TL, 31(2): 41-48.
+
+Peng J, Li Bo, 2017. Single-aliquot Regenerative-Dose (SAR) and Standardised Growth Curve (SGC) Equivalent Dose Determination in a Batch Model Using the R Package 'numOSL'. Ancient TL, 35(2): 32-53.
 }
 \keyword{OSL dating}
 \keyword{BIN file}
-\keyword{statistical age models}
 \keyword{decay curve}
 \keyword{growth curve}
 \keyword{equivalent dose}
+\keyword{batch analysis}
+\keyword{statistical age models}
 \keyword{dose rate}
+

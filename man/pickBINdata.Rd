@@ -9,12 +9,14 @@ BIN data set selection
 Extracting data sets from a loaded BIN (BINX) file. 
 }
 \usage{
-pickBINdata(obj_loadBIN, Position = NULL, Grain = NULL, Run = NULL, 
-            Set = NULL, DType = NULL, IRRTime = NULL, NPoints = NULL,
-            LType = NULL, Low = NULL, High = NULL, Rate = NULL, 
-            Temperature = NULL, Delay = NULL, On = NULL, Off = NULL,
-            LightSource = NULL, AnTemp = NULL, TimeSinceIrr = NULL, 
-            view = TRUE, manual.select = FALSE, force.matrix = FALSE)
+pickBINdata(obj_loadBIN, Position = NULL, Grain = NULL, 
+            Run = NULL, Set = NULL, DType = NULL, 
+            IRRTime = NULL, NPoints = NULL, LType = NULL, 
+            Low = NULL, High = NULL, Rate = NULL, 
+            Temperature = NULL, Delay = NULL, On = NULL, 
+            Off = NULL, LightSource = NULL, AnTemp = NULL, 
+            TimeSinceIrr = NULL, view = TRUE, 
+            manual.select = FALSE, force.matrix = FALSE)
 }
 
 

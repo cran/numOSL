@@ -13,5 +13,16 @@ citEntry(entry="Article",
          number = 2,
          pages = "41-48",
          url = "https://CRAN.R-project.org/package=numOSL",
-         pdf = "www.aber.ac.uk/en/media/departmental/iges/ancienttl/pdf/vol31no2/peng_atl_31(2)_41.pdf",
          textVersion = "Peng J, Dong ZB, Han FQ, Long H, Liu XJ, 2013. R package numOSL: numeric routines for optically stimulated luminescence dating. Ancient TL, 31(2): 41-48")
+
+citEntry(entry="Article",
+         title = "Single-aliquot Regenerative-Dose (SAR) and Standardised Growth Curve (SGC) Equivalent Dose Determination in a Batch Model Using the R Package 'numOSL'",
+         author = personList(as.person("Peng J"),
+         as.person("Li B")),
+	 journal = "Ancient TL",
+         year = 2017,
+         volume = 35,
+         number = 2,
+         pages = "32-53",
+         url = "https://CRAN.R-project.org/package=numOSL",
+         textVersion = "Peng J, Li Bo, 2017. Single-aliquot Regenerative-Dose (SAR) and Standardised Growth Curve (SGC) Equivalent Dose Determination in a Batch Model Using the R Package 'numOSL'. Ancient TL, 35(2): 32-53.")

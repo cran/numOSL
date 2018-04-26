@@ -1,17 +1,17 @@
 #####
 fastED <-
-function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
-         control.args=list(), typ="cw", model="gok", origin=FALSE, 
-         errMethod="sp",nsim=500, weight.decomp=FALSE, weight.fitGrowth=TRUE, 
-         trial=TRUE, outpdf=NULL, log="x", lwd=2, test.dose=NULL, agID=NULL) {
+function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args=list(), 
+         typ="cw", model="gok", origin=FALSE, errMethod="sp",nsim=500, weight.decomp=FALSE, 
+         weight.fitGrowth=TRUE, trial=TRUE, nofit.rgd=NULL, outpdf=NULL, log="x", lwd=2, 
+         test.dose=NULL, agID=NULL) {
     UseMethod("fastED")
 } ###
-### 2017.05.15.
+### 2018.04.23.
 fastED.default <-
-function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
-         control.args=list(), typ="cw", model="gok", origin=FALSE, 
-         errMethod="sp",nsim=500, weight.decomp=FALSE, weight.fitGrowth=TRUE, 
-         trial=TRUE, outpdf=NULL, log="x", lwd=2, test.dose=NULL, agID=NULL) {
+function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args=list(), 
+         typ="cw", model="gok", origin=FALSE, errMethod="sp",nsim=500, weight.decomp=FALSE, 
+         weight.fitGrowth=TRUE, trial=TRUE, nofit.rgd=NULL, outpdf=NULL, log="x", lwd=2, 
+         test.dose=NULL, agID=NULL) {
     ### Stop if not.
     stopifnot(ncol(Sigdata)>=5L, ncol(Sigdata)%%2L==1L,
               is.numeric(Redose), all(Redose>=0),
@@ -28,6 +28,7 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
               length(weight.decomp)==1L, is.logical(weight.decomp),
               length(weight.fitGrowth)==1L, is.logical(weight.fitGrowth),
               length(trial)==1L, is.logical(trial),
+              is.null(nofit.rgd) || is.numeric(nofit.rgd),
               is.null(outpdf) || (length(outpdf)==1L && is.character(outpdf)),
               length(log)==1L, log %in% c("", "x", "y", "xy", "yx"),
               length(lwd)==1L, is.numeric(lwd),
@@ -147,8 +148,9 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
     ###
     res <- try(calED(Curvedata=Curvedata, Ltx=Nature_LxTx, model=model, origin=origin, 
                      errMethod=errMethod, nsim=nsim, weight=weight.fitGrowth, trial=trial, 
-                     plot=if_plot, agID=agID, Tn=NULL, Tn3BG=NULL, TnBG.ratio=NULL, rseTn=NULL,     
-                     FR=NULL, LnTn.curve=LnTn.curve, TxTn=TxTn_vec), silent=TRUE)
+                     plot=if_plot, nofit.rgd=nofit.rgd, agID=agID, Tn=NULL, Tn3BG=NULL, 
+                     TnBG.ratio=NULL, rseTn=NULL, FR=NULL, LnTn.curve=LnTn.curve, TxTn=TxTn_vec), 
+                     silent=TRUE)
     ###
     if (!is.null(outpdf)) dev.off() 
     ### 
@@ -158,7 +160,7 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE,
     } # end if.
     ###
     output <- list("decomp.pars"=decomp_pars,
-                   "Curvedata"=Curvedata, 
+                   "Curvedata"=Curvedata[res$fitIDX,], 
                    "Ltx"=Nature_LxTx, 
                    "LMpars"=res$LMpars, 
                    "value"=res$value, 

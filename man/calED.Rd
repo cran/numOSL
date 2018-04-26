@@ -13,10 +13,10 @@ Calculating an equivalent dose and assessing its standard error.
 \usage{
 calED(Curvedata, Ltx, model = "gok", origin = FALSE, 
       errMethod = "sp", nsim = 500, weight = TRUE,  
-      trial = FALSE, plot = TRUE, agID = NULL, 
-      Tn = NULL, Tn3BG = NULL, TnBG.ratio = NULL, 
-      rseTn = NULL, FR = NULL, LnTn.curve = NULL, 
-      TxTn = NULL)
+      trial = FALSE, plot = TRUE, nofit.rgd = NULL, 
+      agID = NULL, Tn = NULL, Tn3BG = NULL, 
+      TnBG.ratio = NULL, rseTn = NULL, FR = NULL, 
+      LnTn.curve = NULL, TxTn = NULL)
 }
 
 \arguments{
@@ -40,6 +40,9 @@ natural-dose signal and its error}
   \item{trial}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using other models if the given model fails, see function \link{fitGrowth} for details}
 
   \item{plot}{\link{logical}(with default): logical value indicating if the results should be plotted}
+
+  \item{nofit.rgd}{\link{integer}(optional): regenerative doses that will not be used during the fitting. 
+For example, if \code{nofit.rgd=1} then the first regenerative dose will not be used during growth curve fitting}
  
   \item{agID}{\link{vector}(optional): a three-elemenet vector indicating aliquot (grain) ID, i.e.,\cr
 \code{agID[1]=NO}, \code{agID[2]=Position}, \code{agID[3]=Grain}}
@@ -74,6 +77,7 @@ Interpolation is performed using a combination of golden section search and succ
 Return an invisible \link{list} that contains the following elements:
   \item{message}{return 0 if calculation succeeds, 1 if growth curve fitting fails, 2 if natural-dose signal saturates, 
 3 if equivalent dose calculation fails, 4 if equivalent dose error assessment fails}
+  \item{fitIDX}{Indices of dose points used in growth curve fitting}
   \item{LMpars}{optimized parameters for the growth curve}
   \item{value}{minimized objective for the growth curve}
   \item{avg.error}{average fit error for the growth curve}
@@ -109,9 +113,9 @@ Galbraith RF, Roberts RG, 2012. Statistical aspects of equivalent dose and error
 
 \note{
 Arguments \code{agID}, \code{Tn}, \code{Tn3BG}, \code{TnBG.ratio}, \code{rseTn}, \code{FR}, \code{LnTn.curve}, 
-and \code{TxTn} have nothing to do with equivalent dose calculation.\cr\cr
+and \code{TxTn} have nothing to do with equivalent dose calculation. They are used only for plotting purpose.\cr\cr
 Argument \code{Tn3BG} indicates if Tn (after background subtraction) is more than 3 sigma above BG, while argument \code{TnBG.ratio} denotes the ratio of Tn (no background subtraction) to BG.\cr\cr
-Function \link{calED} will return \code{message=3} (i.e.,\code{"Failed in equivalent dose calculation"}) if the equivalent dose to be calculated below -50 (Gy|s).\cr\cr
+Function \link{calED} will return \code{message=3} (i.e.,\code{"Failed in equivalent dose calculation"}) if the equivalent dose to be calculated below -50 (<Gy>|<s>).\cr\cr
 68 percent (one sigma) and 95 percent (two sigma) confidence intervals of equivalent doses will be determined respectively using normal approximation and Monte Carlo simulation,\cr
 for \code{errMethod="sp"} and \code{errMethod="mc"}.\cr\cr
 Function \code{sgcED} in previous versions was bundled to function \link{calSGCED}.
