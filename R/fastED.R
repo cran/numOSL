@@ -6,7 +6,7 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args
          test.dose=NULL, agID=NULL) {
     UseMethod("fastED")
 } ###
-### 2018.04.23.
+### 2018.05.18.
 fastED.default <-
 function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args=list(), 
          typ="cw", model="gok", origin=FALSE, errMethod="sp",nsim=500, weight.decomp=FALSE, 
@@ -34,8 +34,6 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args
               length(lwd)==1L, is.numeric(lwd),
               is.null(test.dose) || (length(test.dose)==1L && is.numeric(test.dose)),
               is.null(agID) || (length(agID)==3L && is.numeric(agID)))
-    ###
-    if (any(Sigdata[,,drop=TRUE]<=0)) stop("Error: values in 'Sigdata' should larger than zero!")
     ###
     if (length(Redose)!=(ncol(Sigdata)-3L)/2L) stop("Error: incorrect length of 'Redose'!")
     ###

@@ -6,7 +6,7 @@ function(EDdata, ncomp=0, addsigma=0,
          kratio=0.3, zscale=NULL) {
     UseMethod("RadialPlotter")
 } #
-### 2014.10.01.
+### 2018.05.18.
 RadialPlotter.default<-
 function(EDdata, ncomp=0, addsigma=0,
          maxcomp=6, algorithm=c("port","lbfgsb"),
@@ -18,7 +18,7 @@ function(EDdata, ncomp=0, addsigma=0,
               all(EDdata[,2L,drop=TRUE]>0),
               length(ncomp)==1L, is.numeric(ncomp),
               length(addsigma)==1L, addsigma>=0,
-              length(maxcomp)==1L, maxcomp>=2L, maxcomp<=9L,
+              length(maxcomp)==1L, maxcomp>=2L, maxcomp<=13L,
               ncomp %in% (-2L:maxcomp),
               is.character(algorithm),
               all(algorithm %in% c("lbfgsb","port")),

@@ -8,7 +8,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
          use.se=TRUE, outpdf=NULL, outfile=NULL) {
     UseMethod("calSARED")
 } #
-### 2018.04.26.
+### 2018.05.18.
 calSARED.default <-
 function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
          nsim=500, weight=TRUE, trial=TRUE, nofit.rgd=NULL, Tn.above.3BG=TRUE, 
@@ -117,15 +117,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             ###
             select_index <- which(all_value==1L)
             ###
-            if (length(select_index)==0L) {
-                stop("Error: no acceptable SAR ED if [Tn.above.3BG] is applied!")
-            } # end if.
-            ###
             reject_N <- nrow(criteria) - length(select_index)
             ###
             action_character <- c(action_character, 
                 "Rejection criterion: Tn below 3 sigma BG")
             step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            if (length(select_index)==0L) {
+                 ###
+                 cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+                 ###
+                 action_character <- c(action_character,
+                     "Total number of rejected aliquots (grains)",
+                     "Total number of accepted aliquots (grains)")
+                 ###
+                 step_reject_N <- c(step_reject_N, nag, 0L)
+                 ###
+                 summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                 ###
+                 print(summary_info)
+                 ###
+                 return(invisible(summary_info))
+            } # end if.
             ###
             criteria <- criteria[select_index,,drop=FALSE]
             Tn <- Tn[select_index,,drop=FALSE]
@@ -153,15 +166,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
                 select_index <- which(all_value+sigma*all_se_value>TnBG.ratio.low)
             } # end if.
             ###
-            if (length(select_index)==0L) {
-                stop("Error: no acceptable SAR ED if [TnBG.ratio.low] is applied!")
-            } # end if.
-            ###
             reject_N <- nrow(criteria) - length(select_index)
             ###
             action_character <- c(action_character, 
                 paste("Rejection criterion: ratio of Tn to BG below ", TnBG.ratio.low, sep=""))
             step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            if (length(select_index)==0L) {
+                ###
+                cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+                ###
+                action_character <- c(action_character,
+                     "Total number of rejected aliquots (grains)",
+                     "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
             ###
             criteria <- criteria[select_index,,drop=FALSE]
             Tn <- Tn[select_index,,drop=FALSE]
@@ -184,15 +210,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             ###
             select_index <- which(abs(all_value)<rseTn.up)
             ###
-            if (length(select_index)==0L) {
-                stop("Error: no acceptable SAR ED if [rseTn.up] is applied!")
-            } # end if.
-            ###
             reject_N <- nrow(criteria) - length(select_index)
             ###
             action_character <- c(action_character, 
                 paste("Rejection criterion: RSE of Tn exceeds ", rseTn.up, "%", sep=""))
             step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            if (length(select_index)==0L) {
+                ###
+                cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+                ###
+                action_character <- c(action_character,
+                     "Total number of rejected aliquots (grains)",
+                     "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
             ###
             criteria <- criteria[select_index,,drop=FALSE]
             Tn <- Tn[select_index,,drop=FALSE]
@@ -220,15 +259,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
                 select_index <- which(all_value+sigma*all_se_value>FR.low)
             } # end if.
             ###
-            if (length(select_index)==0L) {
-                stop("Error: no acceptable SAR ED if [FR.low] is applied!")
-            } # end if.
-            ###
             reject_N <- nrow(criteria) - length(select_index)
             ###
             action_character <- c(action_character, 
                 paste("Rejection criterion: fast ratio of Tn below ", FR.low, sep=""))
             step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            if (length(select_index)==0L) {
+                ###
+                cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+                ###
+                action_character <- c(action_character,
+                     "Total number of rejected aliquots (grains)",
+                     "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
             ### 
             criteria <- criteria[select_index,,drop=FALSE]
             Tn <- Tn[select_index,,drop=FALSE]
@@ -296,16 +348,29 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
                                   is.na(all_value))
         } # end if.
         ###
-        if (length(select_index)==0L) {
-            stop("Error: no acceptable SAR ED if [rcy1.range] is applied!")
-        } # end if.
-        ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
         action_character <- c(action_character, 
             paste("Rejection criterion: recycling ratio 1 outsides [",
             rcy1.range[1L], ",",rcy1.range[2L],"]", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        if (length(select_index)==0L) {
+            ###
+            cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+            ###
+            action_character <- c(action_character,
+                 "Total number of rejected aliquots (grains)",
+                 "Total number of accepted aliquots (grains)")
+            ###
+            step_reject_N <- c(step_reject_N, nag, 0L)
+            ###
+            summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+            ###
+            print(summary_info)
+            ###
+            return(invisible(summary_info))
+        } # end if.
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
         ###
@@ -338,16 +403,29 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
                                   (all_value+sigma*all_se_value>rcy2.range[1L] & all_value+sigma*all_se_value<rcy2.range[2L]) |
                                   is.na(all_value))
         } # end if.  
-        ###
-        if (length(select_index)==0L) {
-            stop("Error: no acceptable SAR ED if [rcy2.range] is applied!")
-        } # end if.
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
         action_character <- c(action_character, 
             paste("Rejection criterion: recycling ratio 2 outsides [",
             rcy2.range[1L], ",",rcy2.range[2L],"]", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        if (length(select_index)==0L) {
+            ###
+            cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+            ###
+            action_character <- c(action_character,
+                 "Total number of rejected aliquots (grains)",
+                 "Total number of accepted aliquots (grains)")
+            ###
+            step_reject_N <- c(step_reject_N, nag, 0L)
+            ###
+            summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+            ###
+            print(summary_info)
+            ###
+            return(invisible(summary_info))
+        } # end if.
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
         ###
@@ -381,16 +459,29 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
                                   is.na(all_value))
         } # end if. 
         ###
-        if (length(select_index)==0L) {
-            stop("Error: no acceptable SAR ED if [rcy3.range] is applied!")
-        } # end if.
-        ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
         action_character <- c(action_character, 
             paste("Rejection criterion: recycling ratio 3 outsides [",
             rcy3.range[1L], ",",rcy3.range[2L],"]", sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        if (length(select_index)==0L) {
+            ###
+            cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+            ###
+            action_character <- c(action_character,
+                 "Total number of rejected aliquots (grains)",
+                 "Total number of accepted aliquots (grains)")
+            ###
+            step_reject_N <- c(step_reject_N, nag, 0L)
+            ###
+            summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+            ###
+            print(summary_info)
+            ###
+            return(invisible(summary_info))
+        } # end if.
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
         ###
@@ -424,15 +515,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
                                   is.na(all_value))
         } # end if.
         ###
-        if (length(select_index)==0L) {
-            stop("Error: no acceptable SAR ED if [rcp1.up] is applied!")
-        } # end if.
-        ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
         action_character <- c(action_character, 
             paste("Rejection criterion: recuperation 1 exceeds ", rcp1.up, "%",sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        if (length(select_index)==0L) {
+            ###
+            cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+            ###
+            action_character <- c(action_character,
+                 "Total number of rejected aliquots (grains)",
+                 "Total number of accepted aliquots (grains)")
+            ###
+            step_reject_N <- c(step_reject_N, nag, 0L)
+            ###
+            summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+            ###
+            print(summary_info)
+            ###
+            return(invisible(summary_info))
+        } # end if.
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
         ###
@@ -466,15 +570,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
                                   is.na(all_value))
         } # end if.
         ###
-        if (length(select_index)==0L) {
-            stop("Error: no acceptable SAR ED if [rcp2.up] is applied!")
-        } # end if.
-        ###
         reject_N <- nrow(RcyRcp_mat) - length(select_index)
         ###
         action_character <- c(action_character, 
             paste("Rejection criterion: recuperation 2 exceeds ", rcp2.up, "%",sep=""))
         step_reject_N <- c(step_reject_N, reject_N)
+        ###
+        if (length(select_index)==0L) {
+            ###
+            cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+            ###
+            action_character <- c(action_character,
+                 "Total number of rejected aliquots (grains)",
+                 "Total number of accepted aliquots (grains)")
+            ###
+            step_reject_N <- c(step_reject_N, nag, 0L)
+            ###
+            summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+            ###
+            print(summary_info)
+            ###
+            return(invisible(summary_info))
+        } # end if.
         ###
         RcyRcp_mat <- RcyRcp_mat[select_index,,drop=FALSE]
         ###
@@ -699,6 +816,21 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             ### 
             step_reject_N <- c(step_reject_N, reject_N)
             ###
+            if (length(select_index)==0L) {
+                ###
+                action_character <- c(action_character,
+                    "Total number of rejected aliquots (grains)",
+                    "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
+            ###
             SARED.table <- SARED.table[select_index,,drop=FALSE]
             failFit_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
             agID <- agID[select_index,,drop=FALSE]
@@ -721,15 +853,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             ###
             select_index <- which(abs(all_value)<fom.up)
             ###
-            if (length(select_index)==0L) {
-                stop("Error: no acceptable SAR ED if [fom.up] is applied!")
-            } # end if.
-            ###
             reject_N <- nrow(SARED.table) - length(select_index)
             ###
             action_character <- c(action_character, 
                 paste("Rejection criterion: FOM of growth curve exceeds ", fom.up, "%",sep=""))
             step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            if (length(select_index)==0L) {
+                ###
+                cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+                ###
+                action_character <- c(action_character,
+                    "Total number of rejected aliquots (grains)",
+                    "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
             ###
             SARED.table <- SARED.table[select_index,,drop=FALSE]
             fom_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
@@ -749,15 +894,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             ###
             select_index <- which(abs(all_value)<rcs.up | is.na(all_value))
             ###
-            if (length(select_index)==0L) {
-                stop("Error: no acceptable SAR ED if [rcs.up] is applied!")
-            } # end if.
-            ###
             reject_N <- nrow(SARED.table) - length(select_index)
             ###
             action_character <- c(action_character, 
                 paste("Rejection criterion: RCS of growth curve exceeds ", rcs.up, sep=""))
             step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            if (length(select_index)==0L) {
+                ###
+                cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+                ###
+                action_character <- c(action_character,
+                    "Total number of rejected aliquots (grains)",
+                    "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
             ###
             SARED.table <- SARED.table[select_index,,drop=FALSE]
             rcs_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
@@ -787,6 +945,21 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             ###
             step_reject_N <- c(step_reject_N, reject_N)
             ###
+            if (length(select_index)==0L) {
+                ###
+                action_character <- c(action_character,
+                    "Total number of rejected aliquots (grains)",
+                    "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
+            ###
             SARED.table <- SARED.table[select_index,,drop=FALSE]
             saturate_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
             agID <- agID[select_index,,drop=FALSE]
@@ -812,6 +985,21 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             reject_N <- nrow(SARED.table) - length(select_index)
             ###
             step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            if (length(select_index)==0L) {
+                ###
+                action_character <- c(action_character,
+                    "Total number of rejected aliquots (grains)",
+                    "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
             ###
             SARED.table <- SARED.table[select_index,,drop=FALSE]
             failED_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
@@ -840,6 +1028,21 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             ###
             step_reject_N <- c(step_reject_N, reject_N)
             ###
+            if (length(select_index)==0L) {
+                ###
+                action_character <- c(action_character,
+                    "Total number of rejected aliquots (grains)",
+                    "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
+            ###
             SARED.table <- SARED.table[select_index,,drop=FALSE]
             failEDError_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
             agID <- agID[select_index,,drop=FALSE]
@@ -862,15 +1065,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             ###
             select_index <- which(all_value==calED.method)
             ###
-            if (length(select_index)==0L) {
-                stop("Error: no acceptable SAR ED if [calED.method] is applied!")
-            } # end if.
-            ###
             reject_N <- nrow(SARED.table) - length(select_index)
             ###
             action_character <- c(action_character, 
                 paste("Rejection criterion: ED not calculated by ", calED.method, sep=""))
             step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            if (length(select_index)==0L) {
+                ###
+                cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+                ###
+                action_character <- c(action_character,
+                    "Total number of rejected aliquots (grains)",
+                    "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
             ###
             SARED.table <- SARED.table[select_index,,drop=FALSE]
             calED.method_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)
@@ -890,15 +1106,28 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             ###
             select_index <- which(abs(all_value)<rseED.up)
             ###
-            if (length(select_index)==0L) {
-                stop("Error: no acceptable SAR ED if [rseED.up] is applied!")
-            } # end if.
-            ###
             reject_N <- nrow(SARED.table) - length(select_index)
             ###
             action_character <- c(action_character, 
                 paste("Rejection criterion: RSE of ED exceeds ", rseED.up, "%",sep=""))
             step_reject_N <- c(step_reject_N, reject_N)
+            ###
+            if (length(select_index)==0L) {
+                ###
+                cat("NOTE: no acceptable SAR ED if the specified rejection criteria are applied!\n")
+                ###
+                action_character <- c(action_character,
+                    "Total number of rejected aliquots (grains)",
+                    "Total number of accepted aliquots (grains)")
+                ###
+                step_reject_N <- c(step_reject_N, nag, 0L)
+                ###
+                summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
+                ###
+                print(summary_info)
+                ###
+                return(invisible(summary_info))
+            } # end if.
             ###
             SARED.table <- SARED.table[select_index,,drop=FALSE]
             rseED_reject <- apply(agID[-select_index,,drop=FALSE], MARGIN=1L, NPG)

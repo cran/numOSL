@@ -1,8 +1,8 @@
 Package: numOSL
 Type: Package
 Title: Numeric Routines for Optically Stimulated Luminescence Dating
-Version: 2.4
-Date: 2018-04-26
+Version: 2.5
+Date: 2018-05-18
 Author: Jun Peng [aut, cre],
   Bo Li [aut],
   Jorge More [ctb],
@@ -27,7 +27,7 @@ License: GPL-3
 Depends: R (>= 2.15.3)
 Imports: graphics, stats, utils, grDevices
 URL: https://CRAN.R-project.org/package=numOSL
-Packaged: 2018-04-26 01:00:57 UTC; pengjun
+Packaged: 2018-05-18 05:15:06 UTC; pengjun
 NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2018-04-26 03:23:19 UTC
+Date/Publication: 2018-05-18 05:38:04 UTC
