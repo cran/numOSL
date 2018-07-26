@@ -6,7 +6,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
          use.se=TRUE, outpdf=NULL, outfile=NULL) {
     UseMethod("calSGCED")
 } ###
-### 2018.05.18. 
+### 2018.07.26. 
 calSGCED.default <-
 function(obj_analyseBIN, SGCpars, model, origin, avgDev, 
          method="SGC", SAR.Cycle="N", errMethod="sp", Tn.above.3BG=TRUE, 
@@ -783,6 +783,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
 
     ###
     ###*****************************************************************************************************
+    ###-----------------------------------------------------------------------------------------------------
     if (!is.null(passNO)) {
         SGCED.table <- data.frame("NO"=passNO, "Position"=passPosition, "Grain"=passGrain,
                        "Tn"=Tn_vec, "seTn"=seTn_vec, "Tn3BG"=Tn3BG_vec, "TnBG.ratio"=TnBG.ratio_vec, 
@@ -852,95 +853,92 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
                        "sgcED"=sgcED,
                        "ConfInt"=ConfInt,
                        "agID"=agID)
-    } # end if.
-    ###*****************************************************************************************************
-    ###
 
-    ###
-    ###-----------------------------------------------------------------------------------------
-    if (is_forced_object==FALSE) { 
         ###
-        if (length(Tn3BG_reject)>0L) {
+        ###-----------------------------------------------------------------------------------------
+        if (is_forced_object==FALSE) { 
+            ###
+            if (length(Tn3BG_reject)>0L) {
+                cat("\n")
+                cat("Rejection criterion: aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
+                print(Tn3BG_reject)
+                cat("\n")
+            } # end if.
+            ###
+
+            ###
+            if (length(TnBG.ratio_reject)>0L) {
+                cat("\n")
+                cat("Rejection criterion: aliquot (grain) ID rejected use [TnBG.ratio]:\n")
+                print(TnBG.ratio_reject)
+                cat("\n")
+            } # end if.
+            ###
+
+            ###
+            if (length(rseTn_reject)>0L) {
+                cat("\n")
+                cat("Rejection criterion: aliquot (grain) ID rejected use [rseTn]:\n")
+                print(rseTn_reject)
+                cat("\n")
+            } # end if.
+            ### 
+
+            ###
+            if (length(FR_reject)>0L) {
+                cat("\n")
+                cat("Rejection criterion: aliquot (grain) ID rejected use [FR]:\n")
+                print(FR_reject)
+                cat("\n")
+            } # end if.
+            ###
+        } # end if.
+        ###-----------------------------------------------------------------------------------------
+        ###
+
+        ###
+        ###-----------------------------------------------------------------------------
+        if (!is.null(saturate_ID)) {
             cat("\n")
-            cat("Rejection criterion: aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
-            print(Tn3BG_reject)
+            cat("Function calSGCED(): aliquot (grain) ID saturated in Ln/Tn:\n")
+            print(saturate_reject)
             cat("\n")
         } # end if.
         ###
 
         ###
-        if (length(TnBG.ratio_reject)>0L) {
+        if (!is.null(failED_ID)) {
             cat("\n")
-            cat("Rejection criterion: aliquot (grain) ID rejected use [TnBG.ratio]:\n")
-            print(TnBG.ratio_reject)
-            cat("\n")
-        } # end if.
-        ###
-
-        ###
-        if (length(rseTn_reject)>0L) {
-            cat("\n")
-            cat("Rejection criterion: aliquot (grain) ID rejected use [rseTn]:\n")
-            print(rseTn_reject)
-            cat("\n")
-        } # end if.
-        ### 
-
-        ###
-        if (length(FR_reject)>0L) {
-            cat("\n")
-            cat("Rejection criterion: aliquot (grain) ID rejected use [FR]:\n")
-            print(FR_reject)
+            cat("Function calSGCED(): aliquot (grain) ID failed in ED calculation:\n")
+            print(failED_reject)
             cat("\n")
         } # end if.
         ###
-    } # end if.
-    ###-----------------------------------------------------------------------------------------
-    ###
 
-    ###
-    ###-----------------------------------------------------------------------------
-    if (!is.null(saturate_ID)) {
-        cat("\n")
-        cat("Function calSGCED(): aliquot (grain) ID saturated in Ln/Tn:\n")
-        print(saturate_reject)
-        cat("\n")
-    } # end if.
-    ###
-
-    ###
-    if (!is.null(failED_ID)) {
-        cat("\n")
-        cat("Function calSGCED(): aliquot (grain) ID failed in ED calculation:\n")
-        print(failED_reject)
-        cat("\n")
-    } # end if.
-    ###
-
-    ###
-    if (!is.null(failEDError_ID)) {
-        cat("\n")
-        cat("Function calSGCED(): aliquot (grain) ID failed in ED error estimation:\n")
-        print(failEDError_reject)
-        cat("\n")
-    } # end if.
-    ###-----------------------------------------------------------------------------
-    ###
-
-    ###
-    ###-----------------------------------------------------------------------------
-    if (!is.null(passNO)) {
         ###
+        if (!is.null(failEDError_ID)) {
+            cat("\n")
+            cat("Function calSGCED(): aliquot (grain) ID failed in ED error estimation:\n")
+            print(failEDError_reject)
+            cat("\n")
+        } # end if.
+        ###-----------------------------------------------------------------------------
+        ###
+
+        ###
+        ###-----------------------------------------------------------------------------
         if (length(rseED_reject)>0L) {
             cat("\n")
             cat("Rejection criterion: aliquot (grain) ID rejected use [rseED]:\n")
             print(rseED_reject)
             cat("\n")
         } # end if.
+        ###-----------------------------------------------------------------------------
         ###
+ 
     } # end if.
-    ###-----------------------------------------------------------------------------
-    ###
+    ###*****************************************************************************************************
+    ###-----------------------------------------------------------------------------------------------------
    
     action_character <- c(action_character,
                           "Total number of rejected aliquots (grains)",
@@ -953,12 +951,15 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
     summary_info <- data.frame("Description"=action_character, "N"=step_reject_N)
     print(summary_info)
     ###
-    output$summary.info <- summary_info
+
     ###
     if (!is.null(passNO)) {
+        ###
+        output$summary.info <- summary_info
+        ###
         return(invisible(output))
     } else {
-        return(invisible(NULL))
+        return(invisible(summary_info))
     } # end if.
     ###
 } # end function calSGCED.default.

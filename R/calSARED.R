@@ -8,7 +8,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
          use.se=TRUE, outpdf=NULL, outfile=NULL) {
     UseMethod("calSARED")
 } #
-### 2018.05.18.
+### 2018.07.26.
 calSARED.default <-
 function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
          nsim=500, weight=TRUE, trial=TRUE, nofit.rgd=NULL, Tn.above.3BG=TRUE, 
@@ -782,7 +782,8 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
     ###
 
     ###
-    ###
+    ###**********************************************************************************************************************
+    ###----------------------------------------------------------------------------------------------------------------------
     if (!is.null(passNO)) {
         SARED.table <- data.frame("NO"=passNO, "Position"=passPosition, "Grain"=passGrain,
                        "Tn"=Tn_vec, "seTn"=seTn_vec, "Tn3BG"=Tn3BG_vec, "TnBG.ratio"=TnBG.ratio_vec, 
@@ -1164,118 +1165,114 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
                        "sarED"=sarED,
                        "ConfInt"=ConfInt,
                        "agID"=agID)
-    } # end if.
-    ###
-    ###
-
-    ###
-    ###--------------------------------------------------------------------------------------
-    if (is_forced_object==FALSE) { 
         ###
-        if (length(Tn3BG_reject)>0L) {
+        ###
+
+        ###
+        ###--------------------------------------------------------------------------------------
+        if (is_forced_object==FALSE) { 
+            ###
+            if (length(Tn3BG_reject)>0L) {
+                cat("\n")
+                cat("Rejection criterion: aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
+                print(Tn3BG_reject)
+                cat("\n")
+            } # end if.
+            ###
+
+            ###
+            if (length(TnBG.ratio_reject)>0L) {
+                cat("\n")
+                cat("Rejection criterion: aliquot (grain) ID rejected use [TnBG.ratio]:\n")
+                print(TnBG.ratio_reject)
+                cat("\n")
+            } # end if.
+            ###
+
+            ###
+            if (length(rseTn_reject)>0L) {
+                cat("\n")
+                cat("Rejection criterion: aliquot (grain) ID rejected use [rseTn]:\n")
+                print(rseTn_reject)
+                cat("\n")
+            } # end if.
+            ###
+
+            ### 
+            if (length(FR_reject)>0L) {
+                cat("\n")
+                cat("Rejection criterion: aliquot (grain) ID rejected use [FR]:\n")
+                print(FR_reject)
+                cat("\n")
+            } # end if.
+            ###
+        } # end if.
+        ###--------------------------------------------------------------------------------------
+        ###
+
+        ###
+        ###-------------------------------------------------------------------------
+        ###
+        if (length(rcy1_reject)>0L) {
             cat("\n")
-            cat("Rejection criterion: aliquot (grain) ID rejected use [Tn.above.3BG]:\n")
-            print(Tn3BG_reject)
+            cat("Rejection criterion: aliquot (grain) ID rejected use [rcy1]:\n")
+            print(rcy1_reject)
             cat("\n")
         } # end if.
         ###
 
         ###
-        if (length(TnBG.ratio_reject)>0L) {
+        if (length(rcy2_reject)>0L) {
             cat("\n")
-            cat("Rejection criterion: aliquot (grain) ID rejected use [TnBG.ratio]:\n")
-            print(TnBG.ratio_reject)
+            cat("Rejection criterion: aliquot (grain) ID rejected use [rcy2]:\n")
+            print(rcy2_reject)
+            cat("\n")
+        } # end if.
+        ###
+
+        ###
+        if (length(rcy3_reject)>0L) {
+            cat("\n")
+            cat("Rejection criterion: aliquot (grain) ID rejected use [rcy3]:\n")
+            print(rcy3_reject)
             cat("\n")
         } # end if.
         ###
 
         ###
-        if (length(rseTn_reject)>0L) {
+        if (length(rcp1_reject)>0L) {
             cat("\n")
-            cat("Rejection criterion: aliquot (grain) ID rejected use [rseTn]:\n")
-            print(rseTn_reject)
-            cat("\n")
-        } # end if.
-        ###
-
-        ### 
-        if (length(FR_reject)>0L) {
-            cat("\n")
-            cat("Rejection criterion: aliquot (grain) ID rejected use [FR]:\n")
-            print(FR_reject)
+            cat("Rejection criterion: aliquot (grain) ID rejected use [rcp1]:\n")
+            print(rcp1_reject)
             cat("\n")
         } # end if.
         ###
-    } # end if.
-    ###--------------------------------------------------------------------------------------
-    ###
 
-    ###
-    ###-------------------------------------------------------------------------
-    ###
-    if (length(rcy1_reject)>0L) {
-        cat("\n")
-        cat("Rejection criterion: aliquot (grain) ID rejected use [rcy1]:\n")
-        print(rcy1_reject)
-        cat("\n")
-    } # end if.
-    ###
-
-    ###
-    if (length(rcy2_reject)>0L) {
-        cat("\n")
-        cat("Rejection criterion: aliquot (grain) ID rejected use [rcy2]:\n")
-        print(rcy2_reject)
-        cat("\n")
-    } # end if.
-    ###
-
-    ###
-    if (length(rcy3_reject)>0L) {
-        cat("\n")
-        cat("Rejection criterion: aliquot (grain) ID rejected use [rcy3]:\n")
-        print(rcy3_reject)
-        cat("\n")
-    } # end if.
-    ###
-
-    ###
-    if (length(rcp1_reject)>0L) {
-        cat("\n")
-        cat("Rejection criterion: aliquot (grain) ID rejected use [rcp1]:\n")
-        print(rcp1_reject)
-        cat("\n")
-    } # end if.
-    ###
-
-    ###
-    if (length(rcp2_reject)>0L) {
-        cat("\n")
-        cat("Rejection criterion: aliquot (grain) ID rejected use [rcp2]:\n")
-        print(rcp2_reject)
-        cat("\n")
-    } # end if.
-    ###
-    ###-------------------------------------------------------------------------
-    ###
+        ###
+        if (length(rcp2_reject)>0L) {
+            cat("\n")
+            cat("Rejection criterion: aliquot (grain) ID rejected use [rcp2]:\n")
+            print(rcp2_reject)
+            cat("\n")
+        } # end if.
+        ###
+        ###-------------------------------------------------------------------------
+        ###
     
-    ###
-    ###----------------------------------------------------------------------------------
-    if (!is.null(tryError_ID)) {
-        cat("\n")
-        cat("Function calED(): aliquot (grain) ID with improper input argument:\n")
-        print(tryError_reject)
-        cat("\n")
-    } # end if.
-    ###----------------------------------------------------------------------------------
-    ###
+        ###
+        ###----------------------------------------------------------------------------------
+        if (!is.null(tryError_ID)) {
+            cat("\n")
+            cat("Function calED(): aliquot (grain) ID with improper input argument:\n")
+            print(tryError_reject)
+            cat("\n")
+        } # end if.
+        ###----------------------------------------------------------------------------------
+        ###
 
-    ###
-    ###-------------------------------------------------------------------------------------
-    if (!is.null(passNO)) {
-
-         ###
-         if (length(failFit_reject)>0L) {
+        ###
+        ###-------------------------------------------------------------------------------------
+        if (length(failFit_reject)>0L) {
             cat("\n")
             cat("Function calED(): aliquot (grain) ID failed in growth curve fitting:\n")
             print(failFit_reject)
@@ -1345,9 +1342,12 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
             cat("\n")
         } # end if.
         ###
+        ###-------------------------------------------------------------------------------------
 
     } # end if.
-    ###-------------------------------------------------------------------------------------
+    ###**********************************************************************************************************************
+    ###----------------------------------------------------------------------------------------------------------------------
+    ###
 
     ###
     action_character <- c(action_character,
@@ -1362,13 +1362,15 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
     ###
     print(summary_info)
     ###
-    output$summary.info <- summary_info
-    ###
+    
     ###
     if (!is.null(passNO)) {
+        ###
+        output$summary.info <- summary_info
+        ###
         return(invisible(output))
     } else {
-        return(invisible(NULL))
+        return(invisible(summary_info))
     } # end if.
     ###
 } # end function calSARED.default.

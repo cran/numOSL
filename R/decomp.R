@@ -6,7 +6,7 @@ function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE,
          irr.dose=NULL, outfile=NULL, transf=TRUE) {
     UseMethod("decomp")
 } ###
-### 2017.03.30.
+### 2017.07.26.
 decomp.default <-
 function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE, 
          typ="cw", control.args=list(), weight=FALSE, plot=TRUE, 
@@ -242,7 +242,7 @@ function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE,
             legend("top",
                    legend=c(paste("Curve NO: ", ifelse(is.null(curve.no),"NULL",curve.no), sep=""),
                    paste("SAR Cycle: ", ifelse(is.null(SAR.Cycle),"NULL",SAR.Cycle), sep=""),
-                   paste("Irradiation dose: ", ifelse(is.null(irr.dose),"NULL",irr.dose), " (Gy|s)",sep=""),
+                   paste("Irradiation dose: ", ifelse(is.null(irr.dose),"NULL",irr.dose), " (<Gy>|<s>)",sep=""),
                    "=========================",
                    "Status: OK",
                    "=========================",
@@ -258,7 +258,7 @@ function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE,
             legend("top",
                    legend=c(paste("Curve NO: ", ifelse(is.null(curve.no),"NULL",curve.no), sep=""),
                    paste("SAR Cycle: ", ifelse(is.null(SAR.Cycle),"NULL",SAR.Cycle), sep=""),
-                   paste("Irradiation dose: ", ifelse(is.null(irr.dose),"NULL",irr.dose), " (Gy|s)",sep=""),
+                   paste("Irradiation dose: ", ifelse(is.null(irr.dose),"NULL",irr.dose), " (<Gy>|<s>)",sep=""),
                    "=========================",
                    "Status: Model fit failed",
                    "=========================",

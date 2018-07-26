@@ -6,7 +6,7 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
          signal.type="LxTx", outfile=NULL) {
     UseMethod("analyseBINdata")
 } #
-### 2018.04.21.
+### 2018.07.26.
 analyseBINdata.default <- 
 function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0, 
          distp="p", kph=NULL, kdc=NULL, dcr=NULL, 
@@ -152,17 +152,23 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
         ###
         if (distp=="p") {              
             ### Eqn.3 of Galbraith (2002).
-            rse_netLx <- sqrt(Lx+bLx/k)/abs(netLx)
+            var_Lx <- Lx
+            var_bLx <- bLx/k
+            ###
         } else if (distp=="op") {
             ### Eqn.10 of Bluszcz et al.(2015).
             vdif <- kdc^2L-kph^2L
-            rse_netLx <- sqrt(kph^2L*Lx+vdif*dcr*n_fchn*vstep+
-                        (kph^2L*sum_bLx+vdif*dcr*n_lchn*vstep)/k^2L)/abs(netLx)
+            var_Lx <- kph^2L*Lx+vdif*dcr*n_fchn*vstep
+            var_bLx <- (kph^2L*sum_bLx+vdif*dcr*n_lchn*vstep)/k^2L
         } # end if.
+        ###
+        rse_netLx <- sqrt(var_Lx+var_bLx)/abs(netLx)
+        ###
+        ### Add instrumental reproducibility error.
         rse_netLx <- sqrt(rse_netLx^2L+(me/100.0)^2L)
         ###---------------------------------------------------------------------
         ###
-        values <- c(IRRTime, Lx, bLx, netLx, rse_netLx, FR, seFR)
+        values <- c(IRRTime, Lx, sqrt(var_Lx), bLx, sqrt(var_bLx), netLx, rse_netLx, FR, seFR)
         ###
         return(values)
     } # end function analyseSig.
@@ -220,7 +226,7 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
         for (j in seq(length_iRecord)) {
             i_matrix <- rbind(i_matrix, analyseSig(iRecord[[j]], nfchn, nlchn))
         } # end for.
-        colnames(i_matrix) <- c("IRRTime","OSL","BG","netOSL","rse.netOSL","FR","seFR")
+        colnames(i_matrix) <- c("IRRTime","OSL","seOSL","BG","seBG","netOSL","rse.netOSL","FR","seFR")
         LxTx_list[[i]] <- i_matrix
     } # end for.
     ###
@@ -288,21 +294,27 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
             ###
             ###
             Dose <- 
-            Init <-   BG <- netLx <- rse_netLx <- 
-            TInit <- TBG <- netTx <- rse_netTx <- 
+            Init <-   seInit <- BG  <- seBG  <- netLx <- rse_netLx <- 
+            TInit <- seTInit <- TBG <- seTBG <- netTx <- rse_netTx <- 
             TFR <- seTFR <- LxTx <- seLxTx <- vector(length=nPairedLxTx) 
             ###
             for (j in seq(nPairedLxTx)) {
                 Dose[j] <- iLxTx[2L*j-1L,"IRRTime"]
                 ###
                 Init[j] <- iLxTx[2L*j-1L,"OSL"]
+                seInit[j] <- iLxTx[2L*j-1L,"seOSL"]
+                ###
                 BG[j] <- iLxTx[2L*j-1L,"BG"]
+                seBG[j] <- iLxTx[2L*j-1L,"seBG"]
                 ###
                 netLx[j] <- iLxTx[2L*j-1L,"netOSL"]
                 rse_netLx[j] <- iLxTx[2L*j-1L,"rse.netOSL"]
                 ###
                 TInit[j] <- iLxTx[2L*j,"OSL"]
+                seTInit[j] <- iLxTx[2L*j,"seOSL"]
+                ###
                 TBG[j] <- iLxTx[2L*j,"BG"]
+                seTBG[j] <- iLxTx[2L*j,"seBG"]
                 ###
                 netTx[j] <- iLxTx[2L*j,"netOSL"]
                 rse_netTx[j] <- iLxTx[2L*j,"rse.netOSL"]
@@ -311,30 +323,17 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
                 seTFR[j] <- iLxTx[2L*j,"seFR"]
                 ###
                 LxTx[j] <- netLx[j]/netTx[j]
-                seLxTx[j] <- abs(LxTx[j])*sqrt((rse_netLx[j])^2L+
-                                               (rse_netTx[j])^2L)    
+                seLxTx[j] <- abs(LxTx[j])*sqrt((rse_netLx[j])^2L+(rse_netTx[j])^2L)    
             } # end for.
             ### 
             ###
-            if (distp=="p") {
-                Tn3BG_vec <- c(Tn3BG_vec, netTx[1L]>0.0 && netTx[1L]>3.0*sqrt(TBG[1L]))
-            } else {
-                if (bg=="early") {
-                    Tn3BG_vec <- c(Tn3BG_vec, netTx[1L]>0.0 && netTx[1L]>3.0*kph*sqrt(TBG[1L]))
-                } else if (bg=="late") {
-                    Tn3BG_vec <- c(Tn3BG_vec, netTx[1L]>0.0 && netTx[1L]>3.0*kdc*sqrt(TBG[1L]))
-                } # end if.
-            } # end if.
+            Tn3BG_vec <- c(Tn3BG_vec, netTx[1L]>0.0 && netTx[1L]>3.0*seTBG[1L])
             ###
             rseTn_vec <- c(rseTn_vec, rse_netTx[1L]*100.0)
             ###
             TnBG.ratio_vec <- c(TnBG.ratio_vec, TInit[1L]/TBG[1L])
-            if (distp=="p") {
-                useitpass <- abs(TInit[1L]/TBG[1L])*sqrt(1.0/abs(TInit[1L]) + 1.0/abs(TBG[1L]))
-            } else if (distp=="op") {
-                useitpass <- abs(TInit[1L]/TBG[1L])*sqrt(kph^2L/abs(TInit[1L]) + kdc^2L/abs(TBG[1L]))
-            } # end if.
-            seTnBG.ratio_vec <- c(seTnBG.ratio_vec, useitpass)
+            useitpass <- abs(TInit[1L]/TBG[1L])*sqrt((seTInit[1L]/TInit[1L])^2L+(seTBG[1L]/TBG[1L])^2L)
+            seTnBG.ratio_vec <- c(seTnBG.ratio_vec, useitpass)          
             ###
             FR_vec <- c(FR_vec, TFR[1L])
             seFR_vec <- c(seFR_vec, seTFR[1L])
@@ -362,8 +361,8 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
             if (!is.null(outfile)) {
                 DataFrame2 <- data.frame(iNO, iPosition, iGrain, 
                                          iSAR.Cycle, Dose, 
-                                         Init, BG, netLx, abs(netLx)*rse_netLx,
-                                         TInit, TBG, netTx, abs(netTx)*rse_netTx, 
+                                         Init, seInit, BG, seBG, netLx, abs(netLx)*rse_netLx,
+                                         TInit, seTInit, TBG, seTBG, netTx, abs(netTx)*rse_netTx, 
                                          LxTx, seLxTx,
                                          stringsAsFactors=FALSE)
                 ALLdata <- rbind(ALLdata, DataFrame2)
@@ -382,8 +381,8 @@ function(obj_pickBIN, nfchn, nlchn, bg="late", me=2.0,
         rownames(ALLdata) <- NULL
         colnames(ALLdata) <- c("NO","Position","Grain",
                                "SAR.Cycle","Dose",
-                               "Init","BG","Lx","seLx",
-                               "TInit","TBG","Tx","seTx",
+                               "Init","seInit","BG","seBG","Lx","seLx",
+                               "TInit","seTInit","TBG","seTBG","Tx","seTx",
                                "LxTx","seLxTx")
         write.csv(ALLdata, file=paste(outfile, ".csv", sep=""))
     } # end if.
