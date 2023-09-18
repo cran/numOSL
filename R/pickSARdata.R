@@ -7,7 +7,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, trial=TRUE,
          use.se=TRUE, norm.dose=NULL, outpdf=NULL, outfile=NULL) {
     UseMethod("pickSARdata")
 } #
-### 2018.07.26.
+### 2023.09.09.
 pickSARdata.default <-
 function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, trial=TRUE, 
          nofit.rgd=NULL, Tn.above.3BG=TRUE, TnBG.ratio.low=NULL, rseTn.up=NULL,
@@ -706,7 +706,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, weight=TRUE, trial=TRUE,
                              LnTn.curve=fitGrowth_LnTn.curve,
                              TxTn=fitGrowth_TxTn), silent=TRUE)
         ###
-        if (class(res)=="try-error") {
+        if (inherits(res,what="try-error")==TRUE) {
              tryError_ID <- rbind(tryError_ID, agID[i,,drop=TRUE])
              cat(paste("[NO=",NO[i],",Position=",Position[i],",Grain=",Grain[i],"]:\n", sep=""))
              print(attr(res, "condition"))

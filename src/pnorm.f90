@@ -8,15 +8,18 @@ subroutine pnorm(x,n,upper)
 ! Dependence: function alnorm.
 !-----------------------------------------------------------------
   implicit none
-  integer(kind=4),intent(in)::n
-  real(kind=8),intent(inout)::x(n)
+  integer,intent(in)::n
+  real(kind(1.0d0)),intent(inout)::x(n)
   logical,intent(in)::upper
+  !
   ! local variables
-  real(kind=8)::alnorm
-  integer(kind=4)::i
+  real(kind(1.0d0))::alnorm
+  integer::i
+  !
   do i=1,n
     x(i)=alnorm(x(i),upper)
   end do
+  !
   return
 end subroutine pnorm
 !
@@ -57,34 +60,36 @@ function alnorm ( x, upper )
 !
   implicit none
 
-  real ( kind = 8 ), parameter :: a1 = 5.75885480458D+00
-  real ( kind = 8 ), parameter :: a2 = 2.62433121679D+00
-  real ( kind = 8 ), parameter :: a3 = 5.92885724438D+00
-  real ( kind = 8 ) alnorm
-  real ( kind = 8 ), parameter :: b1 = -29.8213557807D+00
-  real ( kind = 8 ), parameter :: b2 = 48.6959930692D+00
-  real ( kind = 8 ), parameter :: c1 = -0.000000038052D+00
-  real ( kind = 8 ), parameter :: c2 = 0.000398064794D+00
-  real ( kind = 8 ), parameter :: c3 = -0.151679116635D+00
-  real ( kind = 8 ), parameter :: c4 = 4.8385912808D+00
-  real ( kind = 8 ), parameter :: c5 = 0.742380924027D+00
-  real ( kind = 8 ), parameter :: c6 = 3.99019417011D+00
-  real ( kind = 8 ), parameter :: con = 1.28D+00
-  real ( kind = 8 ), parameter :: d1 = 1.00000615302D+00
-  real ( kind = 8 ), parameter :: d2 = 1.98615381364D+00
-  real ( kind = 8 ), parameter :: d3 = 5.29330324926D+00
-  real ( kind = 8 ), parameter :: d4 = -15.1508972451D+00
-  real ( kind = 8 ), parameter :: d5 = 30.789933034D+00
-  real ( kind = 8 ), parameter :: ltone = 7.0D+00
-  real ( kind = 8 ), parameter :: p = 0.398942280444D+00
-  real ( kind = 8 ), parameter :: q = 0.39990348504D+00
-  real ( kind = 8 ), parameter :: r = 0.398942280385D+00
+  integer, parameter:: dbdbx=kind(1.0d0)
+  
+  real ( dbdbx ), parameter :: a1 = 5.75885480458D+00
+  real ( dbdbx ), parameter :: a2 = 2.62433121679D+00
+  real ( dbdbx ), parameter :: a3 = 5.92885724438D+00
+  real ( dbdbx ) alnorm
+  real ( dbdbx ), parameter :: b1 = -29.8213557807D+00
+  real ( dbdbx ), parameter :: b2 = 48.6959930692D+00
+  real ( dbdbx ), parameter :: c1 = -0.000000038052D+00
+  real ( dbdbx ), parameter :: c2 = 0.000398064794D+00
+  real ( dbdbx ), parameter :: c3 = -0.151679116635D+00
+  real ( dbdbx ), parameter :: c4 = 4.8385912808D+00
+  real ( dbdbx ), parameter :: c5 = 0.742380924027D+00
+  real ( dbdbx ), parameter :: c6 = 3.99019417011D+00
+  real ( dbdbx ), parameter :: con = 1.28D+00
+  real ( dbdbx ), parameter :: d1 = 1.00000615302D+00
+  real ( dbdbx ), parameter :: d2 = 1.98615381364D+00
+  real ( dbdbx ), parameter :: d3 = 5.29330324926D+00
+  real ( dbdbx ), parameter :: d4 = -15.1508972451D+00
+  real ( dbdbx ), parameter :: d5 = 30.789933034D+00
+  real ( dbdbx ), parameter :: ltone = 7.0D+00
+  real ( dbdbx ), parameter :: p = 0.398942280444D+00
+  real ( dbdbx ), parameter :: q = 0.39990348504D+00
+  real ( dbdbx ), parameter :: r = 0.398942280385D+00
   logical up
   logical upper
-  real ( kind = 8 ), parameter :: utzero = 18.66D+00
-  real ( kind = 8 ) x
-  real ( kind = 8 ) y
-  real ( kind = 8 ) z
+  real ( dbdbx ), parameter :: utzero = 18.66D+00
+  real ( dbdbx ) x
+  real ( dbdbx ) y
+  real ( dbdbx ) z
 
   up = upper
   z = x

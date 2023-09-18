@@ -9,18 +9,18 @@ subroutine calDEXPxm(ax,bx,Ym,pars,Xm)
 !  pars(4):: input, real vlaues, parameters a, b, c, d.
 !       xm:: output, real value, X value.
 !-----------------------------------------------------
-! Author:: Peng Jun, 2016.12.31.
+! Author:: Peng Jun, 2023.08.30.
 !-----------------------------------------------------
 ! Dependence:: None.
 !-----------------------------------------------------
     implicit none
     ! Arguments.
-    real   (kind=8), intent(in):: ax, bx, Ym, pars(4)
-    real   (kind=8), intent(out):: Xm
+    real(kind(1.0d0)), intent(in):: ax, bx, Ym, pars(4)
+    real(kind(1.0d0)), intent(out):: Xm
     !
-    integer(kind=4), parameter:: ntry=1000000
-    real   (kind=8):: vstep, x, y
-    integer(kind=4):: i, niter
+    integer, parameter:: ntry=1000000
+    real(kind(1.0d0)):: vstep, x, y
+    integer:: i, niter
     !
     vstep = (bx-ax)/real(ntry-1)
     !

@@ -70,7 +70,7 @@ i.e., \code{names(LnTn.curve)=c("Ln.x","Ln.y","Tn.x","Tn.y")}}
 \details{
 Function \link{calED} is used for calculating an equivalent dose and assessing its standard error.
 The standard errors of an equivalent dose can be assessd using the Simple Transformation or Monte Carlo method (Duller, 2007).\cr\cr
-Interpolation is performed using a combination of golden section search and successive parabolic interpolation (\bold{\emph{R}} function \link{optimize} in package \bold{\emph{stats}}) (freely available Fortran 77 source code at \url{http://www.netlib.org/fmm/fmin.f}). See function \link{fitGrowth} for more details on growth curve fitting.
+Interpolation is performed using a combination of golden section search and successive parabolic interpolation (\bold{\emph{R}} function \link{optimize} in package \bold{\emph{stats}}) (freely available Fortran 77 source code at \url{https://www.netlib.org/fmm/fmin.f}). See function \link{fitGrowth} for more details on growth curve fitting.
 }
 
 \value{
@@ -106,8 +106,7 @@ Galbraith RF, Roberts RG, 2012. Statistical aspects of equivalent dose and error
 }
 
 \seealso{
-  \link{analyseBINdata}; \link{fitGrowth}; \link{calRcyRcp};\cr
-  \link{calSARED}; \link{fastED}; \link{calSGCED}
+  \link{analyseBINdata}; \link{fitGrowth}; \link{calRcyRcp}; \link{calSARED}; \link{fastED}; \link{calSGCED}
 }
 
 

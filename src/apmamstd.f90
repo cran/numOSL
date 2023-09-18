@@ -13,22 +13,22 @@ subroutine apmamstd(ed,sed,ndat,pars,&
 !       np:: input, integer, number ([3,4]) of pars.
 !    iflag:: output, integer, 0=success, 1=fail.
 !--------------------------------------------------
-! Author:: Peng Jun ,2016.06.26.
+! Author:: Peng Jun ,2023.08.30.
 !--------------------------------------------------
 ! Dependence:: subroutine numHess;
 !              subroutine inverse_sym.
 !--------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ndat, np
-    real   (kind=8), intent(in):: ed(ndat), sed(ndat),& 
-                                  pars(np)
-    real   (kind=8), intent(out):: stdp(np)
-    integer(kind=4), intent(out):: iflag
+    integer, intent(in):: ndat, np
+    real(kind(1.0d0)), intent(in):: ed(ndat), sed(ndat),& 
+                                    pars(np)
+    real(kind(1.0d0)), intent(out):: stdp(np)
+    integer, intent(out):: iflag
     ! Local variables.
-    integer(kind=4):: i, errorflag, ifault
-    real   (kind=8):: hess(np,np), diag(np), syd(ndat)
-    integer(kind=4), parameter:: model=6
+    integer:: i, errorflag, ifault
+    real(kind(1.0d0)):: hess(np,np), diag(np), syd(ndat)
+    integer, parameter:: model=6
     !
     iflag = 0
     stdp = -99.0

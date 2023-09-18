@@ -15,18 +15,18 @@ subroutine lmfunc1(nd,n2,pars,fvec,iflag,&
 !  lower(n2):: input, real values, lower bounds.
 !  upper(n2):: input, rea values, upper bounds.
 !-----------------------------------------------------
-! Author:: Peng Jun, 2016.06.09.
+! Author:: Peng Jun, 2023.08.30.
 !-----------------------------------------------------
 ! Dependence:: NO.
 !-----------------------------------------------------
     ! Arguments.
-    integer(kind=4):: nd, n2, iflag
-    real   (kind=8):: pars(n2), fvec(nd),& 
-                      xd(nd), yd(nd), syd(nd),&
-                      lower(n2), upper(n2)
+    integer:: nd, n2, iflag
+    real(kind(1.0d0)):: pars(n2), fvec(nd),& 
+                        xd(nd), yd(nd), syd(nd),&
+                        lower(n2), upper(n2)
     ! Local variables.
-    real   (kind=8):: xx(4)
-    integer(kind=4):: i
+    real(kind(1.0d0)):: xx(4)
+    integer:: i
     !
     ! Bound constraints.
     do i=1, n2

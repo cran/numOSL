@@ -6,7 +6,7 @@ function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE,
          irr.dose=NULL, outfile=NULL, transf=TRUE) {
     UseMethod("decomp")
 } ###
-### 2017.07.26.
+### 2023.08.31.
 decomp.default <-
 function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE, 
          typ="cw", control.args=list(), weight=FALSE, plot=TRUE, 
@@ -34,7 +34,7 @@ function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE,
     if (any(tim<=0)) stop("Error: time value in [Sigdata] should larger than zero!")
     ###
     sig <- as.numeric(Sigdata[,2L,drop=TRUE])
-    if (any(sig<=0)) stop("Error: signal value in [Sigdata] should larger than zero!")
+    if (any(sig<0)) stop("Error: signal value in [Sigdata] should not below zero!")
     ###
     ntim <- length(tim)
     if (sum(delay.off)>=ntim) stop("Error: sum of 'delay.off' exceeds number of data points!")
@@ -125,6 +125,9 @@ function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE,
     ### 
     ###
     if (plot==TRUE) {
+        opar <- par("mfrow", "mgp", "mar")
+        on.exit(par(opar))
+        ###
         layout(matrix(c(1L,1L,1L,1L,2L,2L,
                         1L,1L,1L,1L,2L,2L,
                         3L,3L,3L,4L,4L,4L),nrow=6L), 
@@ -272,9 +275,6 @@ function(Sigdata, delay.off=c(0,0), ncomp=2, constant=TRUE,
                    yjust=2, ncol=1L, cex=1.1, bty="n")
         } # end if. 
         ###
-        on.exit(par(mar=c(5,4,4,2)+0.1,
-                    mgp=c(3,1,0),
-                    mfrow=c(1L,1L)))
     } # end if. 
     ###  
     ###

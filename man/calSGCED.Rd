@@ -73,8 +73,7 @@ Roberts HM, Duller GAT, 2004. Standardised growth curves for optical dating of s
 }
 
 \seealso{
-  \link{fitGrowth}; \link{lsNORM}; \link{SARdata};\cr 
-  \link{scaleSGCN}; \link{calED}; \link{calSARED}
+  \link{fitGrowth}; \link{lsNORM}; \link{SARdata}; \link{scaleSGCN}; \link{calED}; \link{calSARED}
 }
 
 \examples{

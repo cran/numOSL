@@ -7,17 +7,17 @@ subroutine inverse_ger(mat1,n,singular)
 !         n:: input, integer, row number of the matrix.
 !  singular::  output, integer, 0=normal, 1=singular.
 !---------------------------------------------------------
-! Author:: Peng Jun, 2016.06.27.
+! Author:: Peng Jun, 2023.08.30.
 !---------------------------------------------------------
 ! Dependence:: subroutine gjordan.
 !---------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: n
-    real   (kind=8), intent(inout):: mat1(n,n)
-    integer(kind=4), intent(out):: singular
+    integer, intent(in):: n
+    real(kind(1.0d0)), intent(inout):: mat1(n,n)
+    integer, intent(out):: singular
     ! Local variables.
-    real   (kind=8):: mat2(n,1)
+    real(kind(1.0d0)):: mat2(n,1)
     !
     mat2 = 1.0
     !
@@ -38,7 +38,7 @@ subroutine gjordan(a,b,n,m,singular)
 !      m:: input, integer, column number for matrix b.
 !  singular:: output, integer, 0=normal, 1=singular.
 !---------------------------------------------------------
-! Author:: Peng Jun, 2016.06.26.
+! Author:: Peng Jun, 2023.08.30.
 !---------------------------------------------------------
 ! Dependence:: NO.
 !---------------------------------------------------------------------
@@ -47,13 +47,13 @@ subroutine gjordan(a,b,n,m,singular)
 ! NOTE: THIS SUBROUTINE IS REMODIFIED FROM PAGE.30 OF Press et al.
 ! --------------------------------------------------------------------
     implicit none
-    integer(kind=4), intent(in):: n, m
-    real   (kind=8), intent(inout):: a(n,n), b(n,m)
-    integer(kind=4), intent(out):: singular
+    integer, intent(in):: n, m
+    real(kind(1.0d0)), intent(inout):: a(n,n), b(n,m)
+    integer, intent(out):: singular
     !
-    integer(kind=4):: i, icol, irow, j, k, l, ll,& 
-                      indxc(n), indxr(n), ipiv(n)
-    real   (kind=8):: big, dum, pivinv
+    integer:: i, icol, irow, j, k, l, ll,& 
+              indxc(n), indxr(n), ipiv(n)
+    real(kind(1.0d0)):: big, dum, pivinv
     !
     singular = 0
     !

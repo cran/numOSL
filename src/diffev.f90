@@ -24,10 +24,11 @@ subroutine diffev(tim,sig,wght,ntim,np,f,cr,maxiter,tol,typ,addc,&
 !          fmin:: output, real value, best (minimum) objective.
 !         iflag:: output, integer, 0=success, 1=fail.
 !------------------------------------------------------------------------------
-! Author:: Peng Jun, 2014.09.28.
+! Author:: Peng Jun, 2023.08.30.
 !------------------------------------------------------------------------------
 ! Dependence:: subroutine leaveOne; subroutine sample;-------------------------
 !              subroutine targfunc; subroutine hpsort; subroutine relSD.-------
+!              subroutine r8vec_uniform_01.
 !------------------------------------------------------------------------------
 ! Reference:: Bluszcz, A., Adamiec, G., 2006. Application of 
 !             differential evolution  to fitting OSL decay 
@@ -36,14 +37,14 @@ subroutine diffev(tim,sig,wght,ntim,np,f,cr,maxiter,tol,typ,addc,&
 !------------------------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ntim, np, maxiter, typ, addc, n1
-    real   (kind=8), intent(in):: tim(ntim), sig(ntim), wght(ntim),&
-                                  f, cr, tol
-    real   (kind=8), intent(out):: lamda(n1), ithn(n1), constant,&
-                                   agents(np,n1), fvec1(ntim), fmin                              
-    integer(kind=4), intent(out):: iflag
+    integer, intent(in):: ntim, np, maxiter, typ, addc, n1
+    real(kind(1.0d0)), intent(in):: tim(ntim), sig(ntim), wght(ntim),&
+                                    f, cr, tol
+    real(kind(1.0d0)), intent(out):: lamda(n1), ithn(n1), constant,&
+                                     agents(np,n1), fvec1(ntim), fmin                              
+    integer, intent(out):: iflag
     ! Local variables.
-    real   (kind=8), dimension(2,7), parameter::&
+    real(kind(1.0d0)), dimension(2,7), parameter::&
               tSpace=reshape((/1.0D+00,10.0D+00,&        
                                1.0D-01, 5.0D+00,&
                                1.0D-02, 3.0D+00,&
@@ -51,19 +52,21 @@ subroutine diffev(tim,sig,wght,ntim,np,f,cr,maxiter,tol,typ,addc,&
                                1.0D-04, 0.5D+00,&
                                1.0D-05, 0.1D+00,&
                                1.0D-06, 0.05D+00/), (/2,7/) )    
-    real   (kind=8):: ran(n1), space(2,n1), ran1(1), yy(n1),&
-                      fagents(np), agents3(3,n1), constants(np),&
-                      rsd(n1), ithn1(n1), ithn2(n1), ithns(np,n1)
-    integer(kind=4):: npsamp(np), n1samp(n1), npsamp1(np-1),&
-                      samp3(3), order(n1), indx(1)
-    integer(kind=4):: i, j, k, iflag1, iflag2
-    real   (kind=8):: fmin1, fmin2, minValue,&
-                      constant1, constant2, maxt
+    real(kind(1.0d0)):: ran(n1), space(2,n1), ran1(1), yy(n1),&
+                        fagents(np), agents3(3,n1), constants(np),&
+                        rsd(n1), ithn1(n1), ithn2(n1), ithns(np,n1)
+    integer:: npsamp(np), n1samp(n1), npsamp1(np-1),&
+              samp3(3), order(n1), indx(1)
+    integer:: i, j, k, iflag1, iflag2, seed
+    real(kind(1.0d0)):: fmin1, fmin2, minValue,&
+                        constant1, constant2, maxt
+    !
+    seed = 123456789
     !
     space = log(tSpace(:,1:n1))
     !
     do i=1, np
-        call random_number(ran)
+        call r8vec_uniform_01(n1, seed, ran)
         agents(i,:) = exp(space(1,:) + ran*(space(2,:)-space(1,:)))
     end do
     !
@@ -75,16 +78,16 @@ subroutine diffev(tim,sig,wght,ntim,np,f,cr,maxiter,tol,typ,addc,&
     !
     loopA: do i=1, maxiter
         do j=1, np
-            call leaveOne(npsamp,np,j,npsamp1)
+            call leaveOne(npsamp, np, j, npsamp1)
             !
-            call sample(npsamp1,np-1,3,samp3)
+            call sample(npsamp1, np-1, 3, samp3, seed)
             !
             agents3 = agents(samp3,:)
             !
-            call sample(n1samp,n1,1,indx)
+            call sample(n1samp, n1, 1, indx, seed)
             ! 
             do k=1, n1
-                call random_number(ran1)
+                call r8vec_uniform_01(1, seed, ran1)
                 ! 
                 if (ran1(1)<cr .or. indx(1)==k) then
                     yy(k) = agents3(1,k) + f*(agents3(2,k)-agents(3,k)) 
@@ -152,7 +155,7 @@ subroutine diffev(tim,sig,wght,ntim,np,f,cr,maxiter,tol,typ,addc,&
     return
 end subroutine diffev
 !       
-subroutine sample(vec,n,k,vec1)
+subroutine sample(vec,n,k,vec1,seed)
 !--------------------------------------------------------------
 ! Subroutine sample() is used to draw k integers from
 ! integers ranging from 1 to nmax without replacement.
@@ -162,30 +165,39 @@ subroutine sample(vec,n,k,vec1)
 !       k:: input, integer, number of integers to be sampled.
 ! vec1(k):: output, integers, the sampled integers.
 !--------------------------------------------------------------
-! Author:: Peng Jun, 2014.08.28.
+! Author:: Peng Jun, 2023.08.30.
 !--------------------------------------------------------------
 ! Reference:: Bert F and Green JR, 1977. Fortran subroutines
 !             for random sampling without replacement. Behavior
 !             Research Methodt and Instrumentation, pp 559.
 !--------------------------------------------------------------
-! Dependence:: NO.---------------------------------------------
+! Dependence:: subroutine r8vec_uniform_01.
 !--------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: n, k, vec(n)
-    integer(kind=4), intent(out):: vec1(k)
+    integer, intent(in):: n, k, vec(n)
+    integer, intent(inout):: seed
+    integer, intent(out):: vec1(k)
+    !
     ! Local variables.
-    integer(kind=4):: m, j, ll
-    real   (kind=8):: ran(1)
+    integer:: m, j, ll
+    real(kind(1.0d0)):: ran(1)
     !
     m = 0
+    !
     loopA: do j=1, n
-        call random_number(ran)
+        !
+        call r8vec_uniform_01(1, seed, ran)
+        !
         ll = int((float(n-j+1))*ran(1)) + 1
+        !
         if (ll>k-m) cycle loopA
+        !
         m = m + 1
         vec1(m) = vec(j)
+        !
         if (m>=k) exit loopA
+        !
     end do loopA
     !
     return
@@ -201,18 +213,18 @@ subroutine relSD(mat,m,n,sd)
 !        n:: input, integer, column number of the matrix.
 !    sd(n):: output, real value, the resulting relative sds.
 !-----------------------------------------------------------
-! Author:: Peng Jun, 2014.08.29.
+! Author:: Peng Jun, 2023.08.30.
 !-----------------------------------------------------------
 ! Dependence:: NO.------------------------------------------
 !-----------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: m, n
-    real   (kind=8), intent(in):: mat(m,n)
-    real   (kind=8), intent(out):: sd(n)
+    integer, intent(in):: m, n
+    real(kind(1.0d0)), intent(in):: mat(m,n)
+    real(kind(1.0d0)), intent(out):: sd(n)
     ! Local variables.
-    integer(kind=4):: i
-    real   (kind=8):: mean(n)
+    integer:: i
+    real(kind(1.0d0)):: mean(n)
     !
     mean = sum(mat,dim=1) / real(m)
     do i=1, n
@@ -232,15 +244,15 @@ subroutine leaveOne(vec,n,which,vec1)
 !     which:: input, integer, which one to be removed.
 ! vec1(n-1):: output, integers, resulting vector.
 !--------------------------------------------------------
-! Author:: Peng Jun, 2013.05.20.
+! Author:: Peng Jun, 2023.08.30.
 !--------------------------------------------------------
 ! Dependence:: NO.---------------------------------------
 !--------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: n, which
-    integer(kind=4), intent(in):: vec(n)
-    integer(kind=4), intent(out):: vec1(n-1)
+    integer, intent(in):: n, which
+    integer, intent(in):: vec(n)
+    integer, intent(out):: vec1(n-1)
     !
     if (which==1) then
         vec1 = vec(2:n)

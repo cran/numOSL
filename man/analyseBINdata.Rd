@@ -120,12 +120,6 @@ ratio of initial Tn signal to BG and associated standard error, relative standar
 \code{Tx}         \tab  test-dose signal                     \cr
 \code{seTx}       \tab  standard error of Tx                                 
 }
-
-
-}
-
-\note{
-Though function \link{analyseBINdata} is originally designed to analyze CW-OSL data sets, IRSL data sets obtained from the SAR protocol can also be analyzed.
 }
 
 \references{
@@ -145,10 +139,13 @@ Galbraith R, 2002. A note on the variance of a backround-corrected OSL count. An
 Madsen AT, Duller GAT, Donnelly JP, Roberts HM, Wintle AG, 2009. A chronology of hurricane landfalls at Little Sippewissett Marsh, Massachusetts, USA, using optical dating. Geomorphology, 109(1-2): 36-45.
 }
 
+\note{
+Though function \link{analyseBINdata} is originally designed to analyze CW-OSL data sets, IRSL data sets obtained from the SAR protocol can also be analyzed.
+}
+
 \seealso{
-  \link{loadBINdata}; \link{pickBINdata}; \link{pickSARdata};\cr
-  \link{calED}; \link{calSARED}; \link{calSGCED};\cr
-  \link{fitGrowth}; \link{lsNORM}; \link{BIN}
+  \link{loadBINdata}; \link{pickBINdata}; \link{pickSARdata}; \link{calED};\cr
+  \link{calSARED}; \link{calSGCED}; \link{fitGrowth}; \link{lsNORM}; \link{BIN}
 }
 
 \examples{

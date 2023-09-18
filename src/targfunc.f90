@@ -18,7 +18,7 @@ subroutine targfunc(lamda,n1,tim,sig,wght,ntim,typ,&
 !       fmin:: output, real value, the objective value.
 !      iflag:: output, integer, 0=success, 1=fail.
 !----------------------------------------------------------------
-! Author:: Peng Jun, 2014.09.28.
+! Author:: Peng Jun, 2023.08.30.
 !----------------------------------------------------------------
 ! Dependence:: subroutine gjordan().-----------------------------
 !----------------------------------------------------------------
@@ -28,17 +28,17 @@ subroutine targfunc(lamda,n1,tim,sig,wght,ntim,typ,&
 !----------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: n1, ntim, typ, addc
-    real   (kind=8), intent(in):: lamda(n1), tim(ntim),& 
-                                  sig(ntim), wght(ntim)
-    real   (kind=8), intent(out):: ithn(n1), constant, fmin
-    integer(kind=4), intent(out):: iflag
+    integer, intent(in):: n1, ntim, typ, addc
+    real(kind(1.0d0)), intent(in):: lamda(n1), tim(ntim),& 
+                                    sig(ntim), wght(ntim)
+    real(kind(1.0d0)), intent(out):: ithn(n1), constant, fmin
+    integer, intent(out):: iflag
     ! Local variables.
-    real   (kind=8):: coefMat1(ntim,n1+1), sigMat(ntim,1),& 
-                      timmaxt(ntim),tim2maxt2(ntim),&
-                      bMat(n1,1), bMat1(n1+1,1),& 
-                      aMat(n1,n1), aMat1(n1+1,n1+1)
-    integer(kind=4):: i, singular
+    real(kind(1.0d0)):: coefMat1(ntim,n1+1), sigMat(ntim,1),& 
+                        timmaxt(ntim),tim2maxt2(ntim),&
+                        bMat(n1,1), bMat1(n1+1,1),& 
+                        aMat(n1,n1), aMat1(n1+1,n1+1)
+    integer:: i, singular
     !
     iflag = 0
     fmin = 1.0D+20

@@ -1,28 +1,19 @@
 citHeader("To cite package numOSL in publications use:")
 
-citEntry(entry="Article",
-         title = "R package numOSL: numeric routines for optically stimulated luminescence dating",
-         author = personList(as.person("Peng J"),
-         as.person("Dong ZB"),
-         as.person("Han FQ"),
-         as.person("Long H"),
-         as.person("Liu XJ")),
-	 journal = "Ancient TL",
-         year = 2013,
-         volume = 31,
-         number = 2,
-         pages = "41-48",
-         url = "https://CRAN.R-project.org/package=numOSL",
-         textVersion = "Peng J, Dong ZB, Han FQ, Long H, Liu XJ, 2013. R package numOSL: numeric routines for optically stimulated luminescence dating. Ancient TL, 31(2): 41-48")
+citation(auto=meta)
 
-citEntry(entry="Article",
-         title = "Single-aliquot Regenerative-Dose (SAR) and Standardised Growth Curve (SGC) Equivalent Dose Determination in a Batch Model Using the R Package 'numOSL'",
-         author = personList(as.person("Peng J"),
-         as.person("Li B")),
+bibentry(bibtype = "Article",
+	 title = "R package numOSL: numeric routines for optically stimulated luminescence dating",
+         author = "Jun Peng and Zhi Bao Dong and Feng Qing Han and Hao Long and Xiang Jun Liu",
+         year = "2013",
 	 journal = "Ancient TL",
-         year = 2017,
-         volume = 35,
-         number = 2,
-         pages = "32-53",
-         url = "https://CRAN.R-project.org/package=numOSL",
-         textVersion = "Peng J, Li Bo, 2017. Single-aliquot Regenerative-Dose (SAR) and Standardised Growth Curve (SGC) Equivalent Dose Determination in a Batch Model Using the R Package 'numOSL'. Ancient TL, 35(2): 32-53.")
+	 volume = "31(2)",
+	 pages = "41-48")
+
+bibentry(bibtype = "Article",
+	 title = "Single-aliquot regenerative-dose (SAR) and standardised growth curve (SGC) equivalent dose determination in a batch model using the R package 'numOSL'",
+         author = "Jun Peng and Bo Li",
+         year = "2017",
+	 journal = "Ancient TL",
+	 volume = "35(2)",
+	 pages = "32-53")

@@ -12,19 +12,19 @@ subroutine goodComp(ed1,sed1,ndat,maxcomp,&
 !   addsigma:: input, real value, additional error.
 !    message:: output, integer, 0=success, 1=fail.
 !----------------------------------------------------
-! Author: Peng Jun, 2014.09.16.
+! Author: Peng Jun, 2023.08.30.
 !----------------------------------------------------
 ! Dependence:: subroutine compED.--------------------
 !----------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ndat, maxcomp
-    real   (kind=8), intent(in):: ed1(ndat), sed1(ndat), addsigma
-    integer(kind=4), intent(out):: gcomp, message
+    integer, intent(in):: ndat, maxcomp
+    real(kind(1.0d0)), intent(in):: ed1(ndat), sed1(ndat), addsigma
+    integer, intent(out):: gcomp, message
     ! Local variables.
-    real   (kind=8):: minBic, maxlik, bic
-    real   (kind=8), allocatable:: pars(:,:), stdp(:,:)
-    integer(kind=4):: i, info
+    real(kind(1.0d0)):: minBic, maxlik, bic
+    real(kind(1.0d0)), allocatable:: pars(:,:), stdp(:,:)
+    integer:: i, info
     !
     minBic = 1.0D+20 
     gcomp = -99

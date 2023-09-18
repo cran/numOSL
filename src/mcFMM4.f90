@@ -4,32 +4,25 @@ subroutine mcFMM4(nED,nsim,ED,Error,addsigma,&
 ! Construct MCMC chains for the 4-component FMM age model 
 ! (either in logged- or unlogged-scale).
 !
-! Author:: Peng Jun, 2014.03.28.
+! Author:: Peng Jun, 2023.08.30.
 !
 ! Dependence:: subroutine SliceFMM4().
 !===========================================================================================
   implicit none
-  integer(kind=4), intent(in):: nED                ! Number of equivalent doses.
-  integer(kind=4), intent(in):: nsim               ! Number of simulations.
-  real   (kind=8), intent(in):: ED(nED)            ! Equivalent dose values (un-logged).
-  real   (kind=8), intent(in):: Error(nED)         ! Standard errors (absolute).
-  real   (kind=8), intent(in):: addsigma           ! Added spread.
-  real   (kind=8), intent(in):: inis(2,4)          ! Initials of the chains.
-  integer(kind=4), intent(in):: ntry               ! Maximum times of trials per simulation.
-  real   (kind=8), intent(in):: w                  ! Size of the steps for creating interval.
-  real   (kind=8), intent(in):: m                  ! Limit on steps.
-  real   (kind=8), intent(out):: chains(nsim,8)    ! Simulated chains.
-  integer(kind=4), intent(out):: iflag             ! Error message (0=success, 1=fail).
-  logical,         intent(in):: iflog              ! Change to logged-scale or not.
+  integer, intent(in):: nED, nsim, ntry                              
+  real(kind(1.0d0)), intent(in):: ED(nED), Error(nED), addsigma,& 
+                                  inis(2,4), w, m                   
+  real(kind(1.0d0)), intent(out):: chains(nsim,8)    
+  integer, intent(out):: iflag            
+  logical, intent(in):: iflog            
   !
   ! Local variables.
-  real   (kind=8):: yy(nED), xx(nED)
-  real   (kind=8):: iniP1, iniP2, iniP3, iniP4
-  real   (kind=8):: iniMu1, iniMu2, iniMu3, iniMu4
-  real   (kind=8):: Value 
-  integer(kind=4):: i, j
-  real   (kind=8):: lowerMus, upperMus
-  real   (kind=8):: sumPs
+  real(kind(1.0d0)):: yy(nED), xx(nED), iniP1, iniP2, iniP3, iniP4,& 
+                      iniMu1, iniMu2, iniMu3, iniMu4, Value, lowerMus,& 
+                      upperMus, sumPs 
+  integer:: i, j, seed
+  !
+  seed=123456789
   !
   ! Default return chains.
   chains=-99.0
@@ -73,12 +66,12 @@ subroutine mcFMM4(nED,nsim,ED,Error,addsigma,&
       upperMus=maxval(yy)*1.001
   end if
   !
-  call random_seed()
+  !!!call random_seed()
   do i=1, nsim
       ! Update P1.
       loopP1: do j=1, ntry
           call SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
-                         nED,yy,xx,1,Value,iflag,w,m,0.0D+00,1.0D+00)
+                         nED,yy,xx,1,Value,iflag,w,m,0.0D+00,1.0D+00,seed)
           if (iflag==0)  exit loopP1
       end do loopP1
       ! Error checking.
@@ -89,7 +82,7 @@ subroutine mcFMM4(nED,nsim,ED,Error,addsigma,&
       ! Update P2.
       loopP2: do j=1, ntry
           call SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
-                         nED,yy,xx,2,Value,iflag,w,m,0.0D+00,1.0D+00)
+                         nED,yy,xx,2,Value,iflag,w,m,0.0D+00,1.0D+00,seed)
           if (iflag==0)  exit loopP2
       end do loopP2
       ! Error checking.
@@ -100,7 +93,7 @@ subroutine mcFMM4(nED,nsim,ED,Error,addsigma,&
       ! Update P3.
       loopP3: do j=1, ntry
           call SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
-                         nED,yy,xx,3,Value,iflag,w,m,0.0D+00,1.0D+00)
+                         nED,yy,xx,3,Value,iflag,w,m,0.0D+00,1.0D+00,seed)
           if (iflag==0)  exit loopP3
       end do loopP3
       ! Error checking.
@@ -111,7 +104,7 @@ subroutine mcFMM4(nED,nsim,ED,Error,addsigma,&
       ! Update P4.
       loopP4: do j=1, ntry
           call SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
-                         nED,yy,xx,4,Value,iflag,w,m,0.0D+00,1.0D+00)
+                         nED,yy,xx,4,Value,iflag,w,m,0.0D+00,1.0D+00,seed)
           if (iflag==0)  exit loopP4
       end do loopP4
       ! Error checking.
@@ -129,7 +122,7 @@ subroutine mcFMM4(nED,nsim,ED,Error,addsigma,&
       ! Update Mu1.
       loopMu1: do j=1, ntry
           call SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
-                         nED,yy,xx,5,Value,iflag,w,m,lowerMus,upperMus)
+                         nED,yy,xx,5,Value,iflag,w,m,lowerMus,upperMus,seed)
           if (iflag==0)  exit loopMu1
       end do loopMu1
       ! Error checking.
@@ -140,7 +133,7 @@ subroutine mcFMM4(nED,nsim,ED,Error,addsigma,&
       ! Update Mu2.
       loopMu2: do j=1, ntry
           call SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
-                         nED,yy,xx,6,Value,iflag,w,m,lowerMus,upperMus)
+                         nED,yy,xx,6,Value,iflag,w,m,lowerMus,upperMus,seed)
           if (iflag==0)  exit loopMu2
       end do loopMu2
       ! Error checking.
@@ -151,7 +144,7 @@ subroutine mcFMM4(nED,nsim,ED,Error,addsigma,&
       ! Update Mu3.
       loopMu3: do j=1, ntry
           call SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
-                         nED,yy,xx,7,Value,iflag,w,m,lowerMus,upperMus)
+                         nED,yy,xx,7,Value,iflag,w,m,lowerMus,upperMus,seed)
           if (iflag==0)  exit loopMu3
       end do loopMu3
       ! Error checking.
@@ -162,7 +155,7 @@ subroutine mcFMM4(nED,nsim,ED,Error,addsigma,&
       ! Update Mu4.
       loopMu4: do j=1, ntry
           call SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
-                         nED,yy,xx,8,Value,iflag,w,m,lowerMus,upperMus)
+                         nED,yy,xx,8,Value,iflag,w,m,lowerMus,upperMus,seed)
           if (iflag==0)  exit loopMu4
       end do loopMu4
       ! Error checking.
@@ -178,13 +171,13 @@ end subroutine mcFMM4
 ! ---------------------------------------------------------------------------------------------
 !         
 subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
-                     nED,ED,Error,which,Value,iflag,w,m,lower,upper)
+                     nED,ED,Error,which,Value,iflag,w,m,lower,upper,seed)
 ! =====================================================================================================
 ! Update parameters in 4-component FMM age model with the Slice Sampling.
 !
-! Author:: Peng Jun, 2014.03.19.
+! Author:: Peng Jun, 2023.09.09.
 !
-! Dependence:: Inner function funcPs(1,2,3) and funcMus(1,2,3).
+! Dependence:: function r8_uniform_01, inner functions funcPs(1,2,3) and funcMus(1,2,3).
 !
 ! Reference :: Neal, R. M (2003) "Slice sampling" (with discussion), Annals of Statistics,
 !              vol. 31, no. 3, pp. 705-767.
@@ -193,33 +186,17 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
 !        http://www.cs.utoronto.ca/~radford/slice.software.html
 ! =====================================================================================================
   implicit none
-  real   (kind=8), intent(in):: iniP1       ! Initial P1 value.
-  real   (kind=8), intent(in):: iniP2       ! Initial P2 value.
-  real   (kind=8), intent(in):: iniP3       ! Initial P3 value.
-  real   (kind=8), intent(in):: iniP4       ! Initial P4 value.
-  real   (kind=8), intent(in):: iniMu1      ! Initial Mu1 value.
-  real   (kind=8), intent(in):: iniMu2      ! Initial Mu2 value.
-  real   (kind=8), intent(in):: iniMu3      ! Initial Mu3 value.
-  real   (kind=8), intent(in):: iniMu4      ! Initial Mu4 value.
-  integer(kind=4), intent(in):: nED         ! Number of equivalent doses.
-  integer(kind=4), intent(in):: which       ! Which parameter to be updated (1, 2, 3 ,4 for Ps; 5, 6, 7, 8 for Mus).
-  real   (kind=8), intent(in):: ED(nED)     ! Equivalent dose values (either logged or un-logged).
-  real   (kind=8), intent(in):: Error(nED)  ! Standard errors (either relative or absolute).
-  real   (kind=8), intent(in):: w           ! Size of the steps for creating interval.
-  real   (kind=8), intent(in):: m           ! Limit on steps for creating interval.   
-  real   (kind=8), intent(in):: lower       ! Lower boundary of the desired parameter.
-  real   (kind=8), intent(in):: upper       ! Upper boundary of the desired parameter.
-  real   (kind=8), intent(out):: Value      ! Updated parameter corresponding to "which".
-  integer(kind=4), intent(out):: iflag      ! Error message (0=success, 1=fail).
+  integer, intent(in):: nED, which  
+  real(kind(1.0d0)), intent(in):: iniP1, iniP2, iniP3, iniP4, iniMu1, iniMu2, iniMu3,& 
+                                  iniMu4, ED(nED), Error(nED), w, m, lower, upper 
+  real(kind(1.0d0)), intent(out):: Value     
+  integer, intent(out):: iflag 
+  integer, intent(inout):: seed
+  !     
   ! Local variables.
-  real   (kind=8):: ran
-  real   (kind=8):: gx0, gx1
-  real   (kind=8):: logy
-  real   (kind=8):: U, L, R, J, K
-  real   (kind=8):: gL, gR
-  real   (kind=8):: locVal
-  real   (kind=8):: part1(nED), part2(nED), part3(nED), part4(nED)
-  real   (kind=8):: Error2(nED)
+  real(kind(1.0d0)):: ran, gx0, gx1, logy, U, L, R, J, K, gL, gR, locVal,&
+                      part1(nED), part2(nED), part3(nED), part4(nED), Error2(nED),&
+                      r8_uniform_01
   !
   iflag=0
   Value=-99.0
@@ -249,11 +226,13 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !
   !
   ! Transform logy in log terms.
-  call random_number(ran)
+  !!!call random_number(ran)
+  ran=r8_uniform_01(seed)
   logy=gx0+log(ran)
   !
   ! Find the initial interval [L,R] to sample from.
-  call random_number(ran)
+  !!!call random_number(ran)
+  ran=r8_uniform_01(seed)
   U=ran * w
   !
   if (which==1)  then
@@ -344,7 +323,8 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
       !
   else if (m>1.0)  then
       ! Limit on the steps for the case that m>1.0.
-      call random_number(ran)
+      !!!call random_number(ran)
+      ran=r8_uniform_01(seed)
       J=floor(m*ran)
       K=(m-1.0) - J
       !
@@ -414,7 +394,8 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !
   ! Sample from the interval with shrinking.
   do 
-      call random_number(ran)
+      !!!call random_number(ran)
+      ran=r8_uniform_01(seed)
       Value=L+ran*(R-L)
       !
       if (which==1)  then
@@ -473,10 +454,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !----------------------------------------------------------------------
   function funcP1(x)
       implicit none
-      real   (kind=8):: x
-      real   (kind=8):: funcP1
+      real(kind(1.0d0)):: x, funcP1
+      !
       ! Local variables
-      real   (kind=8):: sumPs
+      real(kind(1.0d0)):: sumPs
       !
       sumPs=x+iniP2+iniP3+iniP4
       part1=    x/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
@@ -491,10 +472,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !----------------------------------------------------------------------
   function funcP2(x)
       implicit none
-      real   (kind=8):: x
-      real   (kind=8):: funcP2
+      real(kind(1.0d0)):: x, funcP2
+      ! 
       ! Local variables
-      real   (kind=8):: sumPs
+      real(kind(1.0d0)):: sumPs
       !
       sumPs=iniP1+x+iniP3+iniP4
       part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
@@ -509,10 +490,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !----------------------------------------------------------------------
   function funcP3(x)
       implicit none
-      real   (kind=8):: x
-      real   (kind=8):: funcP3
+      real(kind(1.0d0)):: x, funcP3
+      ! 
       ! Local variables
-      real   (kind=8):: sumPs
+      real(kind(1.0d0)):: sumPs
       !
       sumPs=iniP1+iniP2+x+iniP4
       part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
@@ -527,10 +508,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !----------------------------------------------------------------------
   function funcP4(x)
       implicit none
-      real   (kind=8):: x
-      real   (kind=8):: funcP4
+      real(kind(1.0d0)):: x, funcP4
+      !
       ! Local variables
-      real   (kind=8):: sumPs
+      real(kind(1.0d0)):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+x
       part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
@@ -545,10 +526,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !----------------------------------------------------------------------
   function funcMu1(x)
       implicit none
-      real   (kind=8):: x
-      real   (kind=8):: funcMu1
+      real(kind(1.0d0)):: x, funcMu1
+      ! 
       ! Local variables
-      real   (kind=8):: sumPs
+      real(kind(1.0d0)):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+iniP4
       part1=iniP1/sumPs/Error*exp( -(ED-     x)**2/2.0/Error2 )
@@ -563,10 +544,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !----------------------------------------------------------------------
   function funcMu2(x)
       implicit none
-      real   (kind=8):: x
-      real   (kind=8):: funcMu2
+      real(kind(1.0d0)):: x, funcMu2
+      ! 
       ! Local variables
-      real   (kind=8):: sumPs
+      real(kind(1.0d0)):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+iniP4
       part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
@@ -581,10 +562,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !----------------------------------------------------------------------
   function funcMu3(x)
       implicit none
-      real   (kind=8):: x
-      real   (kind=8):: funcMu3
+      real(kind(1.0d0)):: x, funcMu3
+      ! 
       ! Local variables
-      real   (kind=8):: sumPs
+      real(kind(1.0d0)):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+iniP4
       part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )
@@ -599,10 +580,10 @@ subroutine SliceFMM4(iniP1,iniP2,iniP3,iniP4,iniMu1,iniMu2,iniMu3,iniMu4,&
   !----------------------------------------------------------------------
   function funcMu4(x)
       implicit none
-      real   (kind=8):: x
-      real   (kind=8):: funcMu4
+      real(kind(1.0d0)):: x, funcMu4
+      ! 
       ! Local variables
-      real   (kind=8):: sumPs
+      real(kind(1.0d0)):: sumPs
       !
       sumPs=iniP1+iniP2+iniP3+iniP4
       part1=iniP1/sumPs/Error*exp( -(ED-iniMu1)**2/2.0/Error2 )

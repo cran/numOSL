@@ -18,17 +18,17 @@ subroutine lmfunc(nd,n2,pars,fvec,&
 !                              4=CW-OSL;
 !                              5=LM-OSL.
 !-----------------------------------------------------
-! Author:: Peng Jun, 2014.09.27.
+! Author:: Peng Jun, 2023.08.30.
 !-----------------------------------------------------
 ! Dependence:: NO.
 !-----------------------------------------------------
     ! Arguments.
-    integer(kind=4):: nd, n2, iflag, model
-    real   (kind=8):: pars(n2), fvec(nd),& 
-                      xd(nd), yd(nd), syd(nd)
+    integer:: nd, n2, iflag, model
+    real(kind(1.0d0)):: pars(n2), fvec(nd),& 
+                        xd(nd), yd(nd), syd(nd)
     ! Local variables.
-    real   (kind=8):: xx(15), xd1(nd), xd2(nd)
-    integer(kind=4):: i
+    real(kind(1.0d0)):: xx(15), xd1(nd), xd2(nd)
+    integer:: i
     !
     xx = 0.0
     xx(1:n2) = pars(1:n2)

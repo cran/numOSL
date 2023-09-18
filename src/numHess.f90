@@ -16,7 +16,7 @@ subroutine numHess(xd,yd,syd,nd,model,&
 ! hess(np,np):: output, real values, the Hessian matrix.
 !       iflag:: output, integer, 0=success; 1=fail.
 !--------------------------------------------------------
-! Author:: Peng Jun, 2016.07.06.
+! Author:: Peng Jun, 2023.08.30.
 !--------------------------------------------------------
 ! Dependence:: inner function func; 
 !              subroutine pnorm; 
@@ -33,25 +33,26 @@ subroutine numHess(xd,yd,syd,nd,model,&
 !--------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: nd, model, np
-    real   (kind=8), intent(in):: xd(nd), yd(nd),& 
-                                  syd(nd), pars(np)
-    real   (kind=8), intent(out):: hess(np,np)
-    integer(kind=4), intent(out):: iflag
+    integer, intent(in):: nd, model, np
+    real(kind(1.0d0)), intent(in):: xd(nd), yd(nd),& 
+                                    syd(nd), pars(np)
+    real(kind(1.0d0)), intent(out):: hess(np,np)
+    integer, intent(out):: iflag
+    !
     ! Local variables.
-    real   (kind=8), parameter:: eps=1.0D-04,&
-                                 d=0.1D+00,&
-                                 zTol=1.781029D-05
-    integer(kind=4), parameter:: r=4
-    real   (kind=8):: h0(np), h(np), Hdiag(np),& 
-                      incr1(np), incr2(np),&
-                      Dd(np*(np+3)/2), Daprox(r),& 
-                      Haprox(r)
-    real   (kind=8):: f0, f1, f2, m4
-    integer(kind=4):: i, j, k, m, u
-    real   (kind=8), parameter:: pi=&
+    real(kind(1.0d0)), parameter:: eps=1.0D-04,&
+                                   d=0.1D+00,&
+                                   zTol=1.781029D-05
+    integer, parameter:: r=4
+    real(kind(1.0d0)):: h0(np), h(np), Hdiag(np),& 
+                        incr1(np), incr2(np),&
+                        Dd(np*(np+3)/2), Daprox(r),& 
+                        Haprox(r)
+    real(kind(1.0d0)):: f0, f1, f2, m4, xx(15)
+    integer:: i, j, k, m, u
+    real(kind(1.0d0)), parameter:: pi=&
     3.141592653589793238462643383279502884197D+00
-    real   (kind=8):: xx(15)
+    !
     !
     iflag = 0
     hess = 0.0D+00
@@ -152,9 +153,9 @@ subroutine numHess(xd,yd,syd,nd,model,&
     contains
         function func(x)
             implicit none
-            real   (kind=8):: x(np), func
-            real   (kind=8):: vec(nd), alnorm
-            integer(kind=4):: i
+            real(kind(1.0d0)):: x(np), func
+            real(kind(1.0d0)):: vec(nd), alnorm
+            integer:: i
             !
             xx = 0.0D+00
             xx(1:np) = x

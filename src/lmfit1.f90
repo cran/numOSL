@@ -18,7 +18,7 @@ subroutine lmfit1(xd,yd,syd,nd,pars,stdp,&
 !             1: fail,
 !             2: stdp<=0.
 !------------------------------------------------------
-! Author:: Peng Jun, 2016.07.07.
+! Author:: Peng Jun, 2023.08.30.
 !------------------------------------------------------
 ! Dependence:: subroutine lmdif1_bd; 
 !              subroutine lmfunc1;
@@ -26,18 +26,18 @@ subroutine lmfit1(xd,yd,syd,nd,pars,stdp,&
 !------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: nd, n2
-    real   (kind=8), intent(in):: xd(nd), yd(nd), syd(nd)
-    real   (kind=8), intent(inout):: pars(n2)
-    real   (kind=8), intent(out):: stdp(n2), fvec1(nd), fmin
-    integer(kind=4), intent(out):: message
+    integer, intent(in):: nd, n2
+    real(kind(1.0d0)), intent(in):: xd(nd), yd(nd), syd(nd)
+    real(kind(1.0d0)), intent(inout):: pars(n2)
+    real(kind(1.0d0)), intent(out):: stdp(n2), fvec1(nd), fmin
+    integer, intent(out):: message
     ! Local variables.
-    integer(kind=4):: info, ifault, i
-    integer(kind=4), parameter:: model=7
-    real   (kind=8), parameter:: tol=1.490116D-08
-    real   (kind=8):: fvec(nd), hess(n2,n2),&
-                      diag(n2), avgdv,& 
-                      lower(n2), upper(n2)
+    integer:: info, ifault, i
+    integer, parameter:: model=7
+    real(kind(1.0d0)), parameter:: tol=1.490116D-08
+    real(kind(1.0d0)):: fvec(nd), hess(n2,n2),&
+                        diag(n2), avgdv,& 
+                        lower(n2), upper(n2)
     external:: lmfunc1
     !
     stdp = -99.0

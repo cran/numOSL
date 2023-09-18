@@ -29,7 +29,7 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
 !                     3=fail in ED calculating,
 !                     4=fail in ED error estimation using SP (or MC).
 !--------------------------------------------------------------------
-! Author:: Peng Jun, 2017.04.01.
+! Author:: Peng Jun, 2023.08.30.
 !--------------------------------------------------------------------
 ! Dependence:: subroutine inipars;
 !              subroutine lmfit1; 
@@ -38,23 +38,23 @@ subroutine calED1(dose,ltx,sltx,ndat,n2,inltx,outDose,&
 !--------------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ndat, n2, uw, nsim, errMethod
-    real   (kind=8), intent(in):: dose(ndat), ltx(ndat),&
-                                  sltx(ndat), inltx(1,2)
-    real   (kind=8), intent(out):: outDose(1,2), mcED(nsim),&
-                                   pars(n2), stdp(n2),&  
-                                   saturateDose, acceptRate,&
-                                   fvec1(ndat), fmin
-    integer(kind=4), intent(out):: message
+    integer, intent(in):: ndat, n2, uw, nsim, errMethod
+    real(kind(1.0d0)), intent(in):: dose(ndat), ltx(ndat),&
+                                    sltx(ndat), inltx(1,2)
+    real(kind(1.0d0)), intent(out):: outDose(1,2), mcED(nsim),&
+                                     pars(n2), stdp(n2),&  
+                                     saturateDose, acceptRate,&
+                                     fvec1(ndat), fmin
+    integer, intent(out):: message
     ! Local variables.
-    integer(kind=4):: i, j, info, seed, mcCount, niter, ookk
-    integer(kind=4), parameter:: model=7
-    real   (kind=8):: wght1(ndat), minValue, ran(2), outp(3),&
-                      locp(4), cpars(n2), cstdp(n2), rcv(11),&
-                      cfvec1(ndat), cfmin, maxDose, ifmin,& 
-                      sumdose, sumdose2, simltx(ndat), mcOSL(1), mcDose,& 
-                      Xm, Ym, aaa, bbb, ccc, ddd, inib(24), limSig, derivative,&
-                      avgDev, spErr, spltx1, spltx2, spDose1, spDose2
+    integer:: i, j, info, seed, mcCount, niter, ookk
+    integer, parameter:: model=7
+    real(kind(1.0d0)):: wght1(ndat), minValue, ran(2), outp(3),&
+                        locp(4), cpars(n2), cstdp(n2), rcv(11),&
+                        cfvec1(ndat), cfmin, maxDose, ifmin,& 
+                        sumdose, sumdose2, simltx(ndat), mcOSL(1), mcDose,& 
+                        Xm, Ym, aaa, bbb, ccc, ddd, inib(24), limSig, derivative,&
+                        avgDev, spErr, spltx1, spltx2, spDose1, spDose2
     !
     outDose = -99.0
     mcED = -99.0

@@ -77,7 +77,7 @@ Duller GAT, 2016. Analyst (v4.31.9), User Mannual.
 }
 
 \note{
-We would like to appreciate Dr Lei Gao who prompts me to write this function and provides measured data sets to test this procedure.
+We would like to appreciate Dr Lei Gao who prompts us to write this function and provides measured data sets to test this procedure.
 }
 
 \seealso{

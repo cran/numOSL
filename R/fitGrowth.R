@@ -7,7 +7,7 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
          Recuperation2=NULL, LnTn.curve=NULL, TxTn=NULL) {
     UseMethod("fitGrowth")
 } #
-### 2018.04.23.
+### 2023.09.06.
 fitGrowth.default <-
 function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
          trial=FALSE, plot=TRUE, nofit.rgd=NULL, agID=NULL, Tn=NULL,  
@@ -272,6 +272,9 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
     ###  
     ###-----------------------------------------------------------------
     if (plot==TRUE) {
+        opar <- par("mfrow", "mgp", "mar")
+        on.exit(par(opar))
+        ###
         layout(matrix(c(1L,1L,2L,1L,1L,3L,4L,4L,4L),nrow=3L), respect=TRUE)
         par(mgp=c(2.5,1,0))
         ###      
@@ -478,9 +481,6 @@ function(Curvedata, model="gok", origin=FALSE, weight=TRUE,
             ###
         } # end if.
         ###
-        on.exit(par(mar=c(5,4,4,2)+0.1,
-                    mgp=c(3,1,0),
-                    mfrow=c(1L,1L)))
     } # end if.
     ###---------------------------------------------------------------
     ###

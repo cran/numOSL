@@ -67,8 +67,7 @@ Li B, Jacobs Z, Roberts RG, 2016. Investigation of the applicability of standard
 }
 
 \seealso{
-  \link{analyseBINdata}; \link{fitGrowth}; \link{SARdata}\cr 
-  \link{scaleSGCN}; \link{calSGCED}
+  \link{analyseBINdata}; \link{fitGrowth}; \link{SARdata}; \link{scaleSGCN}; \link{calSGCED}
 }
 
 \examples{

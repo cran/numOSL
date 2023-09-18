@@ -13,7 +13,7 @@ subroutine camED(ed,sed,ndat,addsigma,&
 !    maxlik:: output, real vlaue, maximum likelihood.
 !       bic:: output, real value, BIC value.
 !-------------------------------------------------------
-! Author:: Peng Jun, 2014.10.01.
+! Author:: Peng Jun, 2023.08.30.
 !-------------------------------------------------------
 ! Dependence:: NO.
 !-------------------------------------------------------
@@ -24,17 +24,17 @@ subroutine camED(ed,sed,ndat,addsigma,&
 !-------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ndat
-    real   (kind=8), intent(in):: ed(ndat), sed(ndat), addsigma
-    real   (kind=8), intent(out):: pars(2,1), stdp(2,1),&
-                                   maxlik, bic
+    integer, intent(in):: ndat
+    real(kind(1.0d0)), intent(in):: ed(ndat), sed(ndat), addsigma
+    real(kind(1.0d0)), intent(out):: pars(2,1), stdp(2,1),&
+                                     maxlik, bic
     ! Local variables.
-    real   (kind=8):: z(ndat), sz(ndat),&
-                      wz(ndat), newp(2,1)
-    real   (kind=8), parameter:: eps=1.0D-08,&
+    real(kind(1.0d0)):: z(ndat), sz(ndat),&
+                        wz(ndat), newp(2,1)
+    real(kind(1.0d0)), parameter:: eps=1.0D-08,&
     PI=3.141592653589793238462643383279502884197D+00
-    integer(kind=4), parameter:: maxiter=10000
-    integer(kind=4):: i
+    integer, parameter:: maxiter=10000
+    integer:: i
     !
     z = ed
     sz = sqrt(sed**2+addsigma**2)

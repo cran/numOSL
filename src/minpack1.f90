@@ -73,24 +73,26 @@ subroutine fdjac2_bd ( fcn, m, n, x, fvec, fjac, ldfjac, iflag, epsfcn, xd, yd, 
 !
   implicit none
 
-  integer ( kind = 4 ) ldfjac
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ldfjac
+  integer m
+  integer n
 
-  real ( kind = 8 ) eps
-  real ( kind = 8 ) epsfcn
-  real ( kind = 8 ) epsmch
+  integer, parameter:: dbdbx=kind(1.0d0)
+  
+  real ( dbdbx ) eps
+  real ( dbdbx ) epsfcn
+  real ( dbdbx ) epsmch
   external fcn
-  real ( kind = 8 ) fjac(ldfjac,n)
-  real ( kind = 8 ) fvec(m)
-  real ( kind = 8 ) h
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) iflag
-  integer ( kind = 4 ) j
-  real ( kind = 8 ) temp
-  real ( kind = 8 ) wa(m)
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) xd(m), yd(m), syd(m), lower(n), upper(n)
+  real ( dbdbx ) fjac(ldfjac,n)
+  real ( dbdbx ) fvec(m)
+  real ( dbdbx ) h
+  integer i
+  integer iflag
+  integer j
+  real ( dbdbx ) temp
+  real ( dbdbx ) wa(m)
+  real ( dbdbx ) x(n)
+  real ( dbdbx ) xd(m), yd(m), syd(m), lower(n), upper(n)
 
   epsmch = epsilon ( epsmch )
 
@@ -271,54 +273,56 @@ subroutine lmdif_bd ( fcn, m, n, x, fvec, ftol, xtol, gtol, maxfev, epsfcn, &
 !
   implicit none
 
-  integer ( kind = 4 ) ldfjac
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer ldfjac
+  integer m
+  integer n
 
-  real ( kind = 8 ) actred
-  real ( kind = 8 ) delta
-  real ( kind = 8 ) diag(n)
-  real ( kind = 8 ) dirder
-  real ( kind = 8 ) enorm
-  real ( kind = 8 ) epsfcn
-  real ( kind = 8 ) epsmch
-  real ( kind = 8 ) factor
+  integer, parameter:: dbdbx=kind(1.0d0)
+  
+  real ( dbdbx ) actred
+  real ( dbdbx ) delta
+  real ( dbdbx ) diag(n)
+  real ( dbdbx ) dirder
+  real ( dbdbx ) enorm
+  real ( dbdbx ) epsfcn
+  real ( dbdbx ) epsmch
+  real ( dbdbx ) factor
   external fcn
-  real ( kind = 8 ) fjac(ldfjac,n)
-  real ( kind = 8 ) fnorm
-  real ( kind = 8 ) fnorm1
-  real ( kind = 8 ) ftol
-  real ( kind = 8 ) fvec(m)
-  real ( kind = 8 ) gnorm
-  real ( kind = 8 ) gtol
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) iflag
-  integer ( kind = 4 ) iter
-  integer ( kind = 4 ) info
-  integer ( kind = 4 ) ipvt(n)
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) maxfev
-  integer ( kind = 4 ) mode
-  integer ( kind = 4 ) nfev
-  integer ( kind = 4 ) nprint
-  real ( kind = 8 ) par
-  real ( kind = 8 ) pnorm
-  real ( kind = 8 ) prered
-  real ( kind = 8 ) qtf(n)
-  real ( kind = 8 ) ratio
-  real ( kind = 8 ) sum2
-  real ( kind = 8 ) temp
-  real ( kind = 8 ) temp1
-  real ( kind = 8 ) temp2
-  real ( kind = 8 ) wa1(n)
-  real ( kind = 8 ) wa2(n)
-  real ( kind = 8 ) wa3(n)
-  real ( kind = 8 ) wa4(m)
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) xnorm
-  real ( kind = 8 ) xtol
-  real ( kind = 8 ) xd(m), yd(m), syd(m), lower(n), upper(n)
+  real ( dbdbx ) fjac(ldfjac,n)
+  real ( dbdbx ) fnorm
+  real ( dbdbx ) fnorm1
+  real ( dbdbx ) ftol
+  real ( dbdbx ) fvec(m)
+  real ( dbdbx ) gnorm
+  real ( dbdbx ) gtol
+  integer i
+  integer iflag
+  integer iter
+  integer info
+  integer ipvt(n)
+  integer j
+  integer l
+  integer maxfev
+  integer mode
+  integer nfev
+  integer nprint
+  real ( dbdbx ) par
+  real ( dbdbx ) pnorm
+  real ( dbdbx ) prered
+  real ( dbdbx ) qtf(n)
+  real ( dbdbx ) ratio
+  real ( dbdbx ) sum2
+  real ( dbdbx ) temp
+  real ( dbdbx ) temp1
+  real ( dbdbx ) temp2
+  real ( dbdbx ) wa1(n)
+  real ( dbdbx ) wa2(n)
+  real ( dbdbx ) wa3(n)
+  real ( dbdbx ) wa4(m)
+  real ( dbdbx ) x(n)
+  real ( dbdbx ) xnorm
+  real ( dbdbx ) xtol
+  real ( dbdbx ) xd(m), yd(m), syd(m), lower(n), upper(n)
 
   epsmch = epsilon ( epsmch )
 
@@ -734,31 +738,33 @@ subroutine lmdif1_bd ( fcn, m, n, x, fvec, tol, info, xd, yd, syd, lower, upper,
 !
   implicit none
 
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
+  integer m
+  integer n
 
-  real ( kind = 8 ) diag(n)
-  real ( kind = 8 ) epsfcn
-  real ( kind = 8 ) factor
+  integer, parameter:: dbdbx=kind(1.0d0)
+  
+  real ( dbdbx ) diag(n)
+  real ( dbdbx ) epsfcn
+  real ( dbdbx ) factor
   external fcn
-  real ( kind = 8 ) fjac(m,n)
-  real ( kind = 8 ) ftol
-  real ( kind = 8 ) fvec(m)
-  real ( kind = 8 ) gtol
-  integer ( kind = 4 ) info
-  integer ( kind = 4 ) ipvt(n)
-  integer ( kind = 4 ) ldfjac
-  integer ( kind = 4 ) maxfev
-  integer ( kind = 4 ) mode
-  integer ( kind = 4 ) nfev
-  integer ( kind = 4 ) nprint
-  real ( kind = 8 ) qtf(n)
-  real ( kind = 8 ) tol
-  real ( kind = 8 ) x(n)
-  real ( kind = 8 ) xtol
-  real ( kind = 8 ) xd(m), yd(m), syd(m),  lower(n), upper(n), hess(n,n)
-  real ( kind = 8 ) perm(n,n), rrr(n,n)
-  integer ( kind = 4 ) i, j
+  real ( dbdbx ) fjac(m,n)
+  real ( dbdbx ) ftol
+  real ( dbdbx ) fvec(m)
+  real ( dbdbx ) gtol
+  integer info
+  integer ipvt(n)
+  integer ldfjac
+  integer maxfev
+  integer mode
+  integer nfev
+  integer nprint
+  real ( dbdbx ) qtf(n)
+  real ( dbdbx ) tol
+  real ( dbdbx ) x(n)
+  real ( dbdbx ) xtol
+  real ( dbdbx ) xd(m), yd(m), syd(m),  lower(n), upper(n), hess(n,n)
+  real ( dbdbx ) perm(n,n), rrr(n,n)
+  integer i, j
   info = 0
 
   if ( n <= 0 ) then

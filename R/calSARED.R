@@ -8,7 +8,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
          use.se=TRUE, outpdf=NULL, outfile=NULL) {
     UseMethod("calSARED")
 } #
-### 2018.07.26.
+### 2023.09.01.
 calSARED.default <-
 function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
          nsim=500, weight=TRUE, trial=TRUE, nofit.rgd=NULL, Tn.above.3BG=TRUE, 
@@ -695,7 +695,7 @@ function(obj_analyseBIN, model="gok", origin=FALSE, errMethod="sp",
                          Tn3BG=calED_Tn3BG, TnBG.ratio=calED_TnBG.ratio, rseTn=calED_rseTn, 
                          FR=calED_FR, LnTn.curve=calED_LnTn.curve, TxTn=calED_TxTn), silent=TRUE)
         ###
-        if (class(res)=="try-error") {
+        if (inherits(res,what="try-error")==TRUE) {
             tryError_ID <- rbind(tryError_ID, agID[i,,drop=TRUE])
             cat(paste("[NO=",NO[i],",Position=",Position[i],",Grain=",Grain[i],"]:\n", sep=""))
             print(attr(res, "condition"))

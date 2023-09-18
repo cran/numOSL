@@ -58,7 +58,7 @@ where \code{k=1, 2, ..., 7}, \code{I(t)} is the luminescence intensity as a func
 For a LM-OSL decay curve, the fitting model (Bulur, 2000) is:\cr
 \code{I(t)=a1*b1*(t/P)*exp[-b1*t^2/(2*P)]+...+ak*bk*(t/P)*exp[-bk*t^2/(2*P)]},\cr
 where \code{k=1, 2, ..., 7}, and \code{I(t)} is the luminescence intensity as a function of time, \code{P} is the total stimulation time, \code{a} is the number of trapped electrons, and \code{b} is the detrapping rate. The constant component is \code{c*(t/P)} if \code{constant=TRUE}.\cr\cr
-Parameters are initialized using a differential evolution method suggested by Bluszcz and Adamiec (2006), then the Levenberg-Marquardt algorithm (minpack: Fortran 90 version by John Burkardt, freely available at \url{http://people.sc.fsu.edu/~jburkardt/f_src/minpack/minpack.html}) will be performed to optimize the parameters. If \code{weight=TRUE}, the photon counts will be assumed to follow a Possion distribution with a standard error equal to the square root of the number of photon counts, and the decay curve will be fitted using a weighted procedure. Setting \code{weight=TRUE} gives more weight to photon counts from slower decaying components.\cr\cr
+Parameters are initialized using a differential evolution method suggested by Bluszcz and Adamiec (2006), then the Levenberg-Marquardt algorithm (minpack: Fortran 90 version by John Burkardt, freely available at \url{https://people.sc.fsu.edu/~jburkardt/f_src/minpack/minpack.html}) will be performed to optimize the parameters. If \code{weight=TRUE}, the photon counts will be assumed to follow a Possion distribution with a standard error equal to the square root of the number of photon counts, and the decay curve will be fitted using a weighted procedure. Setting \code{weight=TRUE} gives more weight to photon counts from slower decaying components.\cr\cr
 Arguments in \code{control.args} that control the differential evolution algorithm include:\cr
 \bold{(1)} \emph{factor}: the number of population members, \code{np=factor*ncomp}, default \code{factor=20}; \cr
 \bold{(2)} \emph{f}: a weighting factor that lies between \code{0} and \code{1.2}, default \code{f=0.5}; \cr
@@ -78,10 +78,6 @@ Return an invisible \link{list} containing the following elements:
   \item{FOM}{figure of merit value for the decay curve in percent}
 }
 
-\seealso{
-  \link{Signaldata}; \link{pickBINdata}; \link{fastED}
-}
-
 \references{
 Bluszcz A, 1996. Exponential function fitting to TL growth data and similar applications. Geochronometria, 13: 135-141.
 
@@ -89,7 +85,7 @@ Bluszcz A, Adamiec G, 2006. Application of differential evolution to fitting OSL
 
 Bulur E, 2000. A simple transformation for converting CW-OSL curves to LM-OSL curves. Radiation Measurements, 32(2): 141-145.
 
-Differential evolution algorithm, \url{http://en.wikipedia.org/wiki/Differential_evolution}
+Differential evolution algorithm, \url{https://en.wikipedia.org/wiki/Differential_evolution}
   
 Jain M, Murray AS, Boetter-Jensen L, 2003. Characterisation of blue-light stimulated luminescence components in different quartz samples: 
 implications for dose measurement. Radiation Measurements, 37(4-5): 441-449.
@@ -112,11 +108,14 @@ Peng J, Dong ZB, Han FQ, Han YH, Dai XL, 2014. Estimating the number of componen
 Geochronometria, 41(4): 334-341.
 }
 
-
 \note{
 Arguments \code{curve.no}, \code{SAR.Cycle}, and \code{irr.dose} have nothing to do with decay curve fitting. They are used only for plotting purpose.\cr\cr
 The model to be optimized should not be underdetermined. This means that the number of data points should exceed (or at least be equal to) the number of parameters. For a given model, this routine will return an error if any standard errors of parameters cannot be estimated by numerical difference-approximation. Function \code{decompc} in previous versions was bundled to function \link{decomp}.\cr\cr
 We would like to thank Professor Andrzej Bluszcz who helps us a lot during the programming of this function. Dr Jeong-Heon Choi is thanked for providing published data sets to test this routine.
+}
+
+\seealso{
+  \link{Signaldata}; \link{pickBINdata}; \link{fastED}
 }
 
 \examples{

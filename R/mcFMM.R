@@ -1,17 +1,27 @@
 #####
-mcFMM<-
-function(EDdata, ncomp=1, addsigma=0, iflog=TRUE,
+mcCAM <- 
+function(EDdata, addsigma=0, iflog=TRUE,
          nsim=5e4, inis=list(), control.args=list()) {
+
+    mcFMM.default(EDdata=EDdata, ncomp=1, addsigma=addsigma, iflog=iflog,
+                  nsim=nsim, inis=inis, control.args=control.args)
+
+} # end function mcCAM.
+###
+mcFMM<-
+function(EDdata, ncomp=2, addsigma=0, iflog=TRUE,
+         nsim=5e4, inis=list(), control.args=list()) {
+    stopifnot(ncomp>=2)
     UseMethod("mcFMM")
 } #
-### 2017.03.29.
+### 2023.09.10.
 mcFMM.default<-
-function(EDdata, ncomp=1, addsigma=0, iflog=TRUE,
+function(EDdata, ncomp=2, addsigma=0, iflog=TRUE,
          nsim=5e4, inis=list(), control.args=list()) {
     ### Stop if not.    
      stopifnot(ncol(EDdata)==2L, nrow(EDdata)>=5L,
               all(EDdata[,2L,drop=TRUE]>0),
-              length(ncomp)==1L, ncomp %in% seq(4L),
+              length(ncomp)==1L, ncomp %in% c(1,2,3,4),
               length(addsigma)==1L, is.numeric(addsigma),
               length(iflog)==1L, is.logical(iflog),
               length(nsim)==1L, is.numeric(nsim), nsim>=100L, nsim<=2e5,
@@ -133,8 +143,6 @@ function(EDdata, ncomp=1, addsigma=0, iflog=TRUE,
     if (ncomp==1L) {
         if (iflog==TRUE) {
             chains[,1L]<-exp(chains[,1L])
-        } else {
-            chains[,2L]<-chains[,2L]/chains[,1L]
         } # end if
     } else {
         if (iflog==TRUE) {
@@ -147,9 +155,9 @@ function(EDdata, ncomp=1, addsigma=0, iflog=TRUE,
     } # end if
     ###
     dimnames(chains)=list(NULL,
-                     if(ncomp==1L) c("mu","sigma") else 
-                     c(paste("p",seq(ncomp),sep=""),
-                     paste("mu",seq(ncomp),sep="")))
+                     if(ncomp==1L) c("CAM.De","CAM.OD") else 
+                     c(paste("Prop",seq(ncomp),sep=""),
+                     paste("FMM.De",seq(ncomp),sep="")))
     ### 
     output<-list("EDdata"=EDdata, 
                  "addsigma"=addsigma, 

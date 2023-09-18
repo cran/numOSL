@@ -6,7 +6,7 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
          FR=NULL, LnTn.curve=NULL, TxTn=NULL) {
     UseMethod("calED")
 } ###
-### 2018.04.23. 
+### 2023.09.01. 
 calED.default <-
 function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp", 
          nsim=500, weight=TRUE, trial=FALSE, plot=TRUE, nofit.rgd=NULL, 
@@ -347,6 +347,9 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
     ###
     ###-----------------------------------------------------------------------------
     if (plot==TRUE) {
+        opar <- par("mfrow", "mgp", "mar")
+        on.exit(par(opar))
+        ###
         layout(matrix(c(1L,1L,2L,1L,1L,3L,4L,4L,4L),nrow=3L), respect=TRUE)
         par(mgp=c(2.5,1,0))
         ###
@@ -724,9 +727,6 @@ function(Curvedata, Ltx, model="gok", origin=FALSE, errMethod="sp",
                   yjust=2, ncol=1L, cex=0.9, bty="n")
         } # end if.
         ###
-        on.exit(par(mar=c(5,4,4,2)+0.1,
-                    mgp=c(3,1,0),
-                    mfrow=c(1L,1L)))
     } # end if.
     ###--------------------------------------------------------------------------------------
     ###

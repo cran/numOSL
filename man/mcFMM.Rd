@@ -1,4 +1,5 @@
 \name{mcFMM}
+\alias{mcCAM}
 \alias{mcFMM}
 \alias{mcFMM.default}
 \title{
@@ -8,16 +9,19 @@ Finite mixture age model optimization (using a Markov chain Monte Carlo method)
 Sampling from the joint-likelihood functions of finite mixture age models (include the central age model) using a Markov chain Monte Carlo (MCMC) method.
 }
 \usage{
-mcFMM(EDdata, ncomp = 1, addsigma = 0, iflog = TRUE, 
+mcCAM(EDdata, addsigma = 0, iflog = TRUE, 
+      nsim = 50000, inis = list(), control.args = list())
+
+mcFMM(EDdata, ncomp = 2, addsigma = 0, iflog = TRUE, 
       nsim = 50000, inis = list(), control.args = list())
 }
 \arguments{
   \item{EDdata}{\link{matrix}(\bold{required}):  a two-column matrix (i.e., equivalent dose values and\cr
 associated standard errors)}
 
-  \item{ncomp}{\link{integer}(with default): number of components (\code{1} denotes the central age model)}
+  \item{ncomp}{\link{integer}(with default): number of components}
 
-\item{addsigma}{\link{numeric}(with default): additional uncertainty}
+\item{addsigma}{\link{numeric}(with default): additional uncertainty, i.e., the sigmab value}
 
   \item{iflog}{\link{logical}(with default): transform equivalent dose values to log-scale or not}
 
@@ -43,26 +47,31 @@ Return an invisible \link{list} of S3 class object \code{"mcAgeModels"} includin
   \item{model}{fitting model}
   \item{iflog}{transform equivalent dose values to log-scale or not}
   \item{nsim}{number of iterations}
-  \item{chains}{simulated samples}
+  \item{chains}{simulated samples of parameters}
 }
 
 \references{
 Galbraith RF, Green P, 1990. Estimating the component ages in a finite mixture. International Journal of Radiation Applications and Instrumentation. Part D. Nuclear Tracks and Radiation Measurements, 17: 197-206.
 
-Neal RM, 2003. "Slice sampling" (with discussion). Annals of Statistics, 31(3): 705-767. Software is freely available at \url{http://www.cs.utoronto.ca/~radford/slice.software.html}.
+Neal RM, 2003. "Slice sampling" (with discussion). Annals of Statistics, 31(3): 705-767. Software is freely available at \url{https://glizen.com/radfordneal/slice.software.html}.
+
+Peng J, Dong ZB, Han FQ, 2016. Application of slice sampling method for optimizing OSL age models used for equivalent dose determination. Progress in Geography, 35(1): 78-88. (In Chinese).
 }
 
 \seealso{
-  \link{mcMAM}; \link{reportSAM};\cr
-  \link{RadialPlotter}; \link{EDdata}
+  \link{mcMAM}; \link{reportMC}; \link{RadialPlotter}; \link{optimSAM}; \link{sensSAM}; \link{EDdata}
 }
 
 \examples{
   # Not run.
   # data(EDdata)
+  # Construct a MCMC chain for CAM.
+  # obj<-mcCAM(EDdata$gl11,nsim=5000)
+  # reportMC(obj,thin=2,burn=1e3)
+  
   # Construct a MCMC chain for FMM3.
   # obj<-mcFMM(EDdata$gl11,ncomp=3,nsim=5000)
-  # reportSAM(obj,thin=2,burn=1e3)
+  # reportMC(obj,thin=2,burn=1e3)
 }
 \keyword{statistical age models}
 \keyword{Central Age Model}

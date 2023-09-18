@@ -14,26 +14,26 @@ subroutine fitGOK(dose,ltx,sltx,ndat,n2,pars,stdp,&
 !      fvec1:: output, real value, minimized objective.
 !    message:: output, integer, 0=success, 1=fail.
 !--------------------------------------------------------------
-! Author:: Peng Jun, 2017.03.27.
+! Author:: Peng Jun, 2023.08.30.
 !--------------------------------------------------------------
 ! Dependence:: subroutine inipars;
 !              subroutine lmfit1.
 !--------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ndat, n2, uw
-    real   (kind=8), intent(in):: dose(ndat), ltx(ndat),&
-                                  sltx(ndat)
-    real   (kind=8), intent(out):: pars(n2), stdp(n2),&
-                                   fvec1(ndat), fmin
-    integer(kind=4), intent(out):: message
+    integer, intent(in):: ndat, n2, uw
+    real(kind(1.0d0)), intent(in):: dose(ndat), ltx(ndat),&
+                                    sltx(ndat)
+    real(kind(1.0d0)), intent(out):: pars(n2), stdp(n2),&
+                                     fvec1(ndat), fmin
+    integer, intent(out):: message
     ! Local variables.
-    integer(kind=4):: info, i, j
-    integer(kind=4), parameter:: model=7
-    real   (kind=8):: maxDose, ran(2), outp(3),&
-                      locp(4), cpars(n2), cstdp(n2),&
-                      cfvec1(ndat), cfmin, wght1(ndat),& 
-                      minValue, inib(24), rcv(11)
+    integer:: info, i, j
+    integer, parameter:: model=7
+    real(kind(1.0d0)):: maxDose, ran(2), outp(3),&
+                        locp(4), cpars(n2), cstdp(n2),&
+                        cfvec1(ndat), cfmin, wght1(ndat),& 
+                        minValue, inib(24), rcv(11)
     !
     pars = -99.0
     stdp = -99.0

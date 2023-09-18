@@ -15,23 +15,23 @@ subroutine linefit(xd,yd,syd,nd,pars,stdp,&
 !      fmin:: output, real value, minimized objective.
 !   message:: output, integer, 0=success, 1=fail.
 !-----------------------------------------------------
-! Author:: Peng Jun, 2017.03.27.
+! Author:: Peng Jun, 2023.08.30.
 !-----------------------------------------------------
 ! Dependence:: subroutine numHess; 
 !              subroutine inverse_sym.
 !-----------------------------------------------------
     ! Arguments.
-    integer(kind=4), intent(in):: nd, n2
-    real   (kind=8), intent(in):: xd(nd), yd(nd),&
-                                  syd(nd)
-    real   (kind=8), intent(out):: pars(n2), stdp(n2),&
-                                   fvec1(nd), fmin
-    integer(kind=4), intent(out):: message
+    integer, intent(in):: nd, n2
+    real(kind(1.0d0)), intent(in):: xd(nd), yd(nd),&
+                                    syd(nd)
+    real(kind(1.0d0)), intent(out):: pars(n2), stdp(n2),&
+                                     fvec1(nd), fmin
+    integer, intent(out):: message
     ! Local variables.
-    real   (kind=8):: wght(nd), xx(2),&
-                      hess(n2,n2), diag(n2), avgdv
-    integer(kind=4):: i, errorflag, ifault
-    integer(kind=4), parameter:: model=0
+    real(kind(1.0d0)):: wght(nd), xx(2),&
+                        hess(n2,n2), diag(n2), avgdv
+    integer:: i, errorflag, ifault
+    integer, parameter:: model=0
     !
     pars = -99.0
     stdp = -99.0

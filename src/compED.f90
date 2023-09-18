@@ -14,22 +14,22 @@ subroutine compED(ed1,sed1,ndat,ncomp,addsigma,&
 !           bic:: output, real value, BIC value.
 !          info:: output, integer, 0=success, 1=fail.
 !--------------------------------------------------------
-! Author:: Peng Jun, 2014.10.01.
+! Author:: Peng Jun, 2023.08.30.
 !--------------------------------------------------------
 ! Dependence:: subroutine fmmED; Subroutine camED.-------
 !--------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ndat, ncomp
-    real   (kind=8), intent(in):: ed1(ndat), sed1(ndat), addsigma
-    real   (kind=8), intent(out):: pars(2,ncomp), stdp(2,ncomp),&
-                                   maxlik, bic
-    integer(kind=4), intent(out):: info
+    integer, intent(in):: ndat, ncomp
+    real(kind(1.0d0)), intent(in):: ed1(ndat), sed1(ndat), addsigma
+    real(kind(1.0d0)), intent(out):: pars(2,ncomp), stdp(2,ncomp),&
+                                     maxlik, bic
+    integer, intent(out):: info
     ! Local variables.
-    integer(kind=4):: i, message
-    real   (kind=8):: ed(ndat), sed(ndat), maxMaxlik,&
-                      cpars(2,ncomp), cstdp(2,ncomp),&
-                      cmaxlik, cbic, inimu(ncomp+4)
+    integer:: i, message
+    real(kind(1.0d0)):: ed(ndat), sed(ndat), maxMaxlik,&
+                        cpars(2,ncomp), cstdp(2,ncomp),&
+                        cmaxlik, cbic, inimu(ncomp+4)
     !
     ed = log(ed1)
     sed = sed1/ed1

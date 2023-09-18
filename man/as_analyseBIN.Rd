@@ -45,14 +45,13 @@ Return an invisible \link{list} of S3 class object "analyseBIN" containing the f
 }
 }
 
-\seealso{
-  \link{analyseBINdata}; \link{SARdata};\cr
-  \link{calSARED}; \link{pickSARdata}
-}
-
 \note{
 Function \link{as_analyseBIN} transforms SAR data sets (see \link{SARdata}) into S3 class object "analyseBIN". 
 The returned elements such as \code{criteria}, \code{Tn}, \code{LnTn.curve}, and \code{TxTn} are set equal to \code{NULL}.
+}
+
+\seealso{
+  \link{analyseBINdata}; \link{SARdata}; \link{calSARED}; \link{pickSARdata}
 }
 
 \examples{

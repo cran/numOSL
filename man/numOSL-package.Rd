@@ -9,15 +9,16 @@ Package for routine numeric optimization and data visualization in optically sti
 \tabular{ll}{
 Package: \tab numOSL\cr
 Type: \tab Package\cr
-Version: \tab 2.6\cr
-Date: \tab 2018-07-26\cr
+Version: \tab 2.7\cr
+Date: \tab 2023-09-17\cr
 License: \tab GPL-3\cr
 }
 }
 \author{
 \tabular{ll}{
 Jun Peng \tab Hunan University of Science and Technology (HNUST), Xiangtan, China \cr
-Bo Li \tab University of Wollongong (UOW), Wollongong, Australia
+Bo Li \tab University of Wollongong (UOW), Wollongong, Australia\cr
+Chunxin Wang \tab University of Science and Technology of China, Hefei, China
 }
 
 \bold{Package maintainer}\cr

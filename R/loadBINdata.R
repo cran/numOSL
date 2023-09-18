@@ -3,7 +3,7 @@ loadBINdata <-
 function(filename, view=TRUE)  {
     UseMethod("loadBINdata")
 } #
-### 2017.03.27.
+### 2023.08.31.
 loadBINdata.default <- 
 function(filename, view=TRUE)  {
     ### Stop if not. 
@@ -80,18 +80,18 @@ function(filename, view=TRUE)  {
 
                 ### Data collection time (Time), String (7); ----------- USE.
                 length_Time <- readBin(binFile, what="integer", n=1L, size=1L, endian="little")
-                Time <- readChar(binFile, nchars=length_Time, useBytes=TRUE)
-                if (length_Time<6L) pass <- readChar(binFile, nchars=6L-length_Time, useBytes=TRUE)
+                Time <- suppressWarnings(readChar(binFile, nchars=length_Time, useBytes=TRUE))
+                if (length_Time<6L) pass <- suppressWarnings(readChar(binFile, nchars=6L-length_Time, useBytes=TRUE))
 
                 ### Data collection date (Date), String (7). ----------- USE.
                 length_Date <- readBin(binFile, what="integer", n=1L, size=1L, endian="little")
-                Date <- readChar(binFile, nchars=length_Date, useBytes=TRUE)
-                if (length_Date<6L) pass <- readChar(binFile, nchars=6L-length_Date, useBytes=TRUE)
+                Date <- suppressWarnings(readChar(binFile, nchars=length_Date, useBytes=TRUE))
+                if (length_Date<6L) pass <- suppressWarnings(readChar(binFile, nchars=6L-length_Date, useBytes=TRUE))
                 ###
 
                 ### Sequence name (Sequence), String (9);
                 ### User name (User), String (9).
-                pass <- readChar(binFile, nchars=18L, useBytes=TRUE)
+                pass <- suppressWarnings(readChar(binFile, nchars=18L, useBytes=TRUE))
                 ###
 
                 ### Data type (DType), Byte (1). ----------- USE.
@@ -131,11 +131,11 @@ function(filename, view=TRUE)  {
                 ###
 
                 ### Sample name (Sample), String (21).
-                pass <- readChar(binFile, nchars=21L, useBytes=TRUE) 
+                pass <- suppressWarnings(readChar(binFile, nchars=21L, useBytes=TRUE)) 
                 ###
 
                 ### Comment (Comment), String (81).
-                pass <- readChar(binFile, nchars=81L, useBytes=TRUE) 
+                pass <- suppressWarnings(readChar(binFile, nchars=81L, useBytes=TRUE)) 
                 ###
 
                 ### Light Source (LightSource), Byte (1); ----------- USE.
@@ -194,11 +194,11 @@ function(filename, view=TRUE)  {
                 ###
 
                 ### Sample name (Sample), String (21).
-                pass <- readChar(binFile, nchars=21L, useBytes=TRUE) 
+                pass <- suppressWarnings(readChar(binFile, nchars=21L, useBytes=TRUE)) 
                 ###
 
                 ### Comment (comment), String (81).
-                pass <- readChar(binFile, nchars=81L, useBytes=TRUE) 
+                pass <- suppressWarnings(readChar(binFile, nchars=81L, useBytes=TRUE))
                 ###
 
                 ### System ID (SystemID), Small Integer (2). 
@@ -206,22 +206,22 @@ function(filename, view=TRUE)  {
                 ###
 
                 ### File name (.SEC, BINX ect) (FName), String (101).
-                pass <- readChar(binFile, nchars=101L, useBytes=TRUE)
+                pass <- suppressWarnings(readChar(binFile, nchars=101L, useBytes=TRUE))
                 ###
 
                 ### User name (User), String (31).
-                pass <- readChar(binFile, nchars=31L, useBytes=TRUE)
+                pass <- suppressWarnings(readChar(binFile, nchars=31L, useBytes=TRUE))
                 ###
 
                 ### Data collection time (hh-mm-ss) (Time), String (7); ----------- USE.
                 length_Time <- readBin(binFile, what="integer", n=1L, size=1L, endian="little")
-                Time <- readChar(binFile, nchars=length_Time, useBytes=TRUE)
-                if (length_Time<6L) pass <- readChar(binFile, nchars=6L-length_Time, useBytes=TRUE)
+                Time <- suppressWarnings(readChar(binFile, nchars=length_Time, useBytes=TRUE))
+                if (length_Time<6L) pass <- suppressWarnings(readChar(binFile, nchars=6L-length_Time, useBytes=TRUE))
 
                 ### Data collection date (dd-mm-yy) (Date), String (7). ----------- USE.
                 length_Date <- readBin(binFile, what="integer", n=1L, size=1L, endian="little")
-                Date <- readChar(binFile, nchars=length_Date, useBytes=TRUE)
-                if (length_Date<6L) pass <- readChar(binFile, nchars=6L-length_Date, useBytes=TRUE)
+                Date <- suppressWarnings(readChar(binFile, nchars=length_Date, useBytes=TRUE))
+                if (length_Date<6L) pass <- suppressWarnings(readChar(binFile, nchars=6L-length_Date, useBytes=TRUE))
                 ###
 
                 ### Data type (DType), Byte (1). ----------- USE.

@@ -4,7 +4,7 @@ function(EDdata, addsigma=0, dose=NULL, zmin=NULL, zmax=NULL, ntick=6,
          digits=2, pcolor="blue", psize=1, rg=2, zlabel="De (Gy)") {
     UseMethod("psRadialPlot")
 } #
-### 2018.04.21.
+### 2023.09.06.
 psRadialPlot.default <- 
 function(EDdata, addsigma=0, dose=NULL, zmin=NULL, zmax=NULL, ntick=6, 
          digits=2, pcolor="blue", psize=1, rg=2, zlabel="De (Gy)") {
@@ -67,6 +67,9 @@ function(EDdata, addsigma=0, dose=NULL, zmin=NULL, zmax=NULL, ntick=6,
     miny <- (log(zmin)-centralDose)*maxPrecision
     maxy <- (log(zmax)-centralDose)*maxPrecision
     ###
+    opar <- par("mar")
+    on.exit(par(opar))
+    ###
     ### Set plot margin.
     par("mar"=c(4.1, 4.1, 2.1, 5.1))
     ### 
@@ -122,6 +125,5 @@ function(EDdata, addsigma=0, dose=NULL, zmin=NULL, zmax=NULL, ntick=6,
     ###
     points(xx, yy, pch=21, col="black", bg=pcolor, cex=psize)
     ###
-    par("mar"=c(5.1, 4.1, 4.1, 2.1))
 } # end function psRadialPlot.
 #####

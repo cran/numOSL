@@ -44,10 +44,10 @@ extern void F77_NAME(mcfmm4)(void *, void *, void *, void *, void *,
                              void *, void *, void *, void *, void *, void *, void *);
 
 extern void F77_NAME(mcmam3)(void *, void *, void *, void *, void *, 
-                             void *, void *, void *, void *, void *, void *, void *);
+                             void *, void *, void *, void *, void *, void *, void *, void *);
 
 extern void F77_NAME(mcmam4)(void *, void *, void *, void *, void *, 
-                             void *, void *, void *, void *, void *, void *, void *);
+                             void *, void *, void *, void *, void *, void *, void *, void *);
 
 extern void F77_NAME(apmamstd)(void *, void *, void *, void *, 
                                void *, void *, void *);
@@ -70,8 +70,8 @@ static const R_FortranMethodDef FortranEntries[] = {
     {"mcfmm2",         (DL_FUNC) &F77_NAME(mcfmm2),         12},
     {"mcfmm3",         (DL_FUNC) &F77_NAME(mcfmm3),         12},
     {"mcfmm4",         (DL_FUNC) &F77_NAME(mcfmm4),         12},
-    {"mcmam3",         (DL_FUNC) &F77_NAME(mcmam3),         12},
-    {"mcmam4",         (DL_FUNC) &F77_NAME(mcmam4),         12},
+    {"mcmam3",         (DL_FUNC) &F77_NAME(mcmam3),         13},
+    {"mcmam4",         (DL_FUNC) &F77_NAME(mcmam4),         13},
     {"apmamstd",       (DL_FUNC) &F77_NAME(apmamstd),        7},
     {"goodcomp",       (DL_FUNC) &F77_NAME(goodcomp),        7},
     {"comped",         (DL_FUNC) &F77_NAME(comped),         10},

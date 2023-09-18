@@ -4,7 +4,7 @@ function(SARdata, model="gok", origin=FALSE, weight=FALSE,
          natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
     UseMethod("lsNORM")
 } ###	
-### 2018.04.23.
+### 2023.08.31.
 lsNORM.default <- 
 function(SARdata, model="gok", origin=FALSE, weight=FALSE, 
          natural.rm=TRUE, norm.dose=NULL, maxiter=10, plot=TRUE) {
@@ -98,8 +98,8 @@ function(SARdata, model="gok", origin=FALSE, weight=FALSE,
                               RecyclingRatio2=NULL, RecyclingRatio3=NULL, Recuperation1=NULL, 
                               Recuperation2=NULL, LnTn.curve=NULL, TxTn=NULL), silent=TRUE)
         ###
-        if (class(res1)=="try-error" || res1$message==1L) {
-            if (class(res1)=="try-error") print(attr(res1,"condition"))
+        if (inherits(res1,what="try-error")==TRUE || res1$message==1L) {
+            if (inherits(res1,what="try-error")==TRUE) print(attr(res1,"condition"))
             stop("Error: growth curve fitting failed!")
         } # end if.
         ###
@@ -257,6 +257,9 @@ function(SARdata, model="gok", origin=FALSE, weight=FALSE,
     ###
     ###
     if (plot==TRUE) {
+        opar <- par("mfrow", "mgp", "mar")
+        on.exit(par(opar))
+        ###
         layout(matrix(c(1L,1L,1L,2L,2L,2L,1L,1L,1L,2L,2L,2L,
                3L,3L,3L,4L,4L,4L),nrow=6L), respect=FALSE)
         par(mgp=c(2.5,1,0)) 
@@ -412,9 +415,6 @@ function(SARdata, model="gok", origin=FALSE, weight=FALSE,
                yjust=2, ncol=1, cex=1.2, bty="n")
         box(lwd=1L)
         ###
-        on.exit(par(mar=c(5,4,4,2)+0.1,
-                    mgp=c(3,1,0),
-                    mfrow=c(1L,1L)))
     } # end if. 
     ### 
     invisible(output)

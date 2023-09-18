@@ -24,8 +24,7 @@ Li B, Jacobs Z, Roberts RG, 2016. Investigation of the applicability of standard
 }
 
 \seealso{
-  \link{fitGrowth}; \link{lsNORM}; \link{calSGCED};\cr
-  \link{as_analyseBIN}
+  \link{fitGrowth}; \link{lsNORM}; \link{calSGCED}; \link{as_analyseBIN}
 }
 
 \examples{

@@ -91,8 +91,7 @@ Duller GAT, 2016. Analyst (v4.31.9), User Mannual.
 }
 
 \seealso{
-  \link{loadBINdata}; \link{analyseBINdata}; \link{BIN};\cr
-  \link{decomp}; \link{fastED}
+  \link{loadBINdata}; \link{analyseBINdata}; \link{BIN}; \link{decomp}; \link{fastED}
 }
 
 \examples{

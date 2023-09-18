@@ -15,7 +15,7 @@ subroutine fmmED(ed,sed,ndat,ncomp,addsigma,&
 !           bic:: output, real value, the BIC value.
 !          info:: output, integer, 0=success, 1=fail.
 !----------------------------------------------------------------
-! Author:: Peng Jun, 2014.09.15.
+! Author:: Peng Jun, 2023.08.30.
 !----------------------------------------------------------------
 ! Dependence:: subroutine apfmmstd.------------------------------
 !----------------------------------------------------------------
@@ -25,19 +25,19 @@ subroutine fmmED(ed,sed,ndat,ncomp,addsigma,&
 !----------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ndat, ncomp
-    real   (kind=8), intent(in):: ed(ndat), sed(ndat), addsigma
-    real   (kind=8), intent(inout):: pars(2,ncomp)
-    real   (kind=8), intent(out):: stdp(2,ncomp), maxlik, bic
-    integer(kind=4), intent(out):: info
+    integer, intent(in):: ndat, ncomp
+    real(kind(1.0d0)), intent(in):: ed(ndat), sed(ndat), addsigma
+    real(kind(1.0d0)), intent(inout):: pars(2,ncomp)
+    real(kind(1.0d0)), intent(out):: stdp(2,ncomp), maxlik, bic
+    integer, intent(out):: info
     ! Local variables.
-    real   (kind=8), parameter:: eps=1.0D-8,&
+    real(kind(1.0d0)), parameter:: eps=1.0D-8,&
     PI=3.141592653589793238462643383279502884197D+00
-    integer(kind=4), parameter:: maxiter=5000
-    real   (kind=8):: w(ndat), pf(ndat,ncomp), rsumpf(ndat),&
-                      p(ndat,ncomp), pp(ndat,ncomp), wp(ndat,ncomp),&
-                      newp(2,ncomp)
-    integer(kind=4):: i, j, message
+    integer, parameter:: maxiter=5000
+    real(kind(1.0d0)):: w(ndat), pf(ndat,ncomp), rsumpf(ndat),&
+                        p(ndat,ncomp), pp(ndat,ncomp), wp(ndat,ncomp),&
+                        newp(2,ncomp)
+    integer:: i, j, message
     !
     stdp = -99.0
     info = 0

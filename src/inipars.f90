@@ -16,21 +16,21 @@ subroutine inipars(b1,b2,model,n2,dose,&
 !    outp(3):: output, real values, estimated parameters.
 !       info:: output, integer, 0=success, 1=fail.
 !--------------------------------------------------------
-! Author:: Peng Jun, 2016.06.29.
+! Author:: Peng Jun, 2023.08.30.
 !--------------------------------------------------------
 ! Dependence:: subroutine gjordan.
 !--------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: model, n2, ndat
-    real   (kind=8), intent(in):: b1, b2, dose(ndat),&
-                                  ltx(ndat), sltx(ndat)
-    real   (kind=8), intent(out):: outp(3)
-    integer(kind=4), intent(out):: info
+    integer, intent(in):: model, n2, ndat
+    real(kind(1.0d0)), intent(in):: b1, b2, dose(ndat),&
+                                    ltx(ndat), sltx(ndat)
+    real(kind(1.0d0)), intent(out):: outp(3)
+    integer, intent(out):: info
     ! Local variables.
-    real   (kind=8):: coefMat(ndat,3), ltxMat(ndat,1)
-    real   (kind=8), allocatable:: aMat(:,:), bMat(:,:)
-    integer(kind=4):: ndim, alc, singular, origin
+    real(kind(1.0d0)):: coefMat(ndat,3), ltxMat(ndat,1)
+    real(kind(1.0d0)), allocatable:: aMat(:,:), bMat(:,:)
+    integer:: ndim, alc, singular, origin
     ! 
     outp = 0.0
     info = 0

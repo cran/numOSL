@@ -73,21 +73,23 @@ subroutine r8vec_normal ( n, a, b, seed, x )
 !
   implicit none
 
-  integer ( kind = 4 ) n
+  integer n
 
-  real ( kind = 8 ) a
-  real ( kind = 8 ) b
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ), save :: made = 0
-  real ( kind = 8 ), parameter :: pi = 3.141592653589793D+00
-  real ( kind = 8 ) r(n+1)
-  real ( kind = 8 ) r8_uniform_01
-  integer ( kind = 4 ), save :: saved = 0
-  integer ( kind = 4 ) seed
-  real ( kind = 8 ) x(n)
-  integer ( kind = 4 ) x_hi_index
-  integer ( kind = 4 ) x_lo_index
-  real ( kind = 8 ), save :: y = 0.0D+00
+  integer, parameter:: dbdbx=kind(1.0d0)
+  
+  real ( dbdbx ) a
+  real ( dbdbx ) b
+  integer m
+  integer, save :: made = 0
+  real ( dbdbx ), parameter :: pi = 3.141592653589793D+00
+  real ( dbdbx ) r(n+1)
+  real ( dbdbx ) r8_uniform_01
+  integer, save :: saved = 0
+  integer seed
+  real ( dbdbx ) x(n)
+  integer x_hi_index
+  integer x_lo_index
+  real ( dbdbx ), save :: y = 0.0D+00
 !
 !  I'd like to allow the user to reset the internal data.
 !  But this won't work properly if we have a saved value Y.
@@ -277,9 +279,9 @@ function r8_uniform_01 ( seed )
 !
   implicit none
 
-  integer ( kind = 4 ) k
-  real ( kind = 8 ) r8_uniform_01
-  integer ( kind = 4 ) seed
+  integer k
+  real ( kind(1.0d0) ) r8_uniform_01
+  integer seed
 
   k = seed / 127773
 
@@ -292,7 +294,7 @@ function r8_uniform_01 ( seed )
 !  Although SEED can be represented exactly as a 32 bit integer,
 !  it generally cannot be represented exactly as a 32 bit real number!
 !
-  r8_uniform_01 = real ( seed, kind = 8 ) * 4.656612875D-10
+  r8_uniform_01 = real ( seed, kind(1.0d0) ) * 4.656612875D-10
 
   return
 end
@@ -355,12 +357,12 @@ subroutine r8vec_uniform_01 ( n, seed, r )
 !
   implicit none
 
-  integer ( kind = 4 ) n
+  integer n
 
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) seed
-  real ( kind = 8 ) r(n)
+  integer i
+  integer k
+  integer seed
+  real ( kind(1.0d0) ) r(n)
 
   do i = 1, n
 
@@ -372,7 +374,7 @@ subroutine r8vec_uniform_01 ( n, seed, r )
       seed = seed + 2147483647
     end if
 
-    r(i) = real ( seed, kind = 8 ) * 4.656612875D-10
+    r(i) = real ( seed, kind(1.0d0) ) * 4.656612875D-10
 
   end do
 

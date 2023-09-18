@@ -47,6 +47,7 @@ Function \link{psRadialPlot} is used for drawing a simplified radial plot in whi
 \value{
 Return a pseudo radial plot
 }
+
 \references{
 Galbraith RF, 1988. Graphical display of estimates having differing standard errors. Technometrics, 30(3): 271-281.
 

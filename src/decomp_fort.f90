@@ -21,7 +21,7 @@ subroutine decomp_fort(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
 !        fmin:: output, real value, minimumized objective.
 !     message:: output, integer, 0=success, 1=fail.
 !------------------------------------------------------------------------
-! Author:: Peng Jun, 2017.03.30. 
+! Author:: Peng Jun, 2023.08.30. 
 !------------------------------------------------------------------------
 ! Dependence:: subroutine diffev; 
 !              subroutine lmfit; 
@@ -33,22 +33,22 @@ subroutine decomp_fort(tim,sig,ntim,pars,stdp,n2,uw,addc,typ,&
 !-----------------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ntim, n2, uw, addc,&
-                                  typ, factor, maxiter
-    real   (kind=8), intent(in):: tim(ntim), sig(ntim),&
-                                  f, cr, tol
-    real   (kind=8), intent(out):: pars(n2), stdp(n2),&
-                                   fvec1(ntim), fmin
-    integer(kind=4), intent(out):: message
+    integer, intent(in):: ntim, n2, uw, addc,&
+                          typ, factor, maxiter
+    real(kind(1.0d0)), intent(in):: tim(ntim), sig(ntim),&
+                                    f, cr, tol
+    real(kind(1.0d0)), intent(out):: pars(n2), stdp(n2),&
+                                     fvec1(ntim), fmin
+    integer, intent(out):: message
     ! Local variables.
-    integer(kind=4):: np, n1, iflag, i,& 
-                      ivec((n2-addc)/2),& 
-                      lmInfo, model
-    real   (kind=8):: constant, lamda((n2-addc)/2),ithn((n2-addc)/2),&
-                      agents(factor*(n2-addc)/2,(n2-addc)/2), cpars(n2),&
-                      cstdp(n2), cfvec1(ntim), cfmin, minValue, wght1(ntim)
-    integer(kind=4), parameter:: nperm(7)=(/7,21,35,35,21,7,1/)
-    real   (kind=8), parameter:: initry(7)=(/32.0,2.5,0.62,0.15,&
+    integer:: np, n1, iflag, i,& 
+              ivec((n2-addc)/2),& 
+              lmInfo, model
+    real(kind(1.0d0)):: constant, lamda((n2-addc)/2),ithn((n2-addc)/2),&
+                        agents(factor*(n2-addc)/2,(n2-addc)/2), cpars(n2),&
+                        cstdp(n2), cfvec1(ntim), cfmin, minValue, wght1(ntim)
+    integer, parameter:: nperm(7)=(/7,21,35,35,21,7,1/)
+    real(kind(1.0d0)), parameter:: initry(7)=(/32.0,2.5,0.62,0.15,&
                                              0.023,0.0022,0.0003/)
     logical:: done
     !

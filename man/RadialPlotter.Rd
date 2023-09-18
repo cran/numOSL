@@ -17,11 +17,9 @@ RadialPlotter(EDdata, ncomp = 0, addsigma = 0,
   \item{EDdata}{\link{matrix}(\bold{required}): a two-column matrix (i.e., equivalent dose values and\cr
 associated standard errors)}
 
-  \item{ncomp}{\link{integer}(with default): number of components, \code{-1=MAM3}, \code{-2=MAM4}, \code{1=CAM},\cr
-\code{0} means fitting FMM automatically, and \code{>=1} means fitting FMM\cr
-with a given number of components}
+  \item{ncomp}{\link{integer}(with default): number of components, \code{ncomp=-1}, \code{ncomp=-2}, and \code{ncomp=1} mean respectively fitting \code{"MAM3"}, \code{"MAM4"}, and \code{"CAM"}, \code{ncomp=0} means fitting \code{"FMM"} with an automatically optimized number of components, and \code{ncomp=k} (k>=2) means fitting \code{"FMM"} with k components}
 
-  \item{addsigma}{\link{numeric}(with default): additional uncertainty}
+  \item{addsigma}{\link{numeric}(with default): additional uncertainty, i.e., the sigmab value}
 
   \item{maxcomp}{\link{integer}(with default): maximum number of components in FMM}
 
@@ -46,9 +44,9 @@ Both CAM and FMM are fitted using a iterative Maximum Likelihood Estimation proc
 
 \value{
 Return an object of S3 class \code{"RadialPlotter"} that contains the following elements:
-  \item{pars}{optimizaed parameters}
-  \item{bic}{calculated Bayesian Information Criterion (BIC) value}
+  \item{pars}{optimized parameters, the names of CAM parameters are \code{c("CAM.OD","CAM.De")}, those of MAM3 paramters are \code{c("Prop","MAM3.De","Sigma")}, those of MAM4 parameters are \code{c("Prop","MAM4.De","Mu","Sigma")}, and those of FMM parameters are \code{c("Prop", "FMM.De")}}
   \item{maxlik}{optimized maximum logged likelihood value}
+  \item{bic}{calculated Bayesian Information Criterion (BIC) value}
 }
 
 \references{
@@ -84,17 +82,21 @@ Rodnight H, Duller GAT, Wintle AG, Tooth S, 2006. Assessing the reproducibility 
 Schmidt S, Tsukamoto S, Salomon E, Frechen M, Hetzel R, 2012. Optical dating of alluvial deposits at the orogenic front of the andean precordillera (Mendoza, Argentina). Geochronometria, 39(1): 62-75.
 
 Vermeesch P, 2009. RadialPlotter: a Java application for fission track, luminescence and other radial plots. Radiation Measurements, 44: 409-410. 
-Software is freely available at \url{http://www.ucl.ac.uk/~ucfbpve/radialplotter/}.
+Software is freely available at \url{https://www.ucl.ac.uk/~ucfbpve/radialplotter/}.
+
+Peng J, Li B, Jacobs Z, 2020. Modelling heterogeneously bleached single-grain equivalent dose distributions: Implications for the reliability of burial dose determination. Quaternary Geochronology, 60: 101108.
+
+Peng J, Li B, Jacobs Z, Gliganic LA, 2023. Optical dating of sediments affected by post-depositional mixing: Modelling, synthesizing and implications. Catena, 232: 107383.
 }
 
 \note{
 Function \link{RadialPlotter} was given the same name as the \bold{\emph{Java}} package \bold{\emph{RadialPlotter}} written by Pieter Vermeesch (Vermeesch, 2009). Note that this function fits a model in log-scale, hence any minus equivalent dose value is not allowed, and that the procedure will return an error if any standard error of a parameter cannot be estimated by numerical difference-approximation.\cr\cr
-The original \bold{\emph{S}} code for drawing a radial plot was written by Rex Galbraith and was transformed to \bold{\emph{R}} by Sebastian Kreutzer. The code for drawing radial plot in this function was modified from package \bold{\emph{Luminescence}} written by Kreutzer et al. (2012). We thank Dr Rex Galbraith for his permission to modify and bundle the code to this function. We also thank Dr Silke Schmidt, Dr Helena Rodnight, Dr Xian-Jiao Ou, and Dr Amanda Keen-Zebert for providing published OSL data sets to test this routine.
+The original \bold{\emph{S}} code for drawing a radial plot was written by Rex Galbraith and was transformed to \bold{\emph{R}} by Sebastian Kreutzer. The code for drawing radial plot in this function was modified from package \bold{\emph{Luminescence}} written by Kreutzer et al. (2012). We thank Dr Rex Galbraith for his permission to modify and bundle the code to this function. We also thank Dr Silke Schmidt, Dr Helena Rodnight, Dr Xian-Jiao Ou, and Dr Amanda Keen-Zebert for providing published OSL data sets to test this routine.\cr\cr
+This function only considered the optimization of statistical age models (including CAM, MAM, and FMM) in a log-scale and will not be updated in future. The newly developed function \link{optimSAM} allows the optimzation of age models (including COM, MAM, MXAM, and FMM) in either log- or unlog-scale, and the accompanied function \link{sensSAM} allows the optimization of these age models with a number of different sizes of additional uncertainty (sigmab).
 }
 
 \seealso{
-  \link{mcMAM}; \link{mcFMM};\cr
-  \link{dbED}; \link{psRadialPlot}; \link{EDdata}
+  \link{mcMAM}; \link{mcFMM}; \link{dbED}; \link{psRadialPlot}; \link{EDdata}; \link{optimSAM}; \link{sensSAM}
 }
 
 \examples{

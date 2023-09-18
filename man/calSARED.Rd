@@ -107,8 +107,7 @@ Rejection criteria used to select reliable SAR equivalent dose estimates can be 
 }
 
 \seealso{
-  \link{analyseBINdata}; \link{fitGrowth};\cr
-  \link{calED}; \link{calSGCED}; \link{pickSARdata}
+  \link{analyseBINdata}; \link{fitGrowth}; \link{calED}; \link{calSGCED}; \link{pickSARdata}
 }
 
 \examples{

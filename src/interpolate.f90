@@ -13,7 +13,7 @@ subroutine interpolate(ax,bx,ltx,pars,&
 !     dose:: output, real value, resulting value.
 !     fmin:: output, real value, minimized objective.
 !-----------------------------------------------------
-! Author:: Peng Jun, 2016.07.06.
+! Author:: Peng Jun, 2023.08.30.
 !-----------------------------------------------------
 ! Dependence:: inner function fcn.
 !-----------------------------------------------------
@@ -23,16 +23,16 @@ subroutine interpolate(ax,bx,ltx,pars,&
 !-----------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: n2, model
-    real   (kind=8), intent(in):: ax, bx, ltx,&
-                                  pars(n2)
-    real   (kind=8), intent(out):: dose, fmin
+    integer, intent(in):: n2, model
+    real(kind(1.0d0)), intent(in):: ax, bx, ltx,&
+                                    pars(n2)
+    real(kind(1.0d0)), intent(out):: dose, fmin
     ! Local variables.
-    real   (kind=8):: a, b, c, d, e, p, q, r, u, v, w, x
-    real   (kind=8):: t2, fu, fv, fw, fx, xm, eps, tol1, tol3
+    real(kind(1.0d0)):: a, b, c, d, e, p, q, r, u, v, w, x
+    real(kind(1.0d0)):: t2, fu, fv, fw, fx, xm, eps, tol1, tol3
     
-    real   (kind=8):: xx(5)
-    real   (kind=8), parameter:: tol=1.490116D-08
+    real(kind(1.0d0)):: xx(5)
+    real(kind(1.0d0)), parameter:: tol=1.490116D-08
     !
     c = (3.0D+00 - dsqrt(5.0D+00)) * 0.5D+00
     eps = EPSILON(0.0D+00) 
@@ -143,7 +143,7 @@ subroutine interpolate(ax,bx,ltx,pars,&
     ! Inner function fcn.
     function fcn(x)
         implicit none
-        real   (kind=8):: fcn, x
+        real(kind(1.0d0)):: fcn, x
         !
         xx = 0.0D+00 
         xx(1:n2) = pars

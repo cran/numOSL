@@ -12,7 +12,7 @@ Calculating statistical parameters (skewness, kurtosis, quantiles) for a number 
 
 \usage{
 dbED(EDdata, plot = TRUE, typ = "pdf", from = NULL, 
-     to = NULL, step = NULL, nbin = 15, pcolor = "grey", 
+     to = NULL, step = NULL, nbin = 15, pcolor = "purple", 
      psize = 1.5, outfile = NULL)
 }
 

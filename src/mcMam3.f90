@@ -1,33 +1,26 @@
-subroutine mcMam3(nED,nsim,ED,Error,addsigma,&
-                  inis,iflog,ntry,w,m,chains,iflag)
+subroutine mcMam3(nED,nsim,ED,Error,addsigma,inis,&
+                  iflog,ntry,w,m,chains,inverse,iflag)
 !===========================================================================================
 ! Construct MCMC chains for the MAM-3 age model (either in logged- or unlogged-scale).
 !
-! Author:: Peng Jun, 2014.03.11; revised in 2014.03.12.
+! Author:: Peng Jun, 2023.09.10.
 !
 ! Dependence:: subroutine SliceMam3().
 !===========================================================================================
   implicit none
-  integer(kind=4),intent(in)::nED              ! Number of equivalent doses.
-  integer(kind=4),intent(in)::nsim             ! Number of simulations.
-  real   (kind=8),intent(in)::ED(nED)          ! Equivalent dose values (un-logged)
-  real   (kind=8),intent(in)::Error(nED)       ! Standrad errors (absolute)
-  real   (kind=8),intent(in)::addsigma         ! Added spread.
-  real   (kind=8),intent(in)::inis(3)          ! Initials of the chains.
-  integer(kind=4),intent(in)::ntry             ! Maximum times of trials in parameter updating in one simulation. 
-  real   (kind=8),intent(in)::w                ! Size of the steps for creating interval.
-  real   (kind=8),intent(in)::m                ! Limit on steps. 
-  real   (kind=8),intent(out)::chains(nsim,3)  ! Simulated chains.
-  integer(kind=4),intent(out)::iflag           ! Error message (0=success, 1=fail).
-  logical,intent(in)::iflog                    ! Change to logged-scale or not
+  integer,intent(in)::nED, nsim, ntry     
+  real(kind(1.0d0)),intent(in)::ED(nED), Error(nED),& 
+                                addsigma, inis(3), w, m        
+  real(kind(1.0d0)),intent(out)::chains(nsim,3)      
+  logical,intent(in)::iflog, inverse  
+  integer,intent(out)::iflag                
   !
   ! Local variables.
-  real   (kind=8)::yy(nED),xx(nED)
-  real   (kind=8)::iniP,iniGama,iniSigma
-  real   (kind=8)::Value
-  integer(kind=4)::i,j
-  real   (kind=8)::upperSigma
-  real   (kind=8)::lowerGama,upperGama
+  real(kind(1.0d0))::yy(nED),xx(nED), iniP, iniGama, iniSigma,& 
+                     Value, upperSigma, lowerGama, upperGama
+  integer::i, j, seed
+  !
+  seed=123456789
   !
   ! Default return chains.
   chains=-99.0
@@ -43,12 +36,22 @@ subroutine mcMam3(nED,nsim,ED,Error,addsigma,&
     upperSigma=sum((yy- sum(yy)/nED)**2)/(nED-1)
   end if
   !
+  if (inverse .eqv. .true.)  yy=-yy
+  !
   ! Initials of the chains.
   iniP=inis(1)
   if (iflog .eqv. .true.) then
-    iniGama=log( inis(2) )
+    if (inverse .eqv. .false.) then
+        iniGama=log( inis(2) )
+    else 
+        iniGama=-log( inis(2) )
+    end if
   else 
-    iniGama=inis(2)
+    if (inverse .eqv. .false.) then
+        iniGama=inis(2)
+    else 
+        iniGama=-inis(2)
+    end if
   end if
   iniSigma=inis(3)
   !
@@ -64,12 +67,12 @@ subroutine mcMam3(nED,nsim,ED,Error,addsigma,&
     upperGama=maxval(yy)*1.001
   end if
   !
-  call random_seed()
+  !!!call random_seed()
   do i=1, nsim
       ! Update p.
       AA: do j=1, ntry
-          call SliceMam3(iniP,iniGama,iniSigma,nED,yy,xx,&
-                         1,Value,iflag,w,m,0.0D+00,1.0D+00)
+          call SliceMam3(iniP,iniGama,iniSigma,nED,yy,xx,1,&
+                         Value,iflag,w,m,0.0D+00,1.0D+00,seed)
           if (iflag==0) exit AA
       end do AA 
       ! Error checking.
@@ -80,8 +83,8 @@ subroutine mcMam3(nED,nsim,ED,Error,addsigma,&
       !
       ! Update Gama.
       BB: do j=1, ntry
-          call SliceMam3(iniP,iniGama,iniSigma,nED,yy,xx,&
-                         2,Value,iflag,w,m,lowerGama,upperGama)
+          call SliceMam3(iniP,iniGama,iniSigma,nED,yy,xx,2,&
+                         Value,iflag,w,m,lowerGama,upperGama,seed)
           if (iflag==0) exit BB
       end do BB
       ! Error checking.
@@ -92,8 +95,8 @@ subroutine mcMam3(nED,nsim,ED,Error,addsigma,&
       !
       ! Update Sigma.
       CC: do j=1, ntry
-          call SliceMam3(iniP,iniGama,iniSigma,nED,yy,xx,&
-                         3,Value,iflag,w,m,0.0D+00,upperSigma)
+          call SliceMam3(iniP,iniGama,iniSigma,nED,yy,xx,3,&
+                         Value,iflag,w,m,0.0D+00,upperSigma,seed)
           if (iflag==0) exit CC
       end do CC
       ! Error checking.
@@ -108,13 +111,14 @@ end subroutine mcMam3
 !---------------------------------------------------------------------------------------------------------
 !
 subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
-                     which,Value,iflag,w,m,lower,upper)
+                     which,Value,iflag,w,m,lower,upper,seed)
 ! =====================================================================================================
 ! Update parameters in a MAM-3 age model with the Slice Sampling.
 !
-! Author:: Peng Jun, 2014.10.03.
+! Author:: Peng Jun, 2023.09.09.
 !
-! Dependence:: Inner function funcP(); funcGama(); funcSigma(); external subroutine pnorm().
+! Dependence:: function r8_uniform_01, inner function funcP, funcGama, funcSigma, 
+!              external subroutine pnorm.
 !
 ! Reference :: Neal, R. M (2003) "Slice sampling" (with discussion), Annals of Statistics,
 !              vol. 31, no. 3, pp. 705-767.
@@ -123,26 +127,17 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
 !        http://www.cs.utoronto.ca/~radford/slice.software.html
 ! =====================================================================================================
   implicit none 
-  real   (kind=8), intent(in):: iniP        ! Initial proportion.
-  real   (kind=8), intent(in):: iniGama     ! Initial Gama value.
-  real   (kind=8), intent(in):: iniSigma    ! Initial Sigma value.
-  integer(kind=4), intent(in):: nED         ! Number of equivalent doses.
-  integer(kind=4), intent(in):: which       ! Which parameter to be updated (1=p, 2=gamma, 3=sigma).
-  real   (kind=8), intent(in):: ED(nED)     ! Equivalent dose values (either logged or non-logged).
-  real   (kind=8), intent(in):: Error(nED)  ! Standard errors (either relative or absolutive).
-  real   (kind=8), intent(in):: w           ! Size of the steps for creating interval.
-  real   (kind=8), intent(in):: m           ! Limit on steps (m<=1.0 for no limit, m>1.0 for put some limit).
-  real   (kind=8), intent(in):: lower       ! Lower boundary of the desired distribution.
-  real   (kind=8), intent(in):: upper       ! Upper boundary of the desired distribution.
-  real   (kind=8), intent(out):: Value      ! Updated parameter corresponding to "which".
-  integer(kind=4), intent(out):: iflag      ! Error message (0=success, 1=crash down).
+  integer, intent(in):: nED, which
+  real(kind(1.0d0)), intent(in):: iniP, iniGama, iniSigma, ED(nED),& 
+                                  Error(nED), w, m, lower, upper   
+  real(kind(1.0d0)), intent(out):: Value      
+  integer, intent(out):: iflag
+  integer,intent(inout):: seed
+  !      
   ! Local variables. 
-  real   (kind=8)::ran
-  real   (kind=8)::gx0, gx1
-  real   (kind=8)::logy
-  real   (kind=8)::U,L,R,J,K
-  real   (kind=8)::gL,gR
-  real   (kind=8):: Error2(nED)
+  real(kind(1.0d0))::ran, gx0, gx1, logy, U, L,&  
+                     R, J, K, gL, gR, Error2(nED),&
+                     r8_uniform_01
   !
   iflag=0
   Value=-99.0
@@ -162,11 +157,13 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
   !
   !
   ! Transform logy in log terms
-  call random_number(ran)
+  !!!call random_number(ran)
+  ran=r8_uniform_01(seed)
   logy=gx0+log(ran)
   !
   ! Find the initial interval [L,R] to sample from.
-  call random_number(ran)
+  !!!call random_number(ran)
+  ran=r8_uniform_01(seed)
   U=ran * w
   !
   if (which==1) then
@@ -222,7 +219,8 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
     !
   else if (m>1.0) then
       ! Limit on steps for the case that m>1.0.
-      call random_number(ran)
+      !!!call random_number(ran)
+      ran=r8_uniform_01(seed)
       J=floor(m*ran)
       K=(m-1.0)-J
       !
@@ -272,7 +270,8 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
   !
   ! Sample from the interval (with shrinking).
   do 
-      call random_number(ran) 
+      !!!call random_number(ran) 
+      ran=r8_uniform_01(seed)
       Value=L+ran*(R-L)
       !
       if (which==1) then
@@ -316,11 +315,11 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
   ! -----------------------------------------------------------------------------------------------------------------
   function funcP(x)
     implicit none 
-    real   (kind=8)::x
-    real   (kind=8)::funcP
+    real(kind(1.0d0)):: x, funcP
+    !
     ! local variables
-    real   (kind=8)::pnormValues(nED)
-    logical,parameter::right=.false.   
+    real(kind(1.0d0)):: pnormValues(nED)
+    logical,parameter:: right=.false.   
     !
     pnormValues= (iniGama- (iniGama/iniSigma**2+ED/Error2)/(1.0/iniSigma**2+1.0/Error2) ) * &
                   sqrt(1.0/Error2+1.0/iniSigma**2)
@@ -338,11 +337,11 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
   ! ------------------------------------------------------------------------------------------------------------------
   function funcGama(x)
     implicit none 
-    real   (kind=8)::x
-    real   (kind=8)::funcGama
+    real(kind(1.0d0)):: x, funcGama
+    !
     ! local variables
-    real   (kind=8)::pnormValues(nED)
-    logical,parameter::right=.false.   
+    real(kind(1.0d0)):: pnormValues(nED)
+    logical,parameter:: right=.false.   
     !
     pnormValues= (x-  (x/iniSigma**2+ED/Error2)/(1.0/iniSigma**2+1.0/Error2) ) * &
                   sqrt(1.0/Error2+1.0/iniSigma**2)
@@ -360,11 +359,11 @@ subroutine SliceMam3(iniP,iniGama,iniSigma,nED,ED,Error,&
   !---------------------------------------------------------------------------------------------------------------------
   function funcSigma(x)
     implicit none 
-    real   (kind=8)::x
-    real   (kind=8)::funcSigma
+    real(kind(1.0d0)):: x, funcSigma
+    !
     ! local variables
-    real   (kind=8)::pnormValues(nED)
-    logical,parameter::right=.false.   
+    real(kind(1.0d0)):: pnormValues(nED)
+    logical, parameter:: right=.false.   
     !
     pnormValues= (iniGama-  (iniGama/x**2+ED/Error2)/(1.0/x**2+1.0/Error2) ) * &
                   sqrt(1.0/Error2+1.0/x**2)

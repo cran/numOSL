@@ -1,14 +1,14 @@
 #####
 fastED <-
-function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args=list(), 
+function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, compIDX=1, control.args=list(), 
          typ="cw", model="gok", origin=FALSE, errMethod="sp",nsim=500, weight.decomp=FALSE, 
          weight.fitGrowth=TRUE, trial=TRUE, nofit.rgd=NULL, outpdf=NULL, log="x", lwd=2, 
          test.dose=NULL, agID=NULL) {
     UseMethod("fastED")
 } ###
-### 2018.05.18.
+### 2023.09.01.
 fastED.default <-
-function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args=list(), 
+function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, compIDX=1, control.args=list(), 
          typ="cw", model="gok", origin=FALSE, errMethod="sp",nsim=500, weight.decomp=FALSE, 
          weight.fitGrowth=TRUE, trial=TRUE, nofit.rgd=NULL, outpdf=NULL, log="x", lwd=2, 
          test.dose=NULL, agID=NULL) {
@@ -18,6 +18,7 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args
               length(delay.off)==2L, all(delay.off>=0L),
               length(ncomp)==1L, ncomp %in% seq(5L),
               length(constant)==1L, is.logical(constant),
+              length(compIDX)==1L, compIDX %in% seq(ncomp),
               class(control.args)=="list", 
               all(names(control.args) %in% list("factor","f","cr","maxiter","tol")),
               length(typ)==1L, typ=="cw",
@@ -69,32 +70,32 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args
                       plot=if_plot, log=log, lwd=lwd, curve.no=1L, SAR.Cycle="Natural", 
                       irr.dose=0, outfile=NULL, transf=TRUE), silent=TRUE)
     ###
-    if (class(res)!="try-error" && res$message==0L) {
+    if (inherits(res,what="try-error")==FALSE && res$message==0L) {
         decomp_pars[["N"]] <- res$LMpars
-        fast_Ltx[1L,] <- res$LMpars[which.max(res$LMpars[,3L,drop=TRUE]),seq(2L),drop=TRUE]    
+        fast_Ltx[1L,] <- res$LMpars[compIDX,seq(2L),drop=TRUE]    
     } else {
         if (!is.null(outpdf)) dev.off()
-        if (class(res)=="try-error")  print(attr(res,"condition"))
-        stop("Error: fail in natural (1st) decay curve fitting!")
+        if (inherits(res,what="try-error")==TRUE)  print(attr(res,"condition"))
+        stop("Error: fail in fitting the natural (1th) decay curve!")
     } # end if.
     LnTn.curve[["Ln.x"]] <- res$comp.sig[,"Time",drop=TRUE]
-    LnTn.curve[["Ln.y"]] <- res$comp.sig[,"Comp.1",drop=TRUE]
+    LnTn.curve[["Ln.y"]] <- res$comp.sig[,paste("Comp.",compIDX,sep=""),drop=TRUE]
     ###--------------------------------------------------------------------------------
     res <- try(decomp(Sigdata[,c(1L,3L),drop=FALSE], delay.off=delay.off, ncomp=ncomp, 
                       constant=constant, typ=typ, control.args=args, weight=weight.decomp, 
                       plot=if_plot, log=log, lwd=lwd, curve.no=2L, SAR.Cycle="Test [Natural]", 
                       irr.dose=test.dose, outfile=NULL, transf=TRUE), silent=TRUE)
     ###
-    if (class(res)!="try-error" && res$message==0L) {
+    if (inherits(res,what="try-error")==FALSE && res$message==0L) {
         decomp_pars[["TN"]] <- res$LMpars
-        fast_Ltx[2L,] <- res$LMpars[which.max(res$LMpars[,3L,drop=TRUE]),seq(2L),drop=TRUE]    
+        fast_Ltx[2L,] <- res$LMpars[compIDX,seq(2L),drop=TRUE]    
     } else {
         if (!is.null(outpdf)) dev.off()
-        if (class(res)=="try-error")  print(attr(res,"condition"))
-        stop("Error: fail in natural test dose (2st) decay curve fitting!")
+        if (inherits(res,what="try-error")==TRUE)  print(attr(res,"condition"))
+        stop("Error: fail in fitting the natural test dose (2th) decay curve!")
     } # end if.
     LnTn.curve[["Tn.x"]] <- res$comp.sig[,"Time",drop=TRUE]
-    LnTn.curve[["Tn.y"]] <- res$comp.sig[,"Comp.1",drop=TRUE]
+    LnTn.curve[["Tn.y"]] <- res$comp.sig[,paste("Comp.",compIDX,sep=""),drop=TRUE]
     ###--------------------------------------------------------------------------------
     ###
     for (i in 4L:ncol(Sigdata)) {
@@ -107,15 +108,15 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args
                           plot=if_plot, log=log, lwd=lwd, curve.no=i-1L, SAR.Cycle=iSAR.Cycle, 
                           irr.dose=i_irr.dose, outfile=NULL, transf=TRUE), silent=TRUE)
         ###
-        if (class(res)!="try-error" && res$message==0L) {
+        if (inherits(res,what="try-error")==FALSE && res$message==0L) {
             characterNO <- ifelse(i%%2L==0L,paste("R",i/2L-1L,sep=""), 
                                   paste("TR",(i-1L)/2L-1L,sep=""))
             decomp_pars[[characterNO]] <- res$LMpars
-            fast_Ltx[i-1L,] <- res$LMpars[which.max(res$LMpars[,3L,drop=TRUE]),seq(2L),drop=TRUE]
+            fast_Ltx[i-1L,] <- res$LMpars[compIDX,seq(2L),drop=TRUE]
             ###
         } else {
-            if (class(res)=="try-error")  print(attr(res,"condition"))
-            cat(paste("Note: fail in fit the ",i-1L,"th decay curve!\n",sep=""))
+            if (inherits(res,what="try-error")==TRUE)  print(attr(res,"condition"))
+            cat(paste("Note: fail in fitting the ",i-1L,"th decay curve!\n",sep=""))
             fast_Ltx[i-1L,] <- NA
         } # end if.
     } # end for.
@@ -139,7 +140,7 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args
     Curvedata <- Curvedata[complete.cases(Curvedata),,drop=FALSE]
     if (nrow(Curvedata)==0L) {
         if (!is.null(outpdf)) dev.off() 
-        stop("Error: no data can be used to build the fast-component growth curve!")
+        stop("Error: no data can be used to establish the growth curve!")
     } # end if.
     ###
     Nature_LxTx <- c(LxTx_vec[1L], seLxTx_vec[1L])
@@ -152,9 +153,9 @@ function(Sigdata, Redose, delay.off=c(0,0), ncomp=2, constant=TRUE, control.args
     ###
     if (!is.null(outpdf)) dev.off() 
     ### 
-    if (class(res)=="try-error") {
+    if (inherits(res,what="try-error")==TRUE) {
         print(attr(res, "condition"))
-        stop("Error: fast-component equivalent dose calculation fails!")
+        stop("Error: fail in calculating the De!")
     } # end if.
     ###
     output <- list("decomp.pars"=decomp_pars,

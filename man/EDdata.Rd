@@ -22,8 +22,7 @@ Schmidt S, Tsukamoto S, Salomon E, Frechen M, Hetzel R, 2012. Optical dating of 
 }
 
 \seealso{
-  \link{dbED}; \link{psRadialPlot}; \link{RadialPlotter};\cr
-  \link{mcFMM}; \link{mcMAM}
+  \link{dbED}; \link{psRadialPlot}; \link{RadialPlotter}; \link{mcFMM}; \link{mcMAM}; \link{optimSAM}; \link{sensSAM}
 }
 
 \examples{

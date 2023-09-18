@@ -5,15 +5,14 @@
 Fast-component equivalent dose calculation
 }
 \description{
-Estimating a fast-component equivalent dose using decay curves obtained from the single aliquot regenerative-dose (SAR) method.
+Estimating a fast-, medium-, or slow-component equivalent dose using decay curves obtained from the single aliquot regenerative-dose (SAR) method.
 }
 \usage{
 fastED(Sigdata, Redose, delay.off = c(0,0), ncomp = 2, 
-       constant = TRUE, control.args = list(), typ = "cw", 
-       model = "gok", origin = FALSE, errMethod = "sp", 
-       nsim = 500, weight.decomp = FALSE, 
-       weight.fitGrowth = TRUE, trial = TRUE, 
-       nofit.rgd = NULL, outpdf = NULL, log = "x", 
+       constant = TRUE, compIDX = 1, control.args = list(), 
+       typ = "cw", model = "gok", origin = FALSE, errMethod = "sp", 
+       nsim = 500, weight.decomp = FALSE, weight.fitGrowth = TRUE, 
+       trial = TRUE, nofit.rgd = NULL, outpdf = NULL, log = "x", 
        lwd = 2, test.dose = NULL, agID = NULL)
 }
 \arguments{
@@ -25,9 +24,12 @@ Data structure of this kind can be obtained using function \link{pickBINdata} by
   \item{delay.off}{\link{vector}(with default): a two-elment vector indicating the "Delay" and "Off"\cr
 values of the decay curves, i.e., \code{delay.off[1]=Delay},\code{delay.off[2]=Off}}
 
-  \item{ncomp}{\link{integer}(with default): number of decomposed components}
+  \item{ncomp}{\link{integer}(with default): number of components to be decomposed}
 
   \item{constant}{\link{logical}(with default): logical value indicating if a constant background should be subtracted from the decay curve, see function \link{decomp} for details}
+
+  \item{compIDX}{\link{integer}(with default): index of the component to be extracted. For example, \code{compIDX=1} and \code{compIDX=2} indicate respectively that 
+the fast- and medium-component signals will be used to calculate the equivalent dose. The index should not exceed the number of components to be decomposed}
 
   \item{control.args}{\link{list}(with default): arguments used in the differential evolution algorithm, see function \link{decomp} for details}
 
@@ -49,9 +51,9 @@ values of the decay curves, i.e., \code{delay.off[1]=Delay},\code{delay.off[2]=O
   \item{trial}{\link{logical}(with default): logical value indicating if the growth curve should be fitted using other models if the given model fails, see function \link{fitGrowth} for details}
 
   \item{nofit.rgd}{\link{integer}(optional): regenerative doses that will not be used during the fitting. 
-For example, if \code{nofit.rgd=1} then the first regenerative dose will not be used during fast-component growth curve fitting}
+For example, if \code{nofit.rgd=1} then the first regenerative dose will not be used during fast-, medium-, or slow-component growth curve fitting}
 
-  \item{outpdf}{\link{character}(optional): if specified, results of fast-component equivalent dose calculation will be written to a PDF file 
+  \item{outpdf}{\link{character}(optional): if specified, results of fast-, medium-, or slow-component equivalent dose calculation will be written to a PDF file 
 named \code{"outpdf"} and saved to the current work directory}
 
   \item{log}{\link{character}(with default): a character string which contains "x" if the x axis is to be logarithmic, "y" if the y axis is to be logarithmic and "xy" or "yx" if both axes are to be logarithmic}
@@ -65,7 +67,7 @@ named \code{"outpdf"} and saved to the current work directory}
 }
 
 \details{
-Function \link{fastED} is used to estimate a fast-component equivalent dose using data sets obtained from the SAR protocol (Murray and Wintle, 2000). The routine trys to decompose a series of decay curves to a specified number of components, then the numbers of trapped electrons from the fast-component will be used to construct the growth curve to estimate a fast-component equivalent dose. See function \link{decomp}, \link{fitGrowth}, and \link{calED} for more details concerning decay curve decomposition, growth curve fitting, and equivalent dose calculation, respectively.\cr\cr
+Function \link{fastED} is used to estimate a fast-, medium-, or slow-component equivalent dose using data sets obtained from the SAR protocol (Murray and Wintle, 2000). The routine trys to decompose a series of decay curves to a specified number of components, then the numbers of trapped electrons from the fast-, medium-, or slow-component will be used to construct the growth curve to estimate a fast-, medium-, or slow-component equivalent dose. See function \link{decomp}, \link{fitGrowth}, and \link{calED} for more details concerning decay curve decomposition, growth curve fitting, and equivalent dose calculation, respectively.\cr\cr
 Argument \code{Sigdata} is a column-matrix made up with stimulation time values and a number of decay curves:
 \tabular{lll}{
 \bold{Column.no} \tab  \bold{Description}                                     \cr
@@ -83,27 +85,26 @@ Argument \code{Sigdata} is a column-matrix made up with stimulation time values 
 \value{
 Return an invisible \link{list} containing the following elements:
   \item{decomp.pars}{a \link{list} containing optimized parameters of successfully fitted decay curves}
-  \item{Curvedata}{data sets used for building the fast-component growth curve}
-  \item{Ltx}{sensitivity-corrected natural-dose fast-component signal and its standard error}
-  \item{LMpars}{optimizaed parameters for the fast-component growth curve}
-  \item{value}{minimized objective for the fast-component growth curve}
-  \item{avg.error}{average fit error for the fast-component growth curve}
-  \item{RCS}{reduced chi-square value for the fast-component growth curve}
-  \item{FOM}{figure of merit value for the fast-component growth curve in percent}
-  \item{calED.method}{method used for fast-component equivalent dose calculation, i.e.,\cr 
-\code{"Interpolation"} or \code{"Extrapolation"}}
-  \item{mcED}{randomly simulated fast-component equivalent doses}
-  \item{ED}{fast-component equivalent dose and its standard error}
-  \item{ConfInt}{68 percent and 95 percent confidence interval of fast-component equivalent dose}
-  \item{RecyclingRatio1}{the first fast-component recycling ratio and its standard error}
-  \item{RecyclingRatio2}{the second fast-component recycling ratio and its standard error}
-  \item{RecyclingRatio3}{the third fast-component recycling ratio and its standard error}
-  \item{Recuperation1}{the first fast-component recuperation (i.e., ratio of the sensitivity-corrected\cr
-zero-dose signal to natural-dose signal) and its standard error in percent}
-  \item{Recuperation2}{the second fast-component recuperation (i.e., ratio of the sensitivity-corrected zero-dose 
-signal to maximum regenerative-dose signal) and its standard error in percent}
-
+  \item{Curvedata}{data sets used for building the fast-, medium-, or slow-component growth curve}
+  \item{Ltx}{sensitivity-corrected natural-dose fast-, medium-, or slow-component signal and its standard error}
+  \item{LMpars}{optimizaed parameters for the fast-, medium-, or slow-component growth curve}
+  \item{value}{minimized objective for the fast-, medium-, or slow-component growth curve}
+  \item{avg.error}{average fit error for the fast-, medium-, or slow-component growth curve}
+  \item{RCS}{reduced chi-square value for the fast-, medium-, or slow-component growth curve}
+  \item{FOM}{figure of merit value for the fast-, medium-, or slow-component growth curve in percent}
+  \item{calED.method}{method used for calculating the fast-, medium-, or slow-component equivalent dose, i.e., \code{"Interpolation"} or \code{"Extrapolation"}}
+  \item{mcED}{randomly simulated fast-, medium-, or slow-component equivalent doses}
+  \item{ED}{fast-, medium-, or slow-component equivalent dose and its standard error}
+  \item{ConfInt}{68 percent and 95 percent confidence interval of the fast-, medium-, or slow-component equivalent dose}
+  \item{RecyclingRatio1}{the first fast-, medium-, or slow-component recycling ratio and its standard error}
+  \item{RecyclingRatio2}{the second fast-, medium-, or slow-component recycling ratio and its standard error}
+  \item{RecyclingRatio3}{the third fast-, medium-, or slow-component recycling ratio and its standard error}
+  \item{Recuperation1}{the first fast-, medium-, or slow-component recuperation (i.e., ratio of the sensitivity-corrected zero-dose 
+signal to natural-dose signal) and its standard error in percent}
+  \item{Recuperation2}{the second fast-, medium-, or slow-component recuperation (i.e., ratio of the sensitivity-corrected zero-dose 
+signal to the maximum regenerative-dose signal) and its standard error in percent}
 }
+
 \references{
 Li SH, Li B, 2006. Dose measurement using the fast component of LM-OSL signals from quartz. 
 Radiation Measurements, 41(5): 534-541.
@@ -112,22 +113,28 @@ Murray AS, Wintle AG, 2000. Luminescence dating of quartz using improved single-
 Radiation Measurements, 32(1): 57-73.
 }
 
-\seealso{
-  \link{pickBINdata}; \link{Signaldata};\cr
-  \link{fitGrowth}; \link{decomp}; \link{calED}
+\note{
+Argument \code{test.dose} and \code{agID} have nothing to do with fast-, medium-, or slow-component equivalent dose calculation. They are used only for plotting purpose.\cr\cr
+The number of trapped electrons that corresponds to the largest, the second largest, and the third largest decay rates will be regarded as the fast-, medium-, and slow-component signals, respectively, 
+which cannot always ensure that pure fast-, medium-, or slow-component signals be extracted if an ultra-fast decaying component appears.\cr\cr
+The authors thank Professor Sheng-Hua Li and Professor Geoff Duller for their helpful discussions concerning fast-component equivalent dose calculation.
 }
 
-\note{
-Argument \code{test.dose} and \code{agID} have nothing to do with fast-component equivalent dose calculation. They are used only for plotting purpose.\cr\cr
-The number of trapped electrons that corresponds to the largest decay rate will be regarded as the fast-component signal, which cannot always ensure that a pure fast-component signal be extracted if an ultra-fast decaying component appears.\cr\cr
-The authors thank Professor Sheng-Hua Li and Professor Geoff Duller for their helpful discussions concerning fast-component equivalent dose calculation.
+\seealso{
+  \link{pickBINdata}; \link{Signaldata}; \link{fitGrowth}; \link{decomp}; \link{calED}
 }
 
 \examples{
  ### Example 1 (not run):
  # data(Signaldata)
  # fastED(Signaldata$cw,Redose=c(80,160,240,320,0, 80)*0.13,
- #        ncomp=3, constant=FALSE, outpdf="fastED1")
+ #        ncomp=3, constant=FALSE, compIDX=1, outpdf="fastED1")
+
+ # fastED(Signaldata$cw,Redose=c(80,160,240,320,0, 80)*0.13,
+ #        ncomp=3, constant=FALSE, compIDX=2, outpdf="mediumED1")
+
+ # fastED(Signaldata$cw,Redose=c(80,160,240,320,0, 80)*0.13,
+ #        ncomp=3, constant=FALSE, compIDX=3, outpdf="slowED1")
 
  ### Example 2 (not run):
  # data(BIN)

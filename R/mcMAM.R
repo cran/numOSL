@@ -1,17 +1,17 @@
 #####
 mcMAM<-
-function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE,
+function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE, 
          nsim=5e4, inis=list(), control.args=list()) {
     UseMethod("mcMAM")
 } #
-### 2017.03.29.
+### 2023.09.10.
 mcMAM.default<-
-function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE,
+function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE, 
          nsim=5e4, inis=list(), control.args=list()) {
     ### Stop if not.
     stopifnot(ncol(EDdata)==2L, nrow(EDdata)>=5L,
               all(EDdata[,2L,drop=TRUE]>0),
-              length(ncomp)==1L, ncomp %in% c(-1L,-2L),
+              length(ncomp)==1L, ncomp %in% c(-1L,-2L,-3L,-4L),
               length(addsigma)==1L, is.numeric(addsigma),
               length(iflog)==1L, is.logical(iflog),
               length(nsim)==1L, is.numeric(nsim), nsim>=100L, nsim<=2e5,
@@ -22,6 +22,11 @@ function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE,
     ed1<-as.numeric(EDdata[,1L,drop=TRUE])
     sed1<-as.numeric(EDdata[,2L,drop=TRUE])
     nED<-nrow(EDdata)
+    if (ncomp %in% c(-1L,-2L))  {
+        inverse <- FALSE 
+    } else {
+        inverse <- TRUE
+    } # end if.
     ###
     if (iflog==TRUE && any(ed1<=0)) {
         stop("Error: minus(zero) ED canot be logged!")
@@ -41,15 +46,16 @@ function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE,
     ###
     ### Default inis.
     args.inis<-list("p"=0.5,"gamma"=quantile(ed1,probs=0.25,names=FALSE),
-                    "mu"=quantile(ed1,probs=0.5,names=FALSE),"sigma"=0.5)
+                    "mu"=quantile(ed1,probs=0.5,names=FALSE),
+                    "sigma"=ifelse(iflog==TRUE,0.3,3.0))
     args.inis[names(inis)]<-inis
-    stopifnot(args.inis[["p"]]>0, args.inis[["p"]]<1,
+    stopifnot(args.inis[["p"]]>0.0, args.inis[["p"]]<1.0,
               args.inis[["gamma"]]>lowerGamma, 
               args.inis[["gamma"]]<upperGamma,
               args.inis[["mu"]]>lowerGamma, 
               args.inis[["mu"]]<upperGamma,
-              args.inis[["sigma"]]>0,
-              args.inis[["sigma"]]<ifelse(iflog==TRUE,5,var(ed1)))
+              args.inis[["sigma"]]>0.0,
+              args.inis[["sigma"]]<ifelse(iflog==TRUE,5.0,50.0))
     ###
     ### Default arguments of slice sampling.
     args.control<-list(w=1, m=-100, nstart=1L)
@@ -74,19 +80,19 @@ function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE,
           args.inis[["sigma"]])
     } # end if
     iflag<-0
-    chains<-matrix(0,nrow=nsim,ncol=2L-ncomp)
+    chains<-matrix(0,nrow=nsim,ncol=ifelse(ncomp %in% c(-1L,-3L),3L,4L))
     ###
-    if (ncomp==-1L) {
+    if (ncomp %in% c(-1L,-3L)) {
         res <- .Fortran("mcMAM3",as.integer(nED),as.integer(nsim),as.double(ed1), 
                         as.double(sed1),as.double(addsigma),as.double(inis), 
                         as.integer(iflog),as.integer(nstart),as.double(w), 
-                        as.double(m),chains=as.double(chains), 
+                        as.double(m),chains=as.double(chains),as.integer(inverse),
                         iflag=as.integer(iflag),PACKAGE="numOSL")
-    } else if (ncomp==-2L) {
+    } else if (ncomp %in% c(-2L,-4L)) {
         res <- .Fortran("mcMAM4",as.integer(nED),as.integer(nsim),as.double(ed1), 
                         as.double(sed1),as.double(addsigma),as.double(inis), 
                         as.integer(iflog),as.integer(nstart),as.double(w), 
-                        as.double(m),chains=as.double(chains), 
+                        as.double(m),chains=as.double(chains),as.integer(inverse), 
                         iflag=as.integer(iflag),PACKAGE="numOSL")
     } # end if.
     ###
@@ -96,22 +102,50 @@ function(EDdata, ncomp=-1, addsigma=0, iflog=TRUE,
                    niter+1L,"th iteration!",sep=""))
     } # end if
     ###
-    chains<-matrix(res$chains,ncol=2L-ncomp,
-                   dimnames=list(NULL,
-                   if(ncomp==-1L) c("p","gamma","sigma") else 
-                   c("p","gamma","mu","sigma")))
+    if (ncomp==-1L)  {
+        myNAMES <-  c("Prop","MAM3.De","Sigma")
+    } else if (ncomp==-2L)  {
+        myNAMES <- c("Prop","MAM4.De","Mu","Sigma")
+    } else if (ncomp==-3L) {
+        myNAMES <-  c("Prop","MXAM3.De","Sigma")
+    } else if (ncomp==-4L) {
+        myNAMES <- c("Prop","MXAM4.De","Mu","Sigma")
+    } # end if.
+    chains<-matrix(res$chains,ncol=ifelse(ncomp %in% c(-1L,-3L),3L,4L),
+                   dimnames=list(NULL,myNAMES))
     ###
     if (iflog==TRUE) {
         if (ncomp==-1L) {
             chains[,2L]<-exp(chains[,2L])
+            model <- "MAM3"
+        } else if (ncomp==-3L) {
+            chains[,2L]<-exp(-chains[,2L])
+            model <- "MXAM3"
         } else if (ncomp==-2L) {
             chains[,2L:3L]<-exp(chains[,2L:3L])
+            model <- "MAM4"
+        } else if (ncomp==-4L) {
+            chains[,2L:3L]<-exp(-chains[,2L:3L])
+            model <- "MXAM4"
         } # end if
-    } # end if
+    } else {
+        if (ncomp==-1L) {
+            model <- "MAM3"
+        } else if (ncomp==-2L) {
+            model <- "MAM4"
+        } else if (ncomp==-3L) {
+            chains[,2L]<- -chains[,2L]
+            model <- "MXAM3"
+        } else if (ncomp==-4L) {
+            chains[,2L:3L]<- -chains[,2L:3L]
+            model <- "MXAM4"
+        } # end if
+        
+    } # end if.
     ###
     output<-list("EDdata"=EDdata, 
                  "addsigma"=addsigma, 
-                 "model"=ifelse(ncomp==-1L,"MAM3","MAM4"),
+                 "model"=model,
                  "iflog"=iflog, 
                  "nsim"=nsim, 
                  "chains"=chains)

@@ -80,7 +80,7 @@ In growth curve fitting using function \link{fitGrowth}, five models are availab
 \bold{(3)} \emph{"lexp"}: a single saturation exponential plus linear model, \code{y=a*[1-exp(-b*x)]+c*x+d};\cr
 \bold{(4)} \emph{"dexp"}: a double saturation exponential model, \code{y=a*[1-exp(-b*x)]+c*[1-exp(-d*x)]+e};\cr
 \bold{(5)} \emph{"gok"}: a general order kinetic model (Guralnik et al., 2015), \code{y=a*[1-(1+b*c*x)^(-1/c)]+d}.\cr\cr
-The fitting process is performed using the Levenberg-Marquardt algorithm (minpack: Fortran 90 source code by John Burkardt, freely available at \url{http://people.sc.fsu.edu/~jburkardt/f_src/minpack/minpack.html}). If \code{weight=TRUE}, a weighted procedure will be performed through weighting each data point by its inverse variance. User is advised to set argument \code{plot=TRUE} if possible to visualize the quality of fit.\cr\cr
+The fitting process is performed using the Levenberg-Marquardt algorithm (minpack: Fortran 90 source code by John Burkardt, freely available at \url{https://people.sc.fsu.edu/~jburkardt/f_src/minpack/minpack.html}). If \code{weight=TRUE}, a weighted procedure will be performed through weighting each data point by its inverse variance. User is advised to set argument \code{plot=TRUE} if possible to visualize the quality of fit.\cr\cr
 Argument \code{trial=TRUE} means that if the growth curve can not be fitted successfully using the user-supplied model, then the procedure will try to fit other models instead:
 \tabular{lll}{
 \bold{Model}              \tab  \bold{Tried model}                       \cr
@@ -137,8 +137,7 @@ The model to be optimized should not be underdetermined. This means that the num
 }
 
 \seealso{
-  \link{analyseBINdata}; \link{SARdata};\cr
-  \link{calED}; \link{calSARED}; \link{fastED};\cr
+  \link{analyseBINdata}; \link{SARdata}; \link{calED}; \link{calSARED}; \link{fastED};\cr
   \link{pickSARdata}; \link{lsNORM}; \link{calSGCED}
 }
 

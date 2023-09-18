@@ -9,18 +9,18 @@ subroutine inverse_sym(mat1,n,ifault)
 !                             1: N < 1.
 !                             2: A is not positive semi-definite.
 !--------------------------------------------------------------------
-! Author:: Peng Jun, 2016.06.25.
+! Author:: Peng Jun, 2023.08.30.
 !--------------------------------------------------------------------
 ! Dependence:: subroutine syminv.
 !--------------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: n
-    real   (kind=8), intent(inout):: mat1(n,n)
-    integer(kind=4), intent(out):: ifault
+    integer, intent(in):: n
+    real(kind(1.0d0)), intent(inout):: mat1(n,n)
+    integer, intent(out):: ifault
     !
-    real   (kind=8):: avec(n*(n+1)/2), cvec(n*(n+1)/2), wvec(n)
-    integer(kind=4):: nullty, i, j
+    real(kind(1.0d0)):: avec(n*(n+1)/2), cvec(n*(n+1)/2), wvec(n)
+    integer:: nullty, i, j
     !
     do i = 1, n
         avec(i*(i+1)/2-i+1:i*(i+1)/2) = mat1(i,1:i)
@@ -110,26 +110,26 @@ subroutine cholesky ( a, n, nn, u, nullty, ifault )
 !
   implicit none
 
-  integer ( kind = 4 ) nn
+  integer nn
 
-  real ( kind = 8 ) a(nn)
-  real ( kind = 8 ), parameter :: eta = 1.0D-09
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) icol
-  integer ( kind = 4 ) ifault
-  integer ( kind = 4 ) ii
-  integer ( kind = 4 ) irow
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) kk
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) m
-  integer ( kind = 4 ) n
-  integer ( kind = 4 ) nullty
-  real ( kind = 8 ) rsq
-  real ( kind = 8 ) u(nn)
-  real ( kind = 8 ) w
-  real ( kind = 8 ) x
+  real ( kind(1.0d0) ) a(nn)
+  real ( kind(1.0d0) ), parameter :: eta = 1.0D-09
+  integer i
+  integer icol
+  integer ifault
+  integer ii
+  integer irow
+  integer j
+  integer k
+  integer kk
+  integer l
+  integer m
+  integer n
+  integer nullty
+  real ( kind(1.0d0) ) rsq
+  real ( kind(1.0d0) ) u(nn)
+  real ( kind(1.0d0) ) w 
+  real ( kind(1.0d0) ) x
 
   ifault = 0
   nullty = 0
@@ -270,25 +270,25 @@ subroutine syminv ( a, n, c, w, nullty, ifault )
 !
   implicit none
 
-  integer ( kind = 4 ) n
+  integer n
 
-  real ( kind = 8 ) a((n*(n+1))/2)
-  real ( kind = 8 ) c((n*(n+1))/2)
-  integer ( kind = 4 ) i
-  integer ( kind = 4 ) icol
-  integer ( kind = 4 ) ifault
-  integer ( kind = 4 ) irow
-  integer ( kind = 4 ) j
-  integer ( kind = 4 ) jcol
-  integer ( kind = 4 ) k
-  integer ( kind = 4 ) l
-  integer ( kind = 4 ) mdiag
-  integer ( kind = 4 ) ndiag
-  integer ( kind = 4 ) nn
-  integer ( kind = 4 ) nrow
-  integer ( kind = 4 ) nullty
-  real ( kind = 8 ) w(n)
-  real ( kind = 8 ) x
+  real ( kind(1.0d0) ) a((n*(n+1))/2)
+  real ( kind(1.0d0) ) c((n*(n+1))/2)
+  integer i
+  integer icol
+  integer ifault
+  integer irow
+  integer j
+  integer jcol
+  integer k
+  integer l
+  integer mdiag
+  integer ndiag
+  integer nn
+  integer nrow
+  integer nullty
+  real ( kind(1.0d0) ) w(n)
+  real ( kind(1.0d0) ) x
 
   ifault = 0
 

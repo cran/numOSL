@@ -3,7 +3,7 @@ calRcyRcp <-
 function(Curvedata, Ltx) {
     UseMethod("calRcyRcp")
 } #
-### 2017.01.22.
+### 2023.09.09.
 calRcyRcp.default <- 
 function(Curvedata, Ltx) {
     stopifnot(ncol(Curvedata)==3L, nrow(Curvedata)>=1L,
@@ -21,7 +21,7 @@ function(Curvedata, Ltx) {
         RepeatIndex <- apply(as.matrix(dose_level), MARGIN=1L, function(x,y) 
                              which(abs(x-y)<=.Machine$double.eps^0.5), dose)
         ###
-        if (class(RepeatIndex)=="list") {
+        if (inherits(RepeatIndex,what="list")==TRUE) {
             RepeatIndex <- RepeatIndex[sapply(RepeatIndex,length)>=2L][[1L]]
         } else {
             RepeatIndex <- RepeatIndex[,1L,drop=TRUE]

@@ -2,17 +2,17 @@
 dbED <-
 function(EDdata, plot=TRUE, typ="pdf",
          from=NULL, to=NULL, step=NULL, nbin=15,
-         pcolor="grey", psize=1.5, outfile=NULL) {
+         pcolor="purple", psize=1.5, outfile=NULL) {
     UseMethod("dbED")
 } #
-### 2016.06.27.
+### 2023.09.01.
 dbED.default <-
 function(EDdata, plot=TRUE, typ="pdf",
          from=NULL, to=NULL, step=NULL, nbin=15,
-         pcolor="grey", psize=1.5, outfile=NULL) {
+         pcolor="purple", psize=1.5, outfile=NULL) {
     ### Stop if not.
-    stopifnot(ncol(EDdata)==2L, nrow(EDdata)>=5L,
-              all(EDdata[,2L,drop=TRUE]>0),
+    stopifnot(ncol(EDdata)==2L, nrow(EDdata)>=2L,
+              all(EDdata[,2L,drop=TRUE]>=0),
               length(plot)==1L, is.logical(plot),
               length(typ)==1L, is.character(typ), typ %in% c("pdf","hist"),
               is.null(from) || is.numeric(from),
@@ -33,10 +33,17 @@ function(EDdata, plot=TRUE, typ="pdf",
     } # end if.
     ###
     nED<-nrow(EDdata)
-    EDdata<-EDdata[order(EDdata[,1L,drop=TRUE],
-                   decreasing=FALSE),,drop=FALSE]
     ed1<-as.numeric(EDdata[,1L,drop=TRUE])
     sed1<-as.numeric(EDdata[,2L,drop=TRUE])
+    idx <- which(sed1<=0)
+    if (length(idx)>=1L) {
+        cat("NOTE: the ", idx, "-th De, zero error!\n") 
+        sed1[idx] <- ed1[idx]*0.01
+    } # end if.
+    ###
+    idx <-order(ed1)
+    ed1 <- ed1[idx]
+    sed1 <- sed1[idx]
     ###
     if (is.null(from)) {
         from<-ifelse(min(ed1)>=0,
@@ -48,9 +55,7 @@ function(EDdata, plot=TRUE, typ="pdf",
                    max(ed1)*1.3,
                    max(ed1)*0.7)
     } # end if.
-    if (from>=to) {
-        stop("Error: from must not exceed to!")
-    } # end if
+    if (from>=to)  stop("Error: from must not exceed to!")
     ###
     ### Calculate weighted skewness and kurtosis.
     weight<-ed1/sed1
@@ -78,6 +83,9 @@ function(EDdata, plot=TRUE, typ="pdf",
                  "quantile.ED"=round(quantileED,3L))
     ###
     if (plot==TRUE) {
+        opar <- par("new")
+        on.exit(par(opar))
+        ###
         if (typ=="pdf") {
             if (is.null(step)) { 
                 step<-max(diff(sort(ed1)))/10.0
@@ -98,19 +106,21 @@ function(EDdata, plot=TRUE, typ="pdf",
                   file=paste(outfile,".csv",sep=""))
             } # end if.        
             ### 
-            plot(spreadED, pdfED, 
-                 main="Equivalent Dose Distribution", 
-                 xlab="Equivalent Dose (Gy)", ylab="Density",
-                 xlim=c(from,to), type="l", lwd=2)
+            plot(spreadED, pdfED, mgp=c(2.5,1,0),
+                 main="De Distribution", col="skyblue",
+                 xlab="De (Gy)", ylab="Density", cex.lab=1.25,
+                 xlim=c(from,to), type="l", lwd=3)
             xTicks<-axTicks(side=1L)
             maxYx<-spreadED[which.max(pdfED)]
             box(lwd=1)
+            matpoints(spreadED, pdfMat/sum(rowSums(pdfMat)), 
+                      type="l", lwd=0.9, lty=1, col="grey60")
         } else if (typ=="hist") {
             breaks<-pretty(ed1, n=nbin)
             HIST<-hist(ed1, breaks=breaks, 
-                       main="Equivalent Dose Distribution", 
-                       xlab="Equivalent Dose (Gy)", 
-                       xlim=c(from,to))
+                       main="De Distribution", border="grey50",
+                       xlab="De (Gy)", col="skyblue",
+                       xlim=c(from,to), mgp=c(2.5,1,0))
             xTicks<-axTicks(side=1L)
             maxYx<-HIST$mids[which.max(HIST$counts)]
             box(lwd=1)
@@ -121,22 +131,36 @@ function(EDdata, plot=TRUE, typ="pdf",
         plot(ed1, seq(nED), xlab="", ylab="", 
              xlim=c(from,to), type="p", 
              pch=23, cex=psize, bg=pcolor, 
-             xaxt="n", yaxt="n")
-        par("new"=FALSE)
+             col=pcolor, xaxt="n", yaxt="n")
         ###
         ###
         arrowIndex <- which(sed1>0.05 & sed1/ed1>0.01)
         if (length(arrowIndex)>=1L) {
             arrows(x0=ed1[arrowIndex]-sed1[arrowIndex]/2.0, y0=(seq(nED))[arrowIndex],
                    x1=ed1[arrowIndex]+sed1[arrowIndex]/2.0, y1=(seq(nED))[arrowIndex],
-                   code=3, lwd=1.5, angle=90, length=0.05, col="black")
+                   code=3, lwd=psize, angle=90, length=0.05, col=pcolor)
         } # end if.
         ###
-        legend(ifelse(maxYx>median(xTicks),"left","right"), 
-               legend=c(paste("N=",nED,sep=""),
-                        paste("mean=",round(meanED,2L)," (Gy)",sep=""),
-                        paste("median=",round(medianED,2L)," (Gy)",sep=""),
-                        paste("sd=",round(sdED,2L),sep="")), cex=1, bty="n")
+        if (typ=="pdf") {
+            legend(ifelse(maxYx>median(xTicks),"left","right"), 
+                   legend=c("Individual De", "Individual PDF", "Sum PDF", 
+                            paste("N=",nED,sep=""),
+                            paste("Mean=",round(meanED,2L)," (Gy)",sep=""),
+                            paste("Median=",round(medianED,2L)," (Gy)",sep=""),
+                            paste("SD=",round(sdED,2L)," (Gy)",sep="")), 
+                            lty=c(NA,1,1,rep(NA,4)),col=c(pcolor,"grey60","skyblue",rep(NA,4)),
+                            pch=c(23,rep(NA,6)), pt.bg=c(pcolor,rep(NA,6)), lwd=c(NA,2,2,rep(NA,4)),
+                            cex=1, pt.cex=1.25, bty="n")
+        } else {
+            legend(ifelse(maxYx>median(xTicks),"left","right"), 
+                   legend=c("Individual De", paste("N=",nED,sep=""),
+                            paste("Mean=",round(meanED,2L)," (Gy)",sep=""),
+                            paste("Median=",round(medianED,2L)," (Gy)",sep=""),
+                            paste("SD=",round(sdED,2L)," (Gy)",sep="")), 
+                            col=c(pcolor,rep(NA,4)),pch=c(23,rep(NA,4)),
+                            cex=1, pt.bg=c(pcolor,rep(NA,4)), pt.cex=1.25, bty="n")
+
+        } # end if.
         ###
     } # end if.
     ###

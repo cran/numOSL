@@ -14,7 +14,7 @@ subroutine apfmmstd(pars,ncomp,ed,sed,ndat,&
 ! stdp(2,ncomp):: real vlaues, the estimated standard errors.
 !          info:: output, integer, 0=success, 1=fail.
 !----------------------------------------------------------------
-! Author:: Peng Jun, 2016.06.26.
+! Author:: Peng Jun, 2023.08.30.
 !----------------------------------------------------------------
 ! Dependence:: subroutine inverse_ger.
 !----------------------------------------------------------------
@@ -24,19 +24,19 @@ subroutine apfmmstd(pars,ncomp,ed,sed,ndat,&
 !----------------------------------------------------------------
     implicit none
     ! Arguments.
-    integer(kind=4), intent(in):: ncomp, ndat
-    real   (kind=8), intent(in):: pars(2,ncomp), ed(ndat),&  
-                                  sed(ndat), addsigma
-    real   (kind=8), intent(out):: stdp(2,ncomp)
-    integer(kind=4), intent(out):: info
+    integer, intent(in):: ncomp, ndat
+    real(kind(1.0d0)), intent(in):: pars(2,ncomp), ed(ndat),&  
+                                    sed(ndat), addsigma
+    real(kind(1.0d0)), intent(out):: stdp(2,ncomp)
+    integer, intent(out):: info
     ! Local variables.
-    real   (kind=8):: z(ndat), s(ndat), w(ndat),&
-                      aaMat(ndat,ncomp), bbMat(ndat,ncomp),& 
-                      aMat(ncomp-1,ncomp-1), bMat(ncomp-1,ncomp),&
-                      cMat(ncomp,ncomp), pdf(ndat,ncomp), rsumpdf(ndat),&
-                      prob(ndat,ncomp), iMat(ncomp,ncomp),scnp1,&
-                      covar(2*ncomp-1,2*ncomp-1), diag(2*ncomp-1)
-    integer(kind=4):: i, j, singular
+    real(kind(1.0d0)):: z(ndat), s(ndat), w(ndat),&
+                        aaMat(ndat,ncomp), bbMat(ndat,ncomp),& 
+                        aMat(ncomp-1,ncomp-1), bMat(ncomp-1,ncomp),&
+                        cMat(ncomp,ncomp), pdf(ndat,ncomp), rsumpdf(ndat),&
+                        prob(ndat,ncomp), iMat(ncomp,ncomp),scnp1,&
+                        covar(2*ncomp-1,2*ncomp-1), diag(2*ncomp-1)
+    integer:: i, j, singular
     !
     z = ed
     s = sed

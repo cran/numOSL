@@ -6,7 +6,7 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
          use.se=TRUE, outpdf=NULL, outfile=NULL) {
     UseMethod("calSGCED")
 } ###
-### 2018.07.26. 
+### 2023.09.01. 
 calSGCED.default <-
 function(obj_analyseBIN, SGCpars, model, origin, avgDev, 
          method="SGC", SAR.Cycle="N", errMethod="sp", Tn.above.3BG=TRUE, 
@@ -417,7 +417,15 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
     lower68_vec <- upper68_vec <- lower95_vec <- upper95_vec <- 
     saturate_ID <- failED_ID <- failEDError_ID <- c()
     ###
-    if (!is.null(outpdf)) pdf(file=paste(outpdf,".pdf",sep=""))
+
+    ###
+    if (!is.null(outpdf)) { 
+        opar <- par("mfrow", "mgp", "mar")
+        on.exit(par(opar))
+        ###
+        pdf(file=paste(outpdf,".pdf",sep=""))
+    } # end if.
+    ###
     ###
     ###
     nsim <- 600L
@@ -725,16 +733,15 @@ function(obj_analyseBIN, SGCpars, model, origin, avgDev,
     } # end for.
     ###
     ###
-
+    
     ###
-    if (!is.null(outpdf)) dev.off()
+    if (!is.null(outpdf))  dev.off()
     ###
 
     ###
     ###-------------------------------------------------------------------------------
     ### Fliter on saturated natural signals.
-    action_character <- c(action_character, 
-        "Function calSGCED(): saturated in Ln/Tn")
+    action_character <- c(action_character, "Function calSGCED(): saturated in Ln/Tn")
     ###
     if (!is.null(saturate_ID)) {
         reject_N <- nrow(saturate_ID)

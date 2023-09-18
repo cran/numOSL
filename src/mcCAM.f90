@@ -3,31 +3,24 @@ subroutine mcCAM(nED,nsim,ED,Error,addsigma,&
 !===========================================================================================
 ! Construct MCMC chains for the CAM age model (either in logged- or unlogged-scale).
 !
-! Author:: Peng Jun, 2014.03.15.
+! Author:: Peng Jun, 2023.08.30.
 !
 ! Dependence:: subroutine SliceCAM().
 !===========================================================================================
   implicit none
-  integer(kind=4), intent(in):: nED                  ! Number of equivalent doses.
-  integer(kind=4), intent(in):: nsim                 ! Number of simulations.
-  real   (kind=8), intent(in):: ED(nED)              ! Equivalent dose values (un-logged).
-  real   (kind=8), intent(in):: Error(nED)           ! Standard errors (absolute).
-  real   (kind=8), intent(in):: addsigma             ! Added spread.
-  real   (kind=8), intent(in):: inis(2)              ! Initials of the chains.
-  integer(kind=4), intent(in):: ntry                 ! Maximum times of trials per simulation.
-  real   (kind=8), intent(in):: w                    ! Size of the steps for creating interval.
-  real   (kind=8), intent(in):: m                    ! Limit on steps.
-  real   (kind=8), intent(out):: chains(nsim,2)      ! Simulated chains.
-  integer(kind=4), intent(out):: iflag               ! Error message (0=success, 1=fail).
-  logical,         intent(in):: iflog                ! Change to logged-scale or not.
+  integer, intent(in):: nED, nsim, ntry               
+  real(kind(1.0d0)), intent(in):: ED(nED), Error(nED),&
+                                  addsigma, inis(2), w, m
+  real(kind(1.0d0)), intent(out):: chains(nsim,2)    
+  integer, intent(out):: iflag               
+  logical, intent(in):: iflog 
   !
   ! Local variables.
-  real   (kind=8):: yy(nED), xx(nED)
-  real   (kind=8):: iniMu, iniSigma
-  real   (kind=8):: Value
-  integer(kind=4):: i, j
-  real   (kind=8):: upperSigma
-  real   (kind=8):: lowerMu, upperMu
+  real(kind(1.0d0)):: yy(nED), xx(nED), iniMu, iniSigma,& 
+                      Value, upperSigma, lowerMu, upperMu
+  integer:: i, j, seed
+  !
+  seed=123456789
   !
   ! Default return chains.
   chains=-99.0
@@ -63,12 +56,12 @@ subroutine mcCAM(nED,nsim,ED,Error,addsigma,&
       upperMu=maxval(yy)*1.001
   end if
   !
-  call random_seed()
+  !!!call random_seed()
   do i=1, nsim
       ! Update Mu.
       AA: do j=1, ntry
-          call SliceCAM(iniMu,iniSigma,nED,yy,xx,& 
-                        1,Value,iflag,w,m,lowerMu,upperMu)
+          call SliceCAM(iniMu,iniSigma,nED,yy,xx,1,Value,& 
+                        iflag,w,m,lowerMu,upperMu,seed)
           if (iflag==0) exit AA
       end do AA
       ! Error checking.
@@ -79,8 +72,8 @@ subroutine mcCAM(nED,nsim,ED,Error,addsigma,&
       !
       ! Update Sigma.
       BB: do j=1, ntry
-          call SliceCAM(iniMu,iniSigma,nED,yy,xx,& 
-                        2,Value,iflag,w,m,0.0D+00,upperSigma)
+          call SliceCAM(iniMu,iniSigma,nED,yy,xx,2,Value,& 
+                        iflag,w,m,0.0D+00,upperSigma,seed)
           if (iflag==0)  exit BB
       end do BB
       ! Error checking.
@@ -94,14 +87,14 @@ end subroutine mcCAM
 !
 ! ------------------------------------------------------------------------------------------------------
 !
-subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,& 
-                    which,Value,iflag,w,m,lower,upper)
+subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,which,& 
+                    Value,iflag,w,m,lower,upper,seed)
 ! =====================================================================================================
 ! Update parameters in CAM age model with the Slice Sampling.
 !
-! Author:: Peng Jun, 2014.03.15.
+! Author:: Peng Jun, 2023.09.09.
 !
-! Dependence:: Inner function funcMu(); funcSigma().
+! Dependence:: function r8_uniform_01, inner functions funcMu() and funcSigma().
 !
 ! Reference :: Neal, R. M (2003) "Slice sampling" (with discussion), Annals of Statistics,
 !              vol. 31, no. 3, pp. 705-767.
@@ -110,25 +103,17 @@ subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,&
 !        http://www.cs.utoronto.ca/~radford/slice.software.html
 ! =====================================================================================================
   implicit none
-  real   (kind=8), intent(in):: iniMu             ! Initial Mu value.
-  real   (kind=8), intent(in):: iniSigma          ! Initial Sigma value.
-  integer(kind=4), intent(in):: nED               ! Number of equivalent doses.
-  integer(kind=4), intent(in):: which             ! Which parameter to be updated (1=Mu, 2=Sigma).
-  real   (kind=8), intent(in):: ED(nED)           ! Equivalent dose values (either logged or un-logged).
-  real   (kind=8), intent(in):: Error(nED)        ! Standard errors (either relative or absoulte).
-  real   (kind=8), intent(in):: w                 ! Size of the steps for creating interval.
-  real   (kind=8), intent(in):: m                 ! Limit on steps for creating interval.
-  real   (kind=8), intent(in):: lower             ! Lower boundary of the desired distribution.
-  real   (kind=8), intent(in):: upper             ! Upper boundary of the desired distribution.
-  real   (kind=8), intent(out):: Value            ! Updated parameter corresponding to "which".
-  integer(kind=4), intent(out):: iflag            ! Error message (0=success, 1=crashed).
+  integer, intent(in):: nED, which
+  real(kind(1.0d0)), intent(in):: iniMu, iniSigma, ED(nED),&
+                                  Error(nED), w, m, lower, upper                            
+  real(kind(1.0d0)), intent(out):: Value            
+  integer, intent(out):: iflag  
+  integer, intent(inout):: seed 
+  !        
   ! Local variables.
-  real   (kind=8):: ran
-  real   (kind=8):: gx0, gx1
-  real   (kind=8):: logy
-  real   (kind=8):: U, L, R, J, K
-  real   (kind=8):: gL, gR
-  real   (kind=8):: Error2(nED)
+  real(kind(1.0d0)):: ran, gx0, gx1, logy,& 
+                      U, L, R, J, K, gL, gR,& 
+                      Error2(nED), r8_uniform_01
   !
   iflag=0
   Value=-99.0
@@ -146,11 +131,13 @@ subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,&
   !
   !
   ! Transform logy in log terms.
-  call random_number(ran)
+  !!!call random_number(ran)
+  ran=r8_uniform_01(seed)
   logy=gx0+log(ran)
   !
   ! Find the initial interval [L,R] to sample from.
-  call random_number(ran)
+  !!!call random_number(ran)
+  ran=r8_uniform_01(seed)
   U=ran * w
   !
   if (which==1)  then
@@ -199,7 +186,8 @@ subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,&
       !
   else if (m>1.0) then
       ! Limit on steps for the case that m>1.0.
-      call random_number(ran)
+      !!!call random_number(ran)
+      ran=r8_uniform_01(seed)
       J=floor(m*ran)
       K=(m-1.0) - J
       !
@@ -245,7 +233,8 @@ subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,&
   !
   ! Sample from the interval (with shrinking).
   do 
-      call random_number(ran)
+      !!!call random_number(ran)
+      ran=r8_uniform_01(seed)
       Value=L+ran*(R-L)
       !
       if (which==1) then
@@ -281,8 +270,7 @@ subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,&
   ! -----------------------------------------------------------------------------------------------
   function funcMu(x)
     implicit none
-    real   (kind=8):: x
-    real   (kind=8):: funcMu
+    real(kind(1.0d0)):: x, funcMu
     ! 
     funcMu=sum(log( 1.0/sqrt(iniSigma**2+Error2)*exp(-(ED-x)**2/2.0/(iniSigma**2+Error2)) ))
     ! Checking NAN (NA).
@@ -294,8 +282,7 @@ subroutine SliceCAM(iniMu,iniSigma,nED,ED,Error,&
   ! -----------------------------------------------------------------------------------------------
   function funcSigma(x)
     implicit none
-    real   (kind=8):: x
-    real   (kind=8):: funcSigma
+    real(kind(1.0d0)):: x, funcSigma
     ! 
     funcSigma=sum(log( 1.0/sqrt(x**2+Error2)*exp(-(ED-iniMu)**2/2.0/(x**2+Error2)) ))
     ! Checking NAN (NA).

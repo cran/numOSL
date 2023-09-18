@@ -6,7 +6,7 @@ function(EDdata, ncomp=0, addsigma=0,
          kratio=0.3, zscale=NULL) {
     UseMethod("RadialPlotter")
 } #
-### 2018.05.18.
+### 2023.09.17.
 RadialPlotter.default<-
 function(EDdata, ncomp=0, addsigma=0,
          maxcomp=6, algorithm=c("port","lbfgsb"),
@@ -31,6 +31,9 @@ function(EDdata, ncomp=0, addsigma=0,
     ### R function for plot a radial plot.
     RadialPlot<-function(Data, Pars, addsigma, zscale,
                          kratio, pcolor, psize)  {
+        opar <- par("mfrow", "oma", "mar", "xpd", "las", "cex", "new")
+        on.exit(par(opar))
+        ###
         z.i<-log(Data[,1L,drop=TRUE])
         se.i<-sqrt((Data[,2L,drop=TRUE]/
                     Data[,1L,drop=TRUE])^2L + addsigma^2L)
@@ -118,8 +121,6 @@ function(EDdata, ncomp=0, addsigma=0,
         mtext(side=1, line=1.5,"Relative Error (%)", cex=1)
         axis(side=2,at=c(-2,-1,0,1,2), lwd=2, 
              labels=c("-2","","0","","2"), cex.axis=1)
-        par(oma=c(0,0,0,0), xpd=FALSE,
-            las=0, new=FALSE, mar=c(5,4,4,2)+0.1)
     } ### end function RadialPlot.
     ###
     ###
@@ -219,7 +220,7 @@ function(EDdata, ncomp=0, addsigma=0,
                             lower=lower, upper=upper), silent=TRUE))
                         } # end if                     
                         ###
-                        if(class(res)!="try-error" && 
+                        if(inherits(res,what="try-error")==FALSE && 
                            res$convergence==0) { 
                             ###
                             min.obj<-ifelse(algorithm[1L]=="lbfgsb",
@@ -232,9 +233,8 @@ function(EDdata, ncomp=0, addsigma=0,
                                 suppressWarnings(try(apMamStd(y,x,res$par),silent=TRUE))
                             } # end if    
                             ###
-                            if(class(stdp)!="try-error" &&       
-                               all(is.finite(stdp)) && 
-                               min.obj<maxlik &&            
+                            if(inherits(stdp,what="try-error")==FALSE &&       
+                               all(is.finite(stdp)) && min.obj<maxlik &&            
                                all(abs(res$par-lower)>=1e-5) &&   
                                all(abs(res$par-upper)>=1e-5) ) {  
                                 pars<-res$par
@@ -243,9 +243,8 @@ function(EDdata, ncomp=0, addsigma=0,
                                 errorflag<-0
                             } # end if
                             ###
-                            if(class(stdp)!="try-error" &&  
-                               all(is.finite(stdp)) &&               
-                               min.obj<cmaxlik &&           
+                            if(inherits(stdp,what="try-error")==FALSE &&  
+                               all(is.finite(stdp)) && min.obj<cmaxlik &&           
                                errorflag==1) {                    
                                 cpars<-res$par
                                 cerror<-stdp
@@ -279,7 +278,7 @@ function(EDdata, ncomp=0, addsigma=0,
                             lower=lower, upper=upper), silent=TRUE))
                         } # end if  
                         ###
-                        if(class(res)!="try-error" && 
+                        if(inherits(res,what="try-error")==FALSE && 
                            res$convergence==0) { 
                             ###
                             min.obj<-ifelse(algorithm[1L]=="lbfgsb",
@@ -291,9 +290,8 @@ function(EDdata, ncomp=0, addsigma=0,
                                 suppressWarnings(try(apMamStd(y,x,res$par),silent=TRUE))
                             } # end if  
                             ###
-                            if(class(stdp)!="try-error" &&       
-                               all(is.finite(stdp)) &&   
-                               min.obj<maxlik &&           
+                            if(inherits(stdp,what="try-error")==FALSE &&       
+                               all(is.finite(stdp)) && min.obj<maxlik &&           
                                all(abs(res$par-lower)>=1e-5) &&   
                                all(abs(res$par-upper)>=1e-5)) {      
                                 pars<-res$par
@@ -302,9 +300,8 @@ function(EDdata, ncomp=0, addsigma=0,
                                 errorflag<-0
                             } # end if
                             ###
-                            if(class(stdp)!="try-error" && 
-                               all(is.finite(stdp)) &&                
-                               min.obj<cmaxlik &&           
+                            if(inherits(stdp,what="try-error")==FALSE && 
+                               all(is.finite(stdp)) && min.obj<cmaxlik &&           
                                errorflag==1) {  
                                 cpars<-res$par
                                 cerror<-stdp
@@ -376,12 +373,11 @@ function(EDdata, ncomp=0, addsigma=0,
         bic<-res$bic
         ###
         ParsAndErrors<-res$pars
-        colnames(ParsAndErrors)<-c("Pars", "Std.Pars")
+        colnames(ParsAndErrors)<-c("Pars", "Se.Pars")
         if (ncomp==-1L)  {
-            rownames(ParsAndErrors)<-c("Proportion", "Minimum.ED", "Sigma")
+            rownames(ParsAndErrors)<-c("Prop", "MAM3.De", "Sigma")
         } else if (ncomp==-2L) {
-            rownames(ParsAndErrors)<-c("Proportion", "Minimum.ED", 
-                                       "Central.ED", "Sigma")
+            rownames(ParsAndErrors)<-c("Prop", "MAM4.De", "Mu", "Sigma")
         } # end if
         ###
         if (plot==TRUE) {
@@ -431,8 +427,7 @@ function(EDdata, ncomp=0, addsigma=0,
                              matrix(res$stdp, byrow=TRUE, ncol=2L))
         if (ncomp==1L) {
             ParsAndErrors<-matrix(ParsAndErrors[,c(1L,3L,2L,4L)])
-            rownames(ParsAndErrors)<-c("Overdispersion", "Std.Overdispersion", 
-                                       "CAM.ED", "Std.CAM.ED")
+            rownames(ParsAndErrors)<-c("CAM.OD", "Se.CAM.OD", "CAM.De", "Se.CAM.De")
             colnames(ParsAndErrors)<-"CAM"
             ###
             if (plot==TRUE) {
@@ -443,7 +438,7 @@ function(EDdata, ncomp=0, addsigma=0,
         } else {
             ParsAndErrors<-ParsAndErrors[,c(1L,3L,2L,4L)][
             order(ParsAndErrors[,2L,drop=TRUE]),,drop=FALSE]
-            colnames(ParsAndErrors)<-c("P","Std.P","ED","Std.ED") 
+            colnames(ParsAndErrors)<-c("Prop","Se.Prop","FMM.De","Se.FMM.De") 
             rownames(ParsAndErrors)<-paste(rep("Comp", ncomp), 
                                      seq(ncomp), sep="") 
             if (plot==TRUE) {
@@ -454,9 +449,7 @@ function(EDdata, ncomp=0, addsigma=0,
         } # end if
     } # end if
     ###
-    output<-list("pars"=round(ParsAndErrors,5L), 
-                 "bic"=round(bic,5L), 
-                 "maxlik"=round(maxlik,5L))
+    output<-list("pars"=ParsAndErrors, "maxlik"=maxlik, "bic"=bic)
     ### 
     class(output)<-"RadialPlotter"
     ###

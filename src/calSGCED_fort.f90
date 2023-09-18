@@ -21,23 +21,23 @@ subroutine calSGCED_fort(n2,inltx,pars,outDose,errMethod,avgDev,mcED,&
 !                     2=fail in ED caculating,
 !                     3=fail in ED error estimation using SP (or MC).
 !------------------------------------------------------------------------------
-! Author:: Peng Jun, 2017.04.04. 
+! Author:: Peng Jun, 2023.08.30. 
 !------------------------------------------------------------------------------
 ! Dependence:: subroutine interpolate; subroutine r8vec_normal;
 !              subroutine calDEXPxm.
 !------------------------------------------------------------------------------
     implicit none
-    integer(kind=4), intent(in):: n2, model, nsim, errMethod
-    real   (kind=8), intent(in):: inltx(1,2), pars(n2), avgDev
-    real   (kind=8), intent(out):: outDose(1,2), mcED(nsim),& 
-                                   saturateDose, acceptRate
-    integer(kind=4), intent(out):: message
+    integer, intent(in):: n2, model, nsim, errMethod
+    real(kind(1.0d0)), intent(in):: inltx(1,2), pars(n2), avgDev
+    real(kind(1.0d0)), intent(out):: outDose(1,2), mcED(nsim),& 
+                                     saturateDose, acceptRate
+    integer, intent(out):: message
     ! Local variables.
-    real   (kind=8):: locp(5), aaa, bbb, ccc, ddd, eee,& 
-                      Xm, Ym, ifmin, sumdose, sumdose2,& 
-                      mcOSL(1), mcDose, limSig, derivative,&
-                      spErr, spltx1, spltx2, spDose1, spDose2
-    integer(kind=4):: seed, mcCount, niter
+    real(kind(1.0d0)):: locp(5), aaa, bbb, ccc, ddd, eee,& 
+                        Xm, Ym, ifmin, sumdose, sumdose2,& 
+                        mcOSL(1), mcDose, limSig, derivative,&
+                        spErr, spltx1, spltx2, spDose1, spDose2
+    integer:: seed, mcCount, niter
     !
     outDose = -99.0
     mcED = -99.0

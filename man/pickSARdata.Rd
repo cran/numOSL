@@ -85,8 +85,7 @@ it returns \code{NULL} if \code{norm.dose=NULL}}
 }
 
 \seealso{
-   \link{analyseBINdata}; \link{fitGrowth};\cr
-   \link{lsNORM}; \link{calSARED}
+   \link{analyseBINdata}; \link{fitGrowth}; \link{lsNORM}; \link{calSARED}
 }
 
 \examples{
