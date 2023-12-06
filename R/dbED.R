@@ -5,7 +5,7 @@ function(EDdata, plot=TRUE, typ="pdf",
          pcolor="purple", psize=1.5, outfile=NULL) {
     UseMethod("dbED")
 } #
-### 2023.09.01.
+### 2023.12.03.
 dbED.default <-
 function(EDdata, plot=TRUE, typ="pdf",
          from=NULL, to=NULL, step=NULL, nbin=15,
@@ -84,7 +84,7 @@ function(EDdata, plot=TRUE, typ="pdf",
     ###
     if (plot==TRUE) {
         opar <- par("new")
-        on.exit(par(opar))
+        on.exit(par("new"=opar))
         ###
         if (typ=="pdf") {
             if (is.null(step)) { 

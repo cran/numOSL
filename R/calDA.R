@@ -1,29 +1,29 @@
 ######### 
 calDA <-
 function(dose, minGrainSize, maxGrainSize,
-         Ucontent, Thcontent, Kcontent, Wct, depth, longitude, 
-         latitude, altitude, alphaValue=0, inKcontent=0, bulkDensity=2.5, 
-         cfType="Liritzis2013", rdcf=0, rba=0, ShallowGamma=TRUE, 
-         nsim=5000, rejectNeg=TRUE, plot=TRUE, sampleName="")   {
+         Ucontent, Thcontent, Kcontent, Rbcontent, Wct, depth, longitude, 
+         latitude, altitude, alphaValue=0, inKcontent=0, inRbcontent=0, calRbfromK=FALSE, 
+         bulkDensity=2.5, cfType="Liritzis2013", rdcf=0, rba=0, ShallowGamma=TRUE, 
+         nsim=5000, reject=TRUE, plot=TRUE, sampleName="")  {
 
   UseMethod("calDA") 
 
 } # end function calDA.
-### 2023.09.18.
+### 2023.12.06.
 calDA.default <-
 function(dose, minGrainSize, maxGrainSize,
-         Ucontent, Thcontent, Kcontent, Wct, depth, longitude,
-         latitude, altitude, alphaValue=0, inKcontent=0, bulkDensity=2.5, 
-         cfType="Liritzis2013", rdcf=0, rba=0, ShallowGamma=TRUE,  
-         nsim=5000, rejectNeg=TRUE, plot=TRUE, sampleName="")  {
+         Ucontent, Thcontent, Kcontent, Rbcontent, Wct, depth, longitude, 
+         latitude, altitude, alphaValue=0, inKcontent=0, inRbcontent=0, calRbfromK=FALSE, 
+         bulkDensity=2.5, cfType="Liritzis2013", rdcf=0, rba=0, ShallowGamma=TRUE, 
+         nsim=5000, reject=TRUE, plot=TRUE, sampleName="")  {
 
     stopifnot(length(dose)==2L, is.numeric(dose), all(is.finite(dose)),
               length(minGrainSize)==1L, is.numeric(minGrainSize), minGrainSize>0.0,
-              length(maxGrainSize)==1L, is.numeric(maxGrainSize), maxGrainSize<1000.0,
-              minGrainSize<maxGrainSize, 
+              length(maxGrainSize)==1L, is.numeric(maxGrainSize), maxGrainSize<1000.0, minGrainSize<maxGrainSize, 
               length(Ucontent)==2L, is.numeric(Ucontent), all(Ucontent>=0.0),
               length(Thcontent)==2L, is.numeric(Thcontent), all(Thcontent>=0.0),
               length(Kcontent)==2L, is.numeric(Kcontent), all(Kcontent>=0.0),
+              length(Rbcontent) %in% c(1L,2L), is.numeric(Rbcontent), all(Rbcontent>=0.0),
               length(Wct)==2L, is.numeric(Wct), all(Wct>=0.0),
               length(depth) %in% c(1L,2L), is.numeric(depth), all(depth>=0.0),
               length(longitude) %in% c(1L,2L), is.numeric(longitude), all(longitude>=-180),all(longitude<=180),
@@ -31,95 +31,99 @@ function(dose, minGrainSize, maxGrainSize,
               length(altitude) %in% c(1L,2L), is.numeric(altitude), all(is.finite(altitude)),
               length(alphaValue) %in% c(1L,2L), is.numeric(alphaValue), all(alphaValue>=0.0),
               length(inKcontent) %in% c(1L,2L), is.numeric(inKcontent),  all(inKcontent>=0.0),
+              length(inRbcontent) %in% c(1L,2L), is.numeric(inRbcontent), all(inRbcontent>=0.0),
+              length(calRbfromK)==1L, is.logical(calRbfromK), 
               length(bulkDensity) %in% c(1L,2L), is.numeric(bulkDensity), all(bulkDensity>=0.0),
               length(cfType)==1L, cfType %in% c("Liritzis2013","Guerin2011","AdamiecAitken1998"),
               length(rdcf)==1L, is.numeric(rdcf), rdcf>=0.0,
               length(rba)==1L, is.numeric(rba), rba>=0.0,
               length(ShallowGamma)==1L, is.logical(ShallowGamma), 
               length(nsim)==1L, is.numeric(nsim), nsim>=10,
-              length(rejectNeg)==1L, is.logical(rejectNeg), 
+              length(reject)==1L, is.logical(reject), 
               length(plot)==1L, is.logical(plot), 
               length(sampleName)==1L, is.character(sampleName))
 
+    ### Function truncNorm.
+    truncNorm <- function(mean, sd, lower=-Inf, upper=Inf) {  
+        n <- 0L
+        repeat {
+          v <- rnorm(n=1L, mean=mean, sd=sd)
+          if (v>=lower && v<=upper)  return(v)
+          n <- n+1L
+          if (n>=20L)  return(NA)
+        } # end repeat.
+    } # end function truncNorm.
+
     ###
     ### Function 1: BetaAttenuation.
-    BetaAttenuation <- function(GrainSize1, GrainSize2, rba, rejectNeg)  {
+    BetaAttenuation <- function(GrainSize1, GrainSize2, rba, reject)  {
       ###
       meanGrainSize <- (GrainSize1+GrainSize2)/2.0
       ###
-      GSL <-  c(5,10,15,20,30,40,50,60,70,80,90,100,120,140,160,180,200,250,300,400,500,
+      GSL <-  c(1,5,10,15,20,30,40,50,60,70,80,90,100,120,140,160,180,200,250,300,400,500,
                 600,800,1000,1200,1400,1600,1800,2000,2500,3000,4000,5000,6000,8000,10000)
       
-      Uphi <- c(0.012,0.0214,0.0296,0.0366,0.0475,0.0564,0.0642,0.0713,0.0779,0.084,0.0901,
+      Uphi <- c(0.0043,0.012,0.0214,0.0296,0.0366,0.0475,0.0564,0.0642,0.0713,0.0779,0.084,0.0901,
                 0.0957,0.106,0.117,0.127,0.137,0.146,0.169,0.189,0.23,0.263,0.295,0.351,0.4,
                 0.442,0.479,0.512,0.541,0.568,0.623,0.667,0.731,0.773,0.803,0.842,0.866)
       
-      THphi <- c(0.0225,0.0366,0.0484,0.0582,0.0743,0.0875,0.0988,0.1088,0.1181,0.1269,
+      THphi <- c(0.0108,0.0225,0.0366,0.0484,0.0582,0.0743,0.0875,0.0988,0.1088,0.1181,0.1269,
                  0.1351,0.1427,0.158,0.171,0.184,0.195,0.206,0.229,0.251,0.288,0.32,0.348,0.399,
                  0.443,0.482,0.518,0.55,0.578,0.604,0.659,0.701,0.76,0.798,0.825,0.859,0.879)
       
-      Kphi <- c(0.0018,0.0035,0.0053,0.0071,0.0106,0.0141,0.0177,0.0212,0.0248,0.0283,0.0318,
+      Kphi <- c(0.00046,0.0018,0.0035,0.0053,0.0071,0.0106,0.0141,0.0177,0.0212,0.0248,0.0283,0.0318,
                 0.0354,0.0424,0.0494,0.0563,0.0633,0.0702,0.0877,0.1052,0.1402,0.1748,0.209,0.275,
                 0.337,0.394,0.447,0.493,0.535,0.571,0.643,0.696,0.765,0.807,0.837,0.873,0.896)
+
+      RBphi <- c(0.0118,0.043, 0.081, 0.115, 0.147, 0.205, 0.257, 0.305, 0.348, 0.388, 0.424,  
+                 0.457, 0.488, 0.542, 0.588, 0.627, 0.660, 0.689, 0.744, 0.784, 0.835, 0.867,  
+                 0.889, 0.916, 0.932, 0.943, 0.951, 0.957, 0.962, 0.972, 0.976, 0.981, 0.984,  
+                 0.987, 0.989, 0.990, 0.992)
       
       ###
       Uabsorption0 <-  spline(x=GSL, y=Uphi, xout=meanGrainSize)$y
       Thabsorption0 <- spline(x=GSL, y=THphi, xout=meanGrainSize)$y
       Kabsorption0 <- spline(x=GSL, y=Kphi, xout=meanGrainSize)$y
+      Rbabsorption0 <- spline(x=GSL, y=RBphi, xout=meanGrainSize)$y
       
       ###
-      if (rejectNeg==FALSE)  {
+      if (reject==FALSE)  {
 
         Uabsorption <- rnorm(n=1L, mean=Uabsorption0, sd=rba*Uabsorption0)
         Thabsorption <- rnorm(n=1L, mean=Thabsorption0, sd=rba*Thabsorption0)
         Kabsorption <- rnorm(n=1L, mean=Kabsorption0, sd=rba*Kabsorption0)
+        Rbabsorption <- rnorm(n=1L, mean=Rbabsorption0, sd=rba*Rbabsorption0)
 
       } else {
 
-        n1 <- n2 <- n3 <- 0
+        Uabsorption <- truncNorm(mean=Uabsorption0, sd=rba*Uabsorption0, lower=0.0)
+        if (is.na(Uabsorption)) stop("BetaAttenuation(), inefficient sampling of U-Beta-Absorption, try a smaller [rba]!")
 
         ###
-        repeat {
- 
-          Uabsorption <- rnorm(n=1L, mean=Uabsorption0, sd=rba*Uabsorption0)
-          if (Uabsorption>=0.0) break
-          n1 <- n1+1
-          if (n1>10) stop("BetaAttenuation(), inefficient sampling of U-Beta-Absorption, try a smaller [rba]!")
-
-        } # end repeat.
+        Thabsorption <- truncNorm(mean=Thabsorption0, sd=rba*Thabsorption0, lower=0.0) 
+        if (is.na(Thabsorption)) stop("BetaAttenuation(), inefficient sampling of Th-Beta-Absorption, try a smaller [rba]!")
+        
+        ###
+        Kabsorption <- truncNorm(mean=Kabsorption0, sd=rba*Kabsorption0, lower=0.0) 
+        if (is.na(Kabsorption)) stop("BetaAttenuation(), inefficient sampling of K-Beta-Absorption, try a smaller [rba]!")
 
         ###
-        repeat {
-
-          Thabsorption <- rnorm(n=1L, mean=Thabsorption0, sd=rba*Thabsorption0)
-          if (Thabsorption>=0.0) break
-          n2 <- n2+1
-          if (n2>10) stop("BetaAttenuation(), inefficient sampling of Th-Beta-Absorption, try a smaller [rba]!")
-
-        } # end repeat.
-
-        ###
-        repeat {
-
-          Kabsorption <- rnorm(n=1L, mean=Kabsorption0, sd=rba*Kabsorption0)
-          if (Kabsorption>=0.0) break
-          n3 <- n3+1
-          if (n3>10) stop("BetaAttenuation(), inefficient sampling of K-Beta-Absorption, try a smaller [rba]!")
-
-        } # end repeat. 
+        Rbabsorption <- truncNorm(Rbabsorption0, sd=rba*Rbabsorption0, lower=0.0) 
+        if (is.na(Rbabsorption)) stop("BetaAttenuation(), inefficient sampling of Rb-Beta-Absorption, try a smaller [rba]!")
 
       } # end if.
       
       ###
-      out1 <- c(Uabsorption, Thabsorption, Kabsorption)
+      out1 <- c(Uabsorption, Thabsorption, Kabsorption, Rbabsorption)
       return(out1)
 
     } # end function BetaAttenuation.
     
+    ###
     ### Function 2: AlphaAttenuation.
-    AlphaAttenuation <- function(GrainSize1, GrainSize2, rba, rejectNeg)  {
+    AlphaAttenuation <- function(GrainSize1, GrainSize2, rba, reject)  {
       
-      meanGrainSize <- (GrainSize1+GrainSize2) / 2.0
+      meanGrainSize <- (GrainSize1+GrainSize2)/2.0
       
       ###
       GSL <-  c(1,   2,   3,   4,   5,   6,   7,   8,   9,   10, 
@@ -139,46 +143,33 @@ function(dose, minGrainSize, maxGrainSize,
       Thabsorption0 <- spline(x=GSL, y=THphi, xout=meanGrainSize)$y
       
       ###
-      if (rejectNeg==FALSE) {
+      if (reject==FALSE) {
 
         Uabsorption <- rnorm(n=1L, mean=Uabsorption0, sd=rba*Uabsorption0)      
         Thabsorption <- rnorm(n=1L, mean=Thabsorption0, sd=rba*Thabsorption0)
 
       } else {
 
-          n1 <- n2 <- 0
+        ###  
+        Uabsorption <- truncNorm(mean=Uabsorption0, sd=rba*Uabsorption0, lower=0.0) 
+        if (is.na(Uabsorption)) stop("AlphaAttenuation(), inefficient sampling of U-Alpha-Absorption, try a smaller [rba]!")
 
-          ###
-          repeat {
-
-            Uabsorption <- rnorm(n=1L, mean=Uabsorption0, sd=rba*Uabsorption0)
-            if (Uabsorption>=0.0) break
-            n1 <- n1+1
-            if (n1>10) stop("AlphaAttenuation(), inefficient sampling of U-Alpha-Absorption, try a smaller [rba]!")
-
-          } # end repeat. 
-
-          ###
-          repeat {
-
-            Thabsorption <- rnorm(n=1L, mean=Thabsorption0, sd=rba*Thabsorption0)
-            if (Thabsorption>=0.0) break
-            n2 <- n2+1
-            if (n2>10) stop("AlphaAttenuation(), inefficient sampling of Th-Alpha-Absorption, try a smaller [rba]!")
-
-          } # end repeat. 
+        ###
+        Thabsorption <- truncNorm(mean=Thabsorption0, sd=rba*Thabsorption0, lower=0.0)
+        if (is.na(Thabsorption)) stop("AlphaAttenuation(), inefficient sampling of Th-Alpha-Absorption, try a smaller [rba]!")
 
       } # end if.
       
       out1 <- c(Uabsorption, Thabsorption)
       return(out1)
     
-    } # end function  AlphaAttenuation.
+    } # end function AlphaAttenuation.
     
+    ###
     ### Function 3: AlphaBetaGammaDoseRate.
     AlphaBetaGammaDoseRate <- function(minGrainSize, maxGrainSize,
-                                       Ucontent, Thcontent, Kcontent, depth, inKcontent, 
-                                       bulkDensity, cfType, rdcf, rba, ShallowGamma, rejectNeg)  {
+                                       Ucontent, Thcontent, Kcontent, Rbcontent, depth, inKcontent, 
+                                       inRbcontent, bulkDensity, cfType, rdcf, rba, ShallowGamma, reject)  {
       
       # change unit from "m" to "cm"
       depth <- depth*100
@@ -210,6 +201,9 @@ function(dose, minGrainSize, maxGrainSize,
           
         ckg <- 0.2498
         ckg_err <- ifelse(rdcf>0, 0.0048, 0)
+
+        crbb <- 0.0185/50
+        crbb_err <- ifelse(rdcf>0, 0.0004/50, 0)
         
       } else if (cfType=="Guerin2011") {
         
@@ -237,6 +231,9 @@ function(dose, minGrainSize, maxGrainSize,
         
         ckg <- 0.2491
         ckg_err <- ckg*rdcf
+
+        crbb <- 0.0185/50
+        crbb_err <- crbb*rdcf
         
       } else if (cfType=="AdamiecAitken1998"){
         
@@ -264,6 +261,9 @@ function(dose, minGrainSize, maxGrainSize,
         
         ckg <- 0.2430
         ckg_err <- ckg*rdcf
+
+        crbb <- 0.019/50
+        crbb_err <- crbb*rdcf
          
       } # end if.
       
@@ -309,7 +309,7 @@ function(dose, minGrainSize, maxGrainSize,
       } # end if.
       
       ###
-      if (rejectNeg==FALSE) {
+      if (reject==FALSE) {
 
         UAlpha <- rnorm(n=1L, mean=cua, sd=cua_err)*Ucontent
         UBeta <- rnorm(n=1L, mean=cub, sd=cub_err)*Ucontent
@@ -326,102 +326,64 @@ function(dose, minGrainSize, maxGrainSize,
         KBeta_internal <- fxfxfx*inKcontent
         KGamma <- rnorm(n=1L, mean=ckg, sd=ckg_err)*Kcontent*K_factor
 
+        ###
+        fnfnfn <- rnorm(n=1L, mean=crbb, sd=crbb_err)   
+        RbBeta <- fnfnfn*Rbcontent
+        RbBeta_internal <- fnfnfn*inRbcontent
+
       } else {
 
-        n1 <- n2 <- n3 <- n4 <- n5 <- n6 <- n7 <- n8 <- 0
+        ###
+        UAlpha <- truncNorm(mean=cua, sd=cua_err, lower=0.0)*Ucontent
+        if (is.na(UAlpha)) stop("AlphaBetaGammaDoseRate(), inefficient sampling of U-Alpha CF, try a smaller [rdcf]!")
 
         ###
-        repeat {
-
-          UAlpha <- rnorm(n=1L, mean=cua, sd=cua_err)*Ucontent
-          if (UAlpha>=0.0) break
-          n1 <- n1+1
-          if (n1>10) stop("AlphaBetaGammaDoseRate(), inefficient sampling of U-Alpha CF, try a smaller [rdcf]!")
-
-        } # end repeat.
+        UBeta <- truncNorm(mean=cub, sd=cub_err, lower=0.0)*Ucontent
+        if (is.na(UBeta)) stop("AlphaBetaGammaDoseRate(), inefficient sampling of U-Beta CF, try a smaller [rdcf]!")
 
         ###
-        repeat {
-
-          UBeta <- rnorm(n=1L, mean=cub, sd=cub_err)*Ucontent
-          if (UBeta>=0.0) break
-          n2 <- n2+1
-          if (n2>10) stop("AlphaBetaGammaDoseRate(), inefficient sampling of U-Beta CF, try a smaller [rdcf]!")
-
-        } # end repeat.
+        UGamma <- truncNorm(mean=cug, sd=cug_err, lower=0.0)*Ucontent*U_factor
+        if (is.na(UGamma)) stop("AlphaBetaGammaDoseRate(), inefficient sampling of U-Gamma CF, try a smaller [rdcf]!")
 
         ###
-        repeat {
-
-          UGamma <- rnorm(n=1L, mean=cug, sd=cug_err)*Ucontent*U_factor
-          if (UGamma>=0.0) break
-          n3 <- n3+1
-          if (n3>10) stop("AlphaBetaGammaDoseRate(), inefficient sampling of U-Gamma CF, try a smaller [rdcf]!")
-
-        } # end repeat.
+        Thalpha <- truncNorm(mean=ctha, sd=ctha_err, lower=0.0)*Thcontent
+        if (is.na(Thalpha)) stop("AlphaBetaGammaDoseRate(), inefficient sampling of Th-Alpha CF, try a smaller [rdcf]!")
 
         ###
-        repeat {
-
-          Thalpha <- rnorm(n=1L, mean=ctha, sd=ctha_err)*Thcontent
-          if (Thalpha>=0.0) break
-          n4 <- n4+1
-          if (n4>10) stop("AlphaBetaGammaDoseRate(), inefficient sampling of Th-Alpha CF, try a smaller [rdcf]!")
-
-        } # end repeat.
+        ThBeta <- truncNorm(mean=cthb, sd=cthb_err, lower=0.0)*Thcontent
+        if (is.na(ThBeta)) stop("AlphaBetaGammaDoseRate(), inefficient sampling of Th-Beta CF, try a smaller [rdcf]!")
 
         ###
-        repeat {
-
-          ThBeta <- rnorm(n=1L, mean=cthb, sd=cthb_err)*Thcontent
-          if (ThBeta>=0.0) break
-          n5 <- n5+1
-          if (n5>10) stop("AlphaBetaGammaDoseRate(), inefficient sampling of Th-Beta CF, try a smaller [rdcf]!")
-
-        } # end repeat.
+        ThGamma <- truncNorm(mean=cthg, sd=cthg_err, lower=0.0)*Thcontent*Th_factor
+        if (is.na(ThGamma)) stop("AlphaBetaGammaDoseRate(), inefficient sampling of Th-Gamma CF, try a smaller [rdcf]!")
 
         ###
-        repeat {
-
-          ThGamma <- rnorm(n=1L, mean=cthg, sd=cthg_err)*Thcontent*Th_factor
-          if (ThGamma>=0.0) break
-          n6 <- n6+1
-          if (n6>10) stop("AlphaBetaGammaDoseRate(), inefficient sampling of Th-Gamma CF, try a smaller [rdcf]!")
-
-        } # end repeat.
-
-        ###
-        repeat {
-
-          fxfxfx <- rnorm(n=1L, mean=ckb, sd=ckb_err)
-          if (fxfxfx>=0.0) break
-          n7 <- n7+1
-          if (n7>10) stop("AlphaBetaGammaDoseRate(), inefficient sampling of K-Beta CF, try a smaller [rdcf]!")
-
-        } # end repeat.
+        fxfxfx <- truncNorm(mean=ckb, sd=ckb_err, lower=0.0)  
+        if (is.na(fxfxfx)) stop("AlphaBetaGammaDoseRate(), inefficient sampling of K-Beta CF, try a smaller [rdcf]!")
         KBeta <- fxfxfx*Kcontent
         KBeta_internal <- fxfxfx*inKcontent
 
         ###
-        repeat {
+        KGamma <- truncNorm(mean=ckg, sd=ckg_err, lower=0.0)*Kcontent*K_factor   
+        if (is.na(KGamma)) stop("AlphaBetaGammaDoseRate(), inefficient sampling of K-Gamma CF, try a smaller [rdcf]!")
 
-          KGamma <- rnorm(n=1L, mean=ckg, sd=ckg_err)*Kcontent*K_factor
-          if (KGamma>=0.0) break
-          n8 <- n8+1
-          if (n8>10) stop("AlphaBetaGammaDoseRate(), inefficient sampling of K-Gamma CF, try a smaller [rdcf]!")
-
-        } # end repeat.
-    
+        ###
+        fnfnfn <- truncNorm(mean=crbb, sd=crbb_err, lower=0.0)
+        if (is.na(fnfnfn)) stop("AlphaBetaGammaDoseRate(), inefficient sampling of Rb-Beta CF, try a smaller [rdcf]!")
+        RbBeta <- fnfnfn*Rbcontent
+        RbBeta_internal <- fnfnfn*inRbcontent
+  
       } # end if.
 
       ###
-      AttenuationFactors1 <- 1.0 - AlphaAttenuation(minGrainSize, maxGrainSize, rba, rejectNeg)  
+      AttenuationFactors1 <- 1.0 - AlphaAttenuation(minGrainSize, maxGrainSize, rba, reject)  
       alphaDoseRate <- UAlpha*AttenuationFactors1[1] + Thalpha*AttenuationFactors1[2]
       
       ###
-      AttenuationFactors2 <- 1.0 - BetaAttenuation(minGrainSize, maxGrainSize, rba, rejectNeg)   
-      betaDoseRate <- UBeta*AttenuationFactors2[1] + ThBeta*AttenuationFactors2[2] + KBeta*AttenuationFactors2[3]
-      internalBetaDoseRate <- KBeta_internal*(1.0-AttenuationFactors2[3])
+      AttenuationFactors2 <- 1.0 - BetaAttenuation(minGrainSize, maxGrainSize, rba, reject)   
+      betaDoseRate <- UBeta*AttenuationFactors2[1] + ThBeta*AttenuationFactors2[2] + 
+                      KBeta*AttenuationFactors2[3] + RbBeta*AttenuationFactors2[4]
+      internalBetaDoseRate <- KBeta_internal*(1.0-AttenuationFactors2[3]) + RbBeta_internal*(1.0-AttenuationFactors2[4])
       
       ###
       gammaDoseRate <- UGamma + ThGamma + KGamma
@@ -432,6 +394,7 @@ function(dose, minGrainSize, maxGrainSize,
       
     } # end function AlphaBetaGammaDoseRate.
     
+    ###
     ### Function 4: CosmicDoseRate.
     CosmicDoseRate <- function(depth, longitude, latitude, altitude, bulkDensity)  {
       
@@ -454,22 +417,22 @@ function(dose, minGrainSize, maxGrainSize,
       
       ###
       func_J <- function(lambda) {
-        
-        J_df <- cbind(c(0.1888087,5.1724030, 10.0451199, 15.0282434, 20.0476982, 25.0667214, 27.9078645, 
-                        30.7488899, 34.7706058, 39.9761117, 45.1448546, 49.9073220, 55.0021075, 59.8015732, 
-                        65.0071183, 69.8066625, 74.7168486),
-                      c(0.5213598, 0.5324123, 0.5456987, 0.5656778, 0.5968145, 0.6361339, 0.6680608, 0.7022193, 
-                        0.7504867, 0.7540955, 0.7547295, 0.7583477, 0.7612150, 0.7633447, 0.7662096, 0.7668515, 
-                        0.7697227))
+
+         J_df <- cbind(c(0, 0.1888087,5.1724030, 10.0451199, 15.0282434, 20.0476982, 25.0667214, 27.9078645, 30.7488899, 
+                         34.77061, 40.29355, 45.81648, 51.33942, 56.86236, 62.38530, 67.90824, 73.43118, 78.95412, 84.47706, 
+                         90.00000),
+                       c(0.5209443, 0.5213598, 0.5324123, 0.5456987, 0.5656778, 0.5968145, 0.6361339, 0.6680608, 0.7022193, 
+                         0.7509113, 0.7535570, 0.7562027, 0.7588484, 0.7614942, 0.7641399, 0.7667856, 0.7694313, 0.7720770, 
+                         0.7747228, 0.7773685))
 
         ###
         if (lambda<=34.7706058) {
 
-          Jv <- spline(x=J_df[1:9,1], y=J_df[1:9,2], xout=lambda)$y
+          Jv <- spline(x=J_df[1:10,1], y=J_df[1:10,2], xout=lambda)$y
 
         } else {
          
-          pab <- coef(lm(y~x, data=data.frame(x=J_df[9:17,1],y=J_df[9:17,2])))
+          pab <- coef(lm(y~x, data=data.frame(x=J_df[10:20,1],y=J_df[10:20,2])))
           Jv <- pab[1] + pab[2]*lambda
           
         } # end if.
@@ -480,21 +443,20 @@ function(dose, minGrainSize, maxGrainSize,
       
       ###
       func_F <- function(lambda) {
-        
-        F_df <- cbind(c(0.2689652,  5.2163851, 10.0902791, 15.1122842, 20.0976048, 25.1203945, 27.5579301, 
-                        30.0325816, 32.9505856, 35.1665234, 37.7513853, 45.0616770, 59.9405033, 54.9562813, 
-                        49.9351002),
-                      c(0.4015919, 0.3985112, 0.3894809, 0.3722647, 0.3505860, 0.3184920, 0.3028185, 0.2834248, 
-                        0.2580705, 0.2438895, 0.2349079, 0.2317770, 0.2292291, 0.2300789, 0.2316734))
+
+        F_df <- cbind(c(0, 0.2689652,  5.2163851, 10.0902791, 15.1122842, 20.0976048, 25.1203945, 27.5579301, 30.0325816, 32.9505856, 35.1665234,
+                        37.75139, 42.97625, 48.20111, 53.42597, 58.65083, 63.87569, 69.10055, 74.32542, 79.55028, 84.77514, 90.00000),
+                      c(0.4016305, 0.4015919, 0.3985112, 0.3894809, 0.3722647, 0.3505860, 0.3184920, 0.3028185, 0.2834248, 0.2580705, 0.2438895, 
+                        0.2344176, 0.2331380, 0.2318585, 0.2305789, 0.2292993, 0.2280197, 0.2267401, 0.2254605, 0.2241809, 0.2229014, 0.2216218))
 
         ###
         if (lambda<=37.7513853) {
 
-          Fv <- spline(x=F_df[1:11,1], y=F_df[1:11,2], xout=lambda)$y
+          Fv <- spline(x=F_df[1:12,1], y=F_df[1:12,2], xout=lambda)$y
 
         } else {
 
-          pab <- coef(lm(y~x, data=data.frame(x=F_df[11:15,1],y=F_df[11:15,2])))
+          pab <- coef(lm(y~x, data=data.frame(x=F_df[12:22,1],y=F_df[12:22,2])))
           Fv <- pab[1] + pab[2]*lambda
 
         } # end if.
@@ -505,16 +467,16 @@ function(dose, minGrainSize, maxGrainSize,
       
       ###
       func_H <- function(lambda) {
-        
-        H_df <- cbind(c(0.2480531,  5.1971993, 10.0359390, 15.0968649, 20.0477767, 25.1110174, 28.6972671, 
+
+        H_df <- cbind(c(0, 0.2480531,  5.1971993, 10.0359390, 15.0968649, 20.0477767, 25.1110174, 28.6972671, 
                         30.0285797, 31.7669525, 33.7273153, 35.1687990),
-                      c(4.399043, 4.381137, 4.359885, 4.332307, 4.297663, 4.248141, 4.200494, 4.179651, 
+                      c(4.399862, 4.399043, 4.381137, 4.359885, 4.332307, 4.297663, 4.248141, 4.200494, 4.179651, 
                         4.149877, 4.115637, 4.100372))
 
         ###
         if (lambda<=35.1687990) {
 
-          Hv <- spline(x=H_df[1:11,1], y=H_df[1:11,2], xout=lambda)$y
+          Hv <- spline(x=H_df[1:12,1], y=H_df[1:12,2], xout=lambda)$y
 
         } else {
 
@@ -539,13 +501,13 @@ function(dose, minGrainSize, maxGrainSize,
     
     ### Function 5: calDoseRate.
     calDoseRate <- function(minGrainSize, maxGrainSize,
-                            Ucontent, Thcontent, Kcontent, Wct, depth, longitude,  
-                            latitude, altitude, alphaValue, inKcontent, bulkDensity,  
+                            Ucontent, Thcontent, Kcontent, Rbcontent, Wct, depth, longitude,  
+                            latitude, altitude, alphaValue, inKcontent, inRbcontent, bulkDensity,  
                             rdcf, rba, cfType, ShallowGamma)  {
       ### 
       abgDoseRate <- AlphaBetaGammaDoseRate(minGrainSize, maxGrainSize,
-                                            Ucontent, Thcontent, Kcontent, depth, inKcontent, 
-                                            bulkDensity, cfType, rdcf, rba, ShallowGamma, rejectNeg)
+                                            Ucontent, Thcontent, Kcontent, Rbcontent, depth, inKcontent, 
+                                            inRbcontent, bulkDensity, cfType, rdcf, rba, ShallowGamma, reject)
       
       ###
       alphaDoseRate <- alphaValue[1] * abgDoseRate[1] / (1.0+1.5*Wct/100)
@@ -566,15 +528,17 @@ function(dose, minGrainSize, maxGrainSize,
     
     ### Function 6: simDoseRateAge.
     simDoseRateAge <- function(dose, minGrainSize, maxGrainSize,
-                               Ucontent, Thcontent, Kcontent, Wct, depth, longitude,
-                               latitude, altitude, alphaValue, inKcontent, bulkDensity,  
+                               Ucontent, Thcontent, Kcontent, Rbcontent, Wct, depth, longitude,
+                               latitude, altitude, alphaValue, inKcontent, inRbcontent, bulkDensity,  
                                rdcf, rba, cfType, ShallowGamma, nsim)  {
       
       alphaDoseRates <- betaDoseRates <- internalBetaDoseRates  <- gammaDoseRates <- 
       cosmicDoseRates <- DoseRates <- Ages <- vector(length=nsim)
       
       ###
+      simRbcontent <- Rbcontent[1L]
       siminKcontent <- inKcontent[1L]
+      siminRbcontent <- inRbcontent[1L]
       simdepth <- depth[1L] 
       simlongitude <- longitude[1L]
       simlatitude <- latitude[1L]
@@ -584,11 +548,11 @@ function(dose, minGrainSize, maxGrainSize,
       
       ###
       for (i in 1:nsim)  {
-
-        ###1.
-        simdose <- rnorm(n=1L, mean=dose[1L], sd=dose[2L])
         
-        if (rejectNeg==FALSE) {
+        if (reject==FALSE) {
+
+          ###1.
+          simdose <- rnorm(n=1L, mean=dose[1L], sd=dose[2L])
 
           ###2.
           simUcontent <- rnorm(n=1L, mean=Ucontent[1L], sd=Ucontent[2L])
@@ -600,71 +564,91 @@ function(dose, minGrainSize, maxGrainSize,
           simKcontent <- rnorm(n=1L, mean=Kcontent[1L], sd=Kcontent[2L])
 
           ###5.
+          if (length(Rbcontent)==2L)  {
+            
+            simRbcontent <- rnorm(n=1L, mean=Rbcontent[1L], sd=Rbcontent[2L])
+          
+          } # end if.
+
+          ###6.
           simWct <- rnorm(n=1L, mean=Wct[1L], sd=Wct[2L])
 
-          ###6.                            
+          ###7.                            
           if (length(depth)==2L)  {
 
             simdepth <- rnorm(n=1L, mean=depth[1L], sd=depth[2L])
 
           } # end if.
 
-          ###7.
+          ###8.
           if (length(longitude)==2L)  {
 
             simlongitude <- rnorm(n=1L, mean=longitude[1L], sd=longitude[2L])
 
           } # end if.
 
-          ###8.
+          ###9.
           if (length(latitude)==2L)  {
 
             simlatitude <- rnorm(n=1L, mean=latitude[1L], sd=latitude[2L])
 
           } # end if.
 
-          ###9.
+          ###10.
           if (length(altitude)==2L)  {
 
             simaltitude <- rnorm(n=1L, mean=altitude[1L], sd=altitude[2L])
 
           } # end if.
 
-          ###10.
+          ###11.
           if (length(bulkDensity)==2L)  {
             
             simbulkDensity <- rnorm(n=1L, mean=bulkDensity[1L], sd=bulkDensity[2L])
 
           } # end if.
 
-          ###11.
+          ###12.
           if (length(alphaValue)==2L)  {
 
             simalphaValue <- rnorm(n=1L, mean=alphaValue[1L], sd=alphaValue[2L])
 
           } # end if.
 
-          ###12.
+          ###13.
           if (length(inKcontent)==2L)  {
             
             siminKcontent <- rnorm(n=1L, mean=inKcontent[1L], sd=inKcontent[2L])
 
           } # end if.
 
+          ###14.
+          if (length(inRbcontent)==2L)  {
+            
+            siminRbcontent <- rnorm(n=1L, mean=inRbcontent[1L], sd=inRbcontent[2L])
+            
+          } # end if.
+
         } else {
 
-          n1 <- n2 <- n3 <- n4 <- n5 <- n6 <- n7 <- n8 <- 0
+          ###1.
+          if (dose[1L]>0.0) {
 
+            simdose <- truncNorm(mean=dose[1L], sd=dose[2L], lower=0.0)
+            if (is.na(simdose)) stop("simDoseRateAge(), inefficient sampling of dose!")
+
+          } else {
+
+            simdose <- abs(rnorm(n=1L, mean=dose[1L], sd=dose[2L]))
+
+          } # end if.
+          
           ###2.
           if (Ucontent[1L]>0.0) {
-            repeat {
+              
+              simUcontent <- truncNorm(mean=Ucontent[1L], sd=Ucontent[2L], lower=0.0)
+              if (is.na(simUcontent)) stop("simDoseRateAge(), inefficient sampling of Ucontent!")
 
-              simUcontent <- rnorm(n=1L, mean=Ucontent[1L], sd=Ucontent[2L])
-              if (simUcontent>=0) break
-              n1 <- n1+1
-              if (n1>10) stop("simDoseRateAge(), inefficient sampling, standard error of [Ucontent] is very large!")
-
-            } # end repeat.
           } else {
        
              simUcontent <- abs(rnorm(n=1L, mean=Ucontent[1L], sd=Ucontent[2L]))
@@ -674,14 +658,8 @@ function(dose, minGrainSize, maxGrainSize,
           ###3.
           if (Thcontent[1L]>0.0) {
 
-            repeat {
-
-              simThcontent <- rnorm(n=1L, mean=Thcontent[1L], sd=Thcontent[2L])
-              if (simThcontent>=0) break
-              n2 <- n2+1
-              if (n2>10) stop("simDoseRateAge(), inefficient sampling, standard error of [Thcontent] is very large!")
-
-            } # end repeat.
+            simThcontent <- truncNorm(mean=Thcontent[1L], sd=Thcontent[2L], lower=0.0)
+            if (is.na(simThcontent)) stop("simDoseRateAge(), inefficient sampling of Thcontent!")
 
           } else {
 
@@ -692,14 +670,8 @@ function(dose, minGrainSize, maxGrainSize,
           ###4.
           if (Kcontent[1L]>0.0) {
 
-            repeat {
-
-              simKcontent <- rnorm(n=1L, mean=Kcontent[1L], sd=Kcontent[2L])
-              if (simKcontent>=0) break
-              n3 <- n3+1
-              if (n3>10) stop("simDoseRateAge(), inefficient sampling, standard error of [Kcontent] is very large!!")
-            
-            } # end repeat.
+            simKcontent <- truncNorm(mean=Kcontent[1L], sd=Kcontent[2L], lower=0.0)
+            if (is.na(simKcontent)) stop("simDoseRateAge(), inefficient sampling of Kcontent!")
 
           } else {
 
@@ -708,16 +680,26 @@ function(dose, minGrainSize, maxGrainSize,
           } # end if. 
 
           ###5.
-          if (Wct[1L]>0.0) {
+          if (length(Rbcontent)==2L)  {
 
-            repeat {
+            if (Rbcontent[1L]>0.0) {
 
-              simWct <- rnorm(n=1L, mean=Wct[1L], sd=Wct[2L])
-              if (simWct>=0) break
-              n4 <- n4+1
-              if (n4>10) stop("simDoseRateAge(), inefficient sampling, standard error of [Wct] is very large!")
+              simRbcontent <- truncNorm(mean=Rbcontent[1L], sd=Rbcontent[2L], lower=0.0) 
+              if (is.na(simRbcontent))  stop("simDoseRateAge(), inefficient sampling of Rbcontent!")
+          
+            } else {
+
+              simRbcontent <- abs(rnorm(n=1L, mean=Rbcontent[1L], sd=Rbcontent[2L]))
 
             } # end if.
+
+          } # end if. 
+
+          ###6.
+          if (Wct[1L]>0.0) {
+
+            simWct <- truncNorm(mean=Wct[1L], sd=Wct[2L], lower=0.0) 
+            if (is.na(simWct)) stop("simDoseRateAge(), inefficient sampling of Wct!")
 
           } else {
 
@@ -725,62 +707,52 @@ function(dose, minGrainSize, maxGrainSize,
 
           } # end if. 
 
-          ###6. 
-          if (depth[1L]>0.0) {   
+          ###7. 
+          if (length(depth)==2L)  {
+
+            if (depth[1L]>0.0) {   
                        
-            if (length(depth)==2L)  {
+              simdepth <- truncNorm(mean=depth[1L], sd=depth[2L], lower=0.0)
+              if (is.na(simdepth)) stop("simDoseRateAge(), inefficient sampling of depth!")
+ 
+            } else {
 
-              repeat {
-
-                simdepth <- rnorm(n=1L, mean=depth[1L], sd=depth[2L])
-                if (simdepth>=0) break
-                n5 <- n5+1
-                if (n5>10) stop("simDoseRateAge(), inefficient sampling, standard error of [depth] is very large!")
-
-              } # end repeat.
+              simdepth <- abs(rnorm(n=1L, mean=depth[1L], sd=depth[2L]))
 
             } # end if.
 
-          } else {
-
-            simdepth <- abs(rnorm(n=1L, mean=depth[1L], sd=depth[2L]))
-
           } # end if. 
 
-          ###7.
+          ###8.
           if (length(longitude)==2L)  {
 
-            simlongitude <- rnorm(n=1L, mean=longitude[1L], sd=longitude[2L])
-
-          } # end if.
-
-          ###8.
-          if (length(latitude)==2L)  {
-
-            simlatitude <- rnorm(n=1L, mean=latitude[1L], sd=latitude[2L])
+            simlongitude <- truncNorm(mean=longitude[1L], sd=longitude[2L], lower=-180, upper=180) 
+            if (is.na(simlongitude))  stop("simDoseRateAge(), inefficient sampling of longitude!")
 
           } # end if.
 
           ###9.
+          if (length(latitude)==2L)  {
+
+            simlatitude <- truncNorm(mean=latitude[1L], sd=latitude[2L], lower=-90, upper=90) 
+            if (is.na(simlatitude))  stop("simDoseRateAge(), inefficient sampling of latitude!")
+
+          } # end if.
+
+          ###10.
           if (length(altitude)==2L)  {
 
             simaltitude <- rnorm(n=1L, mean=altitude[1L], sd=altitude[2L])
             
           } # end if.
 
-          ###10.
+          ###11.
           if (length(bulkDensity)==2L)  {
 
             if (bulkDensity[1L]>0.0) {
 
-              repeat {
-            
-                simbulkDensity <- rnorm(n=1L, mean=bulkDensity[1L], sd=bulkDensity[2L])
-                if (simbulkDensity>=0) break
-                n6 <- n6+1
-                if (n6>10) stop("simDoseRateAge(), inefficient sampling, standard error of [bulkDensity] is very large!")
-
-              } # end repeat.
+              simbulkDensity <- truncNorm(mean=bulkDensity[1L], sd=bulkDensity[2L], lower=0.0)
+              if (is.na(simbulkDensity)) stop("simDoseRateAge(), inefficient sampling of bulkDensity!")
 
             } else {
 
@@ -790,19 +762,13 @@ function(dose, minGrainSize, maxGrainSize,
 
           } # end if.
 
-          ###11.
+          ###12.
           if (length(alphaValue)==2L)  {
 
             if (alphaValue[1L]>0.0) {
 
-              repeat {
-
-                simalphaValue <- rnorm(n=1L, mean=alphaValue[1L], sd=alphaValue[2L])
-                if (simalphaValue>=0) break
-                n7 <- n7+1
-                if (n7>10) stop("simDoseRateAge(), inefficient sampling, standard error of [alphaValue] is very large!")
-
-              } # end repeat.
+              simalphaValue <- truncNorm(mean=alphaValue[1L], sd=alphaValue[2L], lower=0.0)
+              if (is.na(simalphaValue))  stop("simDoseRateAge(), inefficient sampling of alphaValue!")
 
             } else {
 
@@ -812,19 +778,13 @@ function(dose, minGrainSize, maxGrainSize,
 
           } # end if.
 
-          ###12.
+          ###13.
           if (length(inKcontent)==2L)  {
 
             if (inKcontent[1L]>0.0) {
 
-              repeat {
-
-                siminKcontent <- rnorm(n=1L, mean=inKcontent[1L], sd=inKcontent[2L])
-                if (siminKcontent>=0) break
-                n8 <- n8+1
-                if (n8>10) stop("simDoseRateAge(), inefficient sampling, standard error of [inKcontent] is very large!")
-
-              } # end repeat.
+              siminKcontent <- truncNorm(mean=inKcontent[1L], sd=inKcontent[2L], lower=0.0) 
+              if (is.na(siminKcontent))  stop("simDoseRateAge(), inefficient sampling of inKcontent!")
           
             } else {
 
@@ -834,14 +794,31 @@ function(dose, minGrainSize, maxGrainSize,
 
           } # end if.
 
+          ###14.
+          if (length(inRbcontent)==2L)  {
+
+            if (inRbcontent[1L]>0.0) {
+
+              siminRbcontent <- truncNorm(mean=inRbcontent[1L], sd=inRbcontent[2L], lower=0.0) 
+              if (is.na(siminRbcontent))  stop("simDoseRateAge(), inefficient sampling of inRbcontent!")
+          
+            } else {
+
+              siminRbcontent <- abs(rnorm(n=1L, mean=inRbcontent[1L], sd=inRbcontent[2L]))
+
+            } # end if. 
+
+          } # end if.
+
         } # end if.
         
         ###
         randomDoseRate <- calDoseRate(minGrainSize=minGrainSize, maxGrainSize=maxGrainSize,
-                                      Ucontent=simUcontent, Thcontent=simThcontent, Kcontent=simKcontent, Wct=simWct,   
-                                      depth=simdepth, longitude=simlongitude, latitude=simlatitude, altitude=simaltitude,
-                                      alphaValue=simalphaValue, inKcontent=siminKcontent, bulkDensity=simbulkDensity,  
-                                      rdcf=rdcf, rba=rba, cfType=cfType, ShallowGamma=ShallowGamma)
+                                      Ucontent=simUcontent, Thcontent=simThcontent, Kcontent=simKcontent, Rbcontent=simRbcontent, 
+                                      Wct=simWct, depth=simdepth, longitude=simlongitude, latitude=simlatitude, altitude=simaltitude,
+                                      alphaValue=simalphaValue, inKcontent=siminKcontent, inRbcontent=siminRbcontent,   
+                                      bulkDensity=simbulkDensity, rdcf=rdcf, rba=rba, cfType=cfType, 
+                                      ShallowGamma=ShallowGamma)
         
         ###
         alphaDoseRates[i] <- randomDoseRate[1]
@@ -875,31 +852,41 @@ function(dose, minGrainSize, maxGrainSize,
     } # end function simDoseRateAge.
 
     ###
-    if (minGrainSize<=63 && maxGrainSize<=63 && !alphaValue>0) {
+    if (minGrainSize<=63 && maxGrainSize<=63 && !alphaValue[1L]>0) {
    
       cat("<",sampleName, "> Note the grain size is <=63 um (fine/medium grain), but the alpha efficiency is zero!\n",sep="")
       
     } # end if.
 
     ###
-    if (minGrainSize>=63 && maxGrainSize>=63 && alphaValue>0) {
+    if (minGrainSize>=63 && maxGrainSize>=63 && alphaValue[1L]>0) {
    
       cat("<",sampleName,"> Note the grain size is >=63 um (coarse grain), but the alpha efficiency is not zero!\n",sep="")
       
     } # end if.
 
     ###
+    if (calRbfromK==TRUE) {
+
+      Rbcontent <- ifelse(Kcontent[1L]<=9.17/38.13, 0, -9.17+38.13*Kcontent[1L])
+      inRbcontent <- ifelse(inKcontent[1L]<=9.17/38.13, 0, -9.17+38.13*inKcontent[1L])
+
+    } # end if. 
+
+    ###
     actualDoseRate <- calDoseRate(minGrainSize=minGrainSize, maxGrainSize=maxGrainSize,
-                                  Ucontent=Ucontent[1L], Thcontent=Thcontent[1L], Kcontent=Kcontent[1L], Wct=Wct[1L], 
-                                  depth=depth[1L], longitude=longitude[1L], latitude=latitude[1L], altitude=altitude[1L],
-                                  alphaValue=alphaValue[1L], inKcontent=inKcontent[1L], bulkDensity=bulkDensity[1L], 
+                                  Ucontent=Ucontent[1L], Thcontent=Thcontent[1L], Kcontent=Kcontent[1L], 
+                                  Rbcontent=Rbcontent[1L], Wct=Wct[1L], depth=depth[1L], longitude=longitude[1L], 
+                                  latitude=latitude[1L], altitude=altitude[1L], alphaValue=alphaValue[1L], 
+                                  inKcontent=inKcontent[1L], inRbcontent=inRbcontent[1L], bulkDensity=bulkDensity[1L], 
                                   rdcf=0, rba=0, cfType=cfType, ShallowGamma=ShallowGamma)
     ###
     errorDoseRate <- simDoseRateAge(dose=dose, minGrainSize=minGrainSize, maxGrainSize=maxGrainSize,
-                                    Ucontent=Ucontent, Thcontent=Thcontent, Kcontent=Kcontent, Wct=Wct,   
-                                    depth=depth, longitude=longitude, latitude=latitude, altitude=altitude, 
-                                    alphaValue=alphaValue, inKcontent=inKcontent, bulkDensity=bulkDensity, 
-                                    rdcf=rdcf, rba=rba, cfType=cfType, ShallowGamma=ShallowGamma, nsim=nsim)
+                                    Ucontent=Ucontent, Thcontent=Thcontent, Kcontent=Kcontent, Rbcontent=Rbcontent,   
+                                    Wct=Wct, depth=depth, longitude=longitude, latitude=latitude, altitude=altitude, 
+                                    alphaValue=alphaValue, inKcontent=inKcontent, inRbcontent=inRbcontent,  
+                                    bulkDensity=bulkDensity, rdcf=rdcf, rba=rba, cfType=cfType, 
+                                    ShallowGamma=ShallowGamma, nsim=nsim)
 
     ###
     lu1 <- quantile(errorDoseRate$simaDR, probs=c(0.025,0.975))

@@ -1,6 +1,8 @@
 \name{analyseBINdata}
 \alias{analyseBINdata}
 \alias{analyseBINdata.default}
+\alias{analyseBINdata0}
+\alias{analyseBINdata0.default}
 
 \title{BIN data analysis}
 
@@ -12,6 +14,11 @@ analyseBINdata(obj_pickBIN, nfchn, nlchn, bg = "late",
                kdc = NULL, dcr = NULL, FR.fchn = NULL, 
                FR.mchn = NULL, FR.lchn = NULL, 
                signal.type = "LxTx", outfile = NULL)
+
+analyseBINdata0(obj_pickBIN, fchn, lchn, bg="late", me=2.0, 
+                distp="p", kph=NULL, kdc=NULL, dcr=NULL, 
+                FR.fchn=NULL, FR.mchn=NULL, FR.lchn=NULL, 
+                signal.type="LxTx", outfile=NULL)
 }
 
 \arguments{
@@ -30,6 +37,10 @@ signal, if \code{bg="early"}, number of counts averaged over channels\cr
 \code{(Delay+nfchn+1L):(Delay+nfchn+nlchn)} will be calculated as the\cr
 backgroud signal. \code{Delay} and \code{On} are obtained internally from the BIN file. 
 }
+
+\item{fchn}{\link{integer}(\bold{required}): channels used for calculating the fast-component signals}
+
+\item{lchn}{\link{integer}(\bold{required}): channels used for calculating the background counts}
 
   \item{bg}{\link{character}(with default): background subtraction method, i.e.,\cr
 \code{bg="early"} or \code{bg="late"}}
@@ -158,7 +169,8 @@ Though function \link{analyseBINdata} is originally designed to analyze CW-OSL d
    data(BIN)
    obj_pickBIN <- pickBINdata(BIN, Position=c(2,4,6,8,10), 
                               LType="OSL", view=FALSE)
-   obj_analyseBIN <- analyseBINdata(obj_pickBIN, nfchn=3, nlchn=20) 
+   obj_analyseBIN <- analyseBINdata(obj_pickBIN, nfchn=4, nlchn=20) 
+   #obj_analyseBIN <- analyseBINdata0(obj_pickBIN, fchn=1:4, nlchn=231:250)
    obj_analyseBIN$SARdata
 }
 
